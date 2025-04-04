@@ -1,0 +1,44 @@
+FROM python:3.12-slim
+
+# Variables de entorno para un mejor comportamiento de Python
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+WORKDIR /app
+
+# Instalar dependencias del sistema
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Crear usuario no-root
+RUN adduser --disabled-password --gecos "" appuser && \
+    mkdir -p /app/data && \
+    chown -R appuser:appuser /app
+
+# Copiar el código fuente y el archivo de definición del proyecto
+COPY --chown=appuser:appuser src ./src
+COPY --chown=appuser:appuser docs ./docs
+COPY --chown=appuser:appuser pyproject.toml README.md ./
+COPY --chown=appuser:appuser locale ./locale
+
+# Cambiar a usuario no-root antes de instalar las dependencias
+USER appuser
+ENV PATH="/home/appuser/.local/bin:${PATH}"
+
+# Crear directorio para TinyDB
+RUN mkdir -p /app/data
+ENV DATA_DIR=/app/data
+
+# Instalar dependencias vía pip (usa -e . para instalar el proyecto localmente)
+RUN pip install --no-cache-dir -e .
+
+# Exponer el puerto de la API
+EXPOSE 80
+
+# Ejecutar la API mediante el paquete (ojo al parámetro -m)
+CMD ["python", "-m", "uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "80"]

@@ -1,0 +1,37 @@
+FROM python:3.12-slim
+
+# Variables de entorno para un mejor comportamiento de Python
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+WORKDIR /app
+
+# Instalar dependencias del sistema
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Crear usuario no-root
+RUN adduser --disabled-password --gecos "" appuser && \
+    chown -R appuser:appuser /app
+
+# Copiar el código fuente y el archivo de definición del proyecto
+COPY --chown=appuser:appuser src ./src
+COPY --chown=appuser:appuser pyproject.toml README.md ./
+COPY --chown=appuser:appuser locale ./locale
+
+# Cambiar a usuario no-root
+USER appuser
+ENV PATH="/home/appuser/.local/bin:${PATH}"
+
+# Instalar dependencias vía pip (usa -e . para instalar el proyecto localmente)
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -e .
+
+# Exponer el puerto de Streamlit
+EXPOSE 8501
+
+CMD ["streamlit", "run", "src/frontend/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
