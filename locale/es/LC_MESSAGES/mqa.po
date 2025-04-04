@@ -1,0 +1,284 @@
+# Traducciones al español para el paquete PACKAGE.
+# Copyright (C) 2025 EL TITULAR DE LOS DERECHOS DE AUTOR DEL PAQUETE
+# Este archivo se distribuye bajo la misma licencia que el paquete PACKAGE.
+#  <96422458+mjanez@users.noreply.github.com>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-03-24 10:00+0100\n"
+"PO-Revision-Date: 2025-03-24 10:01+0100\n"
+"Last-Translator:  <96422458+mjanez@users.noreply.github.com>\n"
+"Language-Team: Spanish <es@tp.org.es>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/frontend/app.py:24
+msgid "Metadata Quality Assessment Tool"
+msgstr "Herramienta de Evaluación de Calidad de Metadatos"
+
+#: src/frontend/app.py:25
+msgid "Evaluate the quality of open data catalogs based on FAIR+C principles"
+msgstr "Evalúa la calidad de los catálogos de datos abiertos según los principios FAIR+C"
+
+#: src/frontend/app.py:28
+msgid "Enter Catalog URL"
+msgstr "Introducir URL del Catálogo"
+
+#: src/frontend/app.py:31
+msgid "URL of the catalog in RDF/TTL format"
+msgstr "URL del catálogo en formato RDF/TTL"
+
+#: src/frontend/app.py:36
+msgid "Validate"
+msgstr "Validar"
+
+#: src/frontend/app.py:38
+msgid "Show History"
+msgstr "Mostrar Historial"
+
+#: src/frontend/app.py:42
+msgid "Validating catalog... This may take a minute."
+msgstr "Validando catálogo... Esto puede tardar un momento."
+
+#: src/frontend/app.py:55
+msgid "Validation complete! Scroll down to see results."
+msgstr "¡Validación completa! Desplázate hacia abajo para ver los resultados."
+
+#: src/frontend/app.py:58
+#, python-brace-format
+msgid "Error validating URL: {0}"
+msgstr "Error al validar la URL: {0}"
+
+#: src/frontend/app.py:61 src/frontend/app.py:84
+#, python-brace-format
+msgid "Error: {0}"
+msgstr "Error: {0}"
+
+#: src/frontend/app.py:63
+msgid "Fetching history..."
+msgstr "Obteniendo historial..."
+
+#: src/frontend/app.py:78
+#, python-brace-format
+msgid "Found {0} historical reports."
+msgstr "Se encontraron {0} informes históricos."
+
+#: src/frontend/app.py:81
+#, python-brace-format
+msgid "Error fetching history: {0}"
+msgstr "Error al obtener el historial: {0}"
+
+#: src/frontend/app.py:91
+msgid "Quality Assessment Results"
+msgstr "Resultados de Evaluación de Calidad"
+
+#: src/frontend/app.py:97
+msgid "Total Score"
+msgstr "Puntuación Total"
+
+#: src/frontend/app.py:100
+msgid "Rating"
+msgstr "Calificación"
+
+#: src/frontend/app.py:103
+msgid "Assessment Date"
+msgstr "Fecha de Evaluación"
+
+#: src/frontend/app.py:106
+msgid "Download Report:"
+msgstr "Descargar Informe:"
+
+#: src/frontend/app.py:118
+msgid "JSON"
+msgstr "JSON"
+
+#: src/frontend/app.py:122
+msgid "Download the original JSON report"
+msgstr "Descargar el informe JSON original"
+
+#: src/frontend/app.py:125
+#, python-brace-format
+msgid "Error generating JSON report: {0}"
+msgstr "Error al generar el informe JSON: {0}"
+
+#: src/frontend/app.py:138
+msgid "JSON-LD (DQV)"
+msgstr "JSON-LD (DQV)"
+
+#: src/frontend/app.py:142
+msgid "Download the report in JSON-LD format using DQV vocabulary"
+msgstr "Descargar el informe en formato JSON-LD usando el vocabulario DQV"
+
+#: src/frontend/app.py:145
+#, python-brace-format
+msgid "Error generating JSON-LD report: {0}"
+msgstr "Error al generar el informe JSON-LD: {0}"
+
+#: src/frontend/app.py:148
+msgid "Dimension Scores"
+msgstr "Puntuaciones por Dimensión"
+
+#: src/frontend/app.py:151
+msgid "Hierarchical"
+msgstr "Jerárquico"
+
+#: src/frontend/app.py:151
+msgid "Bar Chart"
+msgstr "Gráfico de Barras"
+
+#: src/frontend/app.py:151
+msgid "Radar"
+msgstr "Radar"
+
+#: src/frontend/app.py:362
+msgid "Language"
+msgstr "Idioma"
+
+#: src/frontend/app.py:364
+msgid "Select language"
+msgstr "Seleccionar idioma"
+
+#: src/frontend/app.py:377
+msgid "Navigation"
+msgstr "Navegación"
+
+#: src/frontend/app.py:378
+msgid "Go to:"
+msgstr "Ir a:"
+
+#: src/frontend/app.py:378
+msgid "MQA validation"
+msgstr "Validación MQA"
+
+#: src/frontend/app.py:378
+msgid "Analytics Dashboard"
+msgstr "Panel de Análisis"
+
+#: src/frontend/visualizations.py:25 src/frontend/visualizations.py:292
+msgid "Findability"
+msgstr "Descubrimiento"
+
+#: src/frontend/visualizations.py:26 src/frontend/visualizations.py:293
+msgid "Accessibility"
+msgstr "Accesibilidad"
+
+#: src/frontend/visualizations.py:27 src/frontend/visualizations.py:294
+msgid "Interoperability"
+msgstr "Interoperabilidad"
+
+#: src/frontend/visualizations.py:28 src/frontend/visualizations.py:295
+msgid "Reusability"
+msgstr "Reutilización"
+
+#: src/frontend/visualizations.py:29 src/frontend/visualizations.py:296
+msgid "Contextuality"
+msgstr "Contexto"
+
+#: src/frontend/app.py
+msgid "About"
+msgstr "Acerca de"
+
+#: src/frontend/app.py
+msgid "Hierarchical view showing the relationship between dimensions and their metrics"
+msgstr "Vista jerárquica que muestra la relación entre dimensiones y sus métricas"
+
+msgid "Bar chart showing percentage scores for each dimension"
+msgstr "Gráfico de barras que muestra los porcentajes de puntuación para cada dimensión"
+
+msgid "Radar chart showing relative performance across all dimensions"
+msgstr "Gráfico radar que muestra el rendimiento relativo en todas las dimensiones"
+
+msgid "Historical Reports"
+msgstr "Informes Históricos"
+
+msgid "Score Evolution Over Time"
+msgstr "Evolución de la Puntuación en el Tiempo"
+
+msgid "Total Quality Score Over Time"
+msgstr "Puntuación Total de Calidad en el Tiempo"
+
+msgid "Dimension Scores Over Time"
+msgstr "Puntuaciones por Dimensión en el Tiempo"
+
+msgid "Score"
+msgstr "Puntuación"
+
+msgid "All Historical Reports"
+msgstr "Todos los Informes Históricos"
+
+msgid "Report from {0}"
+msgstr "Informe del {0}"
+
+msgid "Dimension Scores:"
+msgstr "Puntuaciones por Dimensión:"
+
+msgid "Detailed Metrics"
+msgstr "Métricas Detalladas"
+
+msgid "Metric"
+msgstr "Métrica"
+
+msgid "Count"
+msgstr "Cantidad"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Percentage (%)"
+msgstr "Porcentaje (%)"
+
+msgid "Points"
+msgstr "Puntos"
+
+msgid "Max Points"
+msgstr "Puntos Máximos"
+
+msgid "Quality Scores by Dimension (%)"
+msgstr "Puntuaciones de Calidad por Dimensión (%)"
+
+msgid "Score (%)"
+msgstr "Puntuación (%)"
+
+msgid "URL"
+msgstr "URL"
+
+msgid "Direct Input"
+msgstr "Entrada Directa"
+
+msgid "Format"
+msgstr "Formato"
+
+msgid "Paste RDF content here"
+msgstr "Pega el contenido RDF aquí"
+
+msgid "Enter Metadata Source"
+msgstr "Introducir Fuente de Metadatos"
+
+msgid "Validating content... This may take a minute."
+msgstr "Validando contenido... Esto puede tardar un minuto."
+
+msgid "Error validating content: {0}"
+msgstr "Error al validar el contenido: {0}"
+
+msgid "Select profile"
+msgstr "Seleccionar perfil"
+
+msgid "Compliance"
+msgstr "Cumplimiento"
+
+msgid "Quality dimensions Radar"
+msgstr "Radar de dimensiones de calidad"
+
+msgid "Quality Score (%)"
+msgstr "Puntuación de calidad (%)"
+
+msgid "Suitable for evaluating individual Datasets/Data Services or small Catalogs (up to 500KB)"
+msgstr "Adecuado para evaluar conjuntos de datos/servicios de datos individuales o catálogos pequeños (hasta 500 KB)."
+
+msgid "Detailed metrics for each dimension showing count, percentage, and points"
+msgstr "Métricas detalladas para cada dimensión que muestran recuento, porcentaje y puntos"
