@@ -1,26 +1,33 @@
 # Metadata Quality Stack
 [![ES](https://img.shields.io/badge/lang-ES-yellow.svg)](README.es.md) [![EN](https://img.shields.io/badge/lang-EN-blue.svg)](README.md)
 
-A comprehensive toolkit for analyzing the quality of open data metadata. Based on the European Data Portal's Metadata Quality Assessment (MQA) methodology.
+A comprehensive toolkit for analyzing the quality of open data metadata. Based on the European Data Portal's Metadata Quality Assessment ([MQA](https://data.europa.eu/mqa/methodology?locale=en)) methodology.
 
 ## Overview
 
-This tool helps data publishers and consumers evaluate and improve the quality of metadata in open data catalogs. It analyzes metadata against the FAIR+C principles (Findability, Accessibility, Interoperability, Reusability, and Contextuality) and provides detailed reports on quality metrics.
+This tool helps data publishers and consumers evaluate and improve the quality of metadata in open data catalogs. It analyzes metadata against the [FAIR+C principles](https://www.ccsd.cnrs.fr/en/fair-guidelines/) (Findability, Accessibility, Interoperability, Reusability, and Contextuality) and provides detailed reports on quality metrics.
 
 ## Features
 
-- **Quality Assessment**: Evaluate metadata according to the MQA methodology
+- **Quality Assessment**: Evaluate metadata according to the [MQA methodology](https://data.europa.eu/mqa/methodology?locale=en)
 - **API Integration**: REST API for programmatic access to validation services
 - **Web Interface**: User-friendly interface for non-technical users
 - **Historical Tracking**: Store and visualize quality evolution over time
-- **SHACL Validation**: Check compliance with DCAT-AP, DCAT-AP-ES, and NTI-RISP standards
+- **[SHACL](https://www.w3.org/TR/shacl/) Validation**: Check compliance with [DCAT-AP](https://semiceu.github.io/DCAT-AP/releases/3.0.0/), [DCAT-AP-ES](https://github.com/datosgobes/DCAT-AP-ES), and [NTI-RISP](https://github.com/datosgobes/NTI-RISP) standards.
+
+![Home](/docs/img/app_1.png)
+![Home](/docs/img/app_2.png)
+![Home](/docs/img/app_3.png)
+![Home](/docs/img/app_4.png)
+![Home](/docs/img/app_5.png)
+![Home](/docs/img/openapi.png)
 
 ## Architecture
 
 The project consists of two main components:
 
-1. **API**: FastAPI-based backend that validates metadata and generates reports
-2. **Frontend**: Streamlit-based web interface for visualizing reports
+1. **API**: [FastAPI](https://fastapi.tiangolo.com/)-based [backend](#backend-api) that validates metadata and generates reports
+2. **Frontend**: [Streamlit](https://streamlit.io/)-based [web interface](#frontend-web-interface) for visualizing reports
 
 ## Installation
 
@@ -60,6 +67,52 @@ The project consists of two main components:
    streamlit run src/frontend/app.py
    ```
 
+## Usage
+
+### Backend (API)
+The API provides the following endpoints:
+
+- **Base API**: `http://localhost:80/`
+- **Swagger UI Documentation**. Interactive interface to test the API: `http://localhost:80/docs`
+- **ReDoc Documentation**. Detailed documentation in more readable format: `http://localhost:80/redoc`
+- **Endpoints**:
+  - `POST` `/validate`: Validate metadata from a URL
+  - `POST` `/validate-content`: Validate metadata provided directly as content
+  - `GET` `/report/{url}`: Get the most recent report for a URL
+  - `GET` `/history/{url}`: Get report history for a URL
+  - `GET` `/reports/by-date`: Fetch reports within a specified date range
+  - `GET` `/reports/by-rating/{rating}`: Get reports with a specific quality rating
+
+### Frontend (Web Interface)
+
+- **Web Interface**: `http://localhost:8501/`
+- **Main sections**:
+  1. **Validation Options**:
+     - Enter a URL to a catalog ()`RDF/XML`, `TTL`, `JSON-LD` and `N3` formats)
+     - Paste RDF content directly for validation
+     - Select different compliance profiles ([DCAT-AP](https://interoperable-europe.ec.europa.eu/collection/semic-support-centre/dcat-ap), [DCAT-AP-ES](https://github.com/datosgobes/DCAT-AP-ES), [NTI-RISP](https://github.com/datosgobes/NTI-RISP))
+
+  2. **Visualization Features**:
+     - Hierarchical chart showing dimension and metric relationships
+     - Radar chart displaying performance across [FAIR+C dimensions](https://data.europa.eu/mqa/methodology?locale=en)
+     - Detailed metrics breakdown with counts and percentages
+
+  3. **Report Management**:
+     - View historical reports and track quality evolution over time
+     - Export reports in both JSON and JSON-LD (DQV vocabulary) formats
+     - Score evolution charts for long-term quality tracking
+
+  4. **Analytics Dashboard**:
+     - Overview statistics of catalogs evaluated
+     - Distribution of quality ratings
+     - Comparison of dimension averages
+     - Top and bottom performing catalogs
+     - Dimension correlation analysis
+
+  5. **Multilingual Support**:
+     - Toggle between English and Spanish interfaces
+     - Localized metric descriptions and labels
+
 ## Development
 
 For development, we recommend using VS Code with the Dev Container configuration provided:
@@ -77,47 +130,30 @@ cd metadata-quality-stack
 msgfmt -o locale/es/LC_MESSAGES/mqa.mo locale/es/LC_MESSAGES/mqa.po
 ``` 
 
-## Usage
+## Update SSL Certificate
+To update the local SSL certificate, follow these steps:
 
-### API
+1. Generate a new certificate and private key:
+```sh
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout nginx/setup/metadata-quality-stack.key \
+  -out nginx/setup/metadata-quality-stack.crt \
+  -subj "/C=ES/ST=Madrid/L=Madrid/O=Development/CN=localhost"
+```
 
-The API provides the following endpoints:
+2. Verify that the files have been created correctly:
+```sh
+ls -l nginx/setup/metadata-quality-stack.*
+```
 
-- `POST /validate`: Validate metadata from a URL
-- `POST /validate-content`: Validate metadata directly provided as content
-- `GET /report/{url}`: Get the latest report for a URL
-- `GET /history/{url}`: Get the history of reports for a URL
-- `GET /reports/by-date`: Get reports within a specified date range
-- `GET /reports/by-rating/{rating}`: Get reports with a specific quality rating
+3. Restart the `nginx` container to apply the changes:
+```sh
+docker compose restart nginx
+```
 
-All API endpoints are documented with OpenAPI and can be explored at `/docs` when the API is running.
+> [!CAUTION]
+> This certificate is for local development only. In production, use a valid certificate from a certificate authority.
 
-### Web Interface
+## Licence
 
-The web interface offers:
-
-1. **Validation Options**:
-   - Enter a URL to a catalog ()`RDF/XML`, `TTL`, `JSON-LD` and `N3` formats)
-   - Paste RDF content directly for validation
-   - Select different compliance profiles ([DCAT-AP](https://interoperable-europe.ec.europa.eu/collection/semic-support-centre/dcat-ap), [DCAT-AP-ES](https://github.com/datosgobes/DCAT-AP-ES), [NTI-RISP](https://github.com/datosgobes/NTI-RISP))
-
-2. **Visualization Features**:
-   - Hierarchical chart showing dimension and metric relationships
-   - Radar chart displaying performance across [FAIR+C dimensions](https://data.europa.eu/mqa/methodology?locale=en)
-   - Detailed metrics breakdown with counts and percentages
-
-3. **Report Management**:
-   - View historical reports and track quality evolution over time
-   - Export reports in both JSON and JSON-LD (DQV vocabulary) formats
-   - Score evolution charts for long-term quality tracking
-
-4. **Analytics Dashboard**:
-   - Overview statistics of catalogs evaluated
-   - Distribution of quality ratings
-   - Comparison of dimension averages
-   - Top and bottom performing catalogs
-   - Dimension correlation analysis
-
-5. **Multilingual Support**:
-   - Toggle between English and Spanish interfaces
-   - Localized metric descriptions and labels
+See the [LICENSE](/LICENSE) file for license rights and limitations (MIT).
