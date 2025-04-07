@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="stylesheet" href="/css/index.css">
+        <title>Metadata Quality Stack landing page</title>
+    </head>
+    <body>
+        <header>
+            <h2>Metadata Quality Stack landing page</h2>
+        </header>
+        <div class="content">
+            <ul>
+                <li>
+                    <a href="/docs" class="card-content">
+                        <img src="/img/editor.svg" alt="Open API">
+                        <p>Open API</p>
+                    </a>
+                </li>
+                <li>
+                    <div class="card-content">
+                        <a href="/api">
+                            <img src="/img/sparql.svg" alt="API Endpoint">
+                            <p>API Endpoint</p>
+                        </a>
+                        <code id="endpoint-url" title="Click to copy"></code>
+                    </div>
+                </li>
+                <li>
+                    <a href="/mqa" class="card-content">
+                        <img src="/img/validator.svg" alt="MQA Validator">
+                        <p>MQA Validator</p>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="info-section">
+                <h3>Metadata Quality Assessment (MQA) Methodology</h3>
+                <p>The MQA is a tool developed to assess the quality of metadata following DCAT standards. It helps data providers and portals evaluate their metadata quality and receive improvement suggestions.</p>
+                
+                <h4>Key Features</h4>
+                <ul>
+                    <li><strong>Download Reports:</strong> Get detailed quality assessment reports</li>
+                    <li><strong>Dashboard:</strong> Visual overview of metadata quality metrics</li>
+                    <li><strong>Catalogues:</strong> Manage and assess multiple data catalogs</li>
+                    <li><strong>Methodology:</strong> Based on FAIR principles and DCAT-AP standards</li>
+                </ul>
+
+                <h4>Quality Dimensions</h4>
+                <ul>
+                    <li><strong>Findability (100 pts):</strong> Keywords, categories, geo/time search</li>
+                    <li><strong>Accessibility (100 pts):</strong> URL accessibility, download links</li>
+                    <li><strong>Interoperability (110 pts):</strong> Format standards, DCAT-AP compliance</li>
+                    <li><strong>Reusability (75 pts):</strong> Licensing, contact info, publisher data</li>
+                    <li><strong>Contextuality (20 pts):</strong> Rights, file size, dates</li>
+                </ul>
+
+                <h4>SHACL Validation Levels</h4>
+                <ul>
+                    <li><strong>Level All:</strong> Base, vocabularies, recommended properties, ranges</li>
+                    <li><strong>Level 3:</strong> Base, vocabularies, recommended properties</li>
+                    <li><strong>Level 2:</strong> Base, vocabularies</li>
+                    <li><strong>Level 1:</strong> Base only</li>
+                </ul>
+
+                <h4>Quality Rating Scale</h4>
+                <table>
+                    <tr>
+                        <th>Rating</th>
+                        <th>Points Range</th>
+                    </tr>
+                    <tr>
+                        <td>Excellent</td>
+                        <td>351 - 405</td>
+                    </tr>
+                    <tr>
+                        <td>Good</td>
+                        <td>221 - 350</td>
+                    </tr>
+                    <tr>
+                        <td>Sufficient</td>
+                        <td>121 - 220</td>
+                    </tr>
+                    <tr>
+                        <td>Bad</td>
+                        <td>0 - 120</td>
+                    </tr>
+                </table>
+
+                <h4>References</h4>
+                <ul>
+                    <li><a href="https://www.w3.org/TR/vocab-dcat-3/" target="_blank">DCAT v3 Specification (W3C)</a></li>
+                    <li><a href="https://www.go-fair.org/fair-principles/" target="_blank">FAIR Principles</a></li>
+                    <li><a href="https://www.w3.org/TR/shacl/" target="_blank">SHACL Specification (W3C)</a></li>
+                    <li><a href="https://joinup.ec.europa.eu/collection/semantic-interoperability-community-semic/solution/dcat-application-profile-data-portals-europe" target="_blank">DCAT-AP (EU)</a></li>
+                </ul>
+            </div>
+        <footer>
+            <a href="https://github.com/mjanez/metadata-quality-stack" class="icon-button">
+                <img src="/img/github.svg" alt="GitHub icon">
+            </a>
+        </footer>
+        <script src="/js/copy-url.js"></script>
+    </body>
+</html>

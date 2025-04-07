@@ -4,7 +4,11 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    MQA_FRONTEND_PORT=8501 \
+    MQA_FRONTEND_LOCATION=/mqa \
+    PROXY_SERVER_NAME=localhost \
+    API_BASE_URL=http://${PROXY_SERVER_NAME}/api
 
 WORKDIR /app
 
@@ -22,6 +26,7 @@ RUN adduser --disabled-password --gecos "" appuser && \
 COPY --chown=appuser:appuser src ./src
 COPY --chown=appuser:appuser pyproject.toml README.md ./
 COPY --chown=appuser:appuser locale ./locale
+COPY --chown=appuser:appuser docker/scripts/frontend_entrypoint.sh /app/entrypoint.sh
 
 # Cambiar a usuario no-root
 USER appuser
@@ -32,6 +37,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -e .
 
 # Exponer el puerto de Streamlit
-EXPOSE 8501
+EXPOSE ${MQA_FRONTEND_PORT}
 
-CMD ["streamlit", "run", "src/frontend/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Usar el script de entrada
+ENTRYPOINT ["/app/entrypoint.sh"]

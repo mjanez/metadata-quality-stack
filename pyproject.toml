@@ -20,6 +20,7 @@ classifiers = [
 dependencies = [
     "fastapi>=0.95.0",
     "uvicorn>=0.21.1",
+    "gunicorn>=23.0.0",
     "rdflib>=6.3.2",
     "pyshacl>=0.20.0",
     "sparqlwrapper>=2.0.0",

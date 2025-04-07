@@ -23,7 +23,7 @@ def display_dashboard(api_base_url: str = None):
     """
     # Use the provided API URL or fallback to the environment variable
     if api_base_url is None:
-        api_base_url = os.environ.get("API_BASE_URL", "http://api:80")
+        api_base_url = os.environ.get("API_BASE_URL", "https://localhost/api")
         
     st.title("Metadata Quality Analytics Dashboard")
     st.write("Analyze trends and statistics across all evaluated catalogs")

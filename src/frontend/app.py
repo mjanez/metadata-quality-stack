@@ -17,7 +17,7 @@ from src.frontend.i18n import _, set_language, LANGUAGES, DEFAULT_LANGUAGE, get_
 from src.frontend.config import METRIC_LABELS, PROFILES, FORMAT_MIME_TYPES
 
 # API endpoint (use environment variable or fallback to localhost)
-API_BASE_URL = os.environ.get("API_BASE_URL", "http://api:80")
+API_BASE_URL = os.environ.get("API_BASE_URL", "https://localhost/api")
 
 def display_validation_tool():
     """Display the MQA validation interface."""
