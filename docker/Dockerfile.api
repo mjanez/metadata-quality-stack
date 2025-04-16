@@ -8,13 +8,17 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Instalar dependencias del sistema
+# Instalar dependencias del sistema con certificados CA estándar
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
     && apt-get clean \
+    && update-ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+# Actualizar el almacén de certificados
+RUN update-ca-certificates
+    
 # Crear usuario no-root
 RUN adduser --disabled-password --gecos "" appuser && \
     mkdir -p /app/data && \

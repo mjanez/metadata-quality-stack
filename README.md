@@ -127,6 +127,11 @@ After updating the translation file (`mqa.po`), don't forget to compile it to ge
 
 ```sh
 cd metadata-quality-stack
+
+# Extract i18n texts and update POT of apps (e.g. app.py)
+xgettext -d mqa --from-code=UTF-8 -o locales/mqa.pot src/frontend/app.py
+
+# Compile MO files (Spanish)
 msgfmt -o locale/es/LC_MESSAGES/mqa.mo locale/es/LC_MESSAGES/mqa.po
 ``` 
 

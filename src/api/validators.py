@@ -18,12 +18,14 @@ from rdflib.namespace import RDF, RDFS, DCTERMS, DCAT, XSD
 from pyshacl import validate
 from io import BytesIO, StringIO
 
+from .helpers import check_url_status
+from .shacl_updater import update_shacl_files
 from .converters import get_metric_label
 from .models import Rating, DimensionType
 from .config import (
     RATING_THRESHOLDS, MAX_SCORES, SHACLLevel,
     DCAT_AP_SHACL_FILES, DCAT_AP_ES_SHACL_FILES, DCAT_AP_ES_HVD_SHACL_FILES, NTI_RISP_SHACL_FILES,
-    DCAT_AP_SHAPES_URL, DCAT_AP_ES_SHAPES_URL, NTI_RISP_SHAPES_URL, DEFAULT_METRICS, SSL_VERIFY, MQA_VOCABS
+    DCAT_AP_SHAPES_URL, DCAT_AP_ES_SHAPES_URL, NTI_RISP_SHAPES_URL, DEFAULT_METRICS, SSL_VERIFY, ALLOW_INSECURE_URLS, MQA_VOCABS
 )
 
 # Configure logging
@@ -271,22 +273,30 @@ class EntityTypeURLStatusChecker(MetricChecker):
         
         logger.debug(f"Found {len(entities_of_type)} entities of type {self.entity_type}")
         
-        # Get timeout from context if available
-        timeout = context.get('timeout', 5) if context else 5
-        
+        # PRIMERO: Recopilar todas las URLs para verificar
         for entity in entities_of_type:
-            for _, _, url in g.triples((entity, self.property_uri, None)):
-                if isinstance(url, URIRef) or isinstance(url, Literal):
-                    urls_to_check.append((entity, str(url)))
-                    logger.debug(f"URL found for entity {entity}: {url}")
-    
+            for _, _, url_obj in g.triples((entity, self.property_uri, None)):
+                if isinstance(url_obj, URIRef):
+                    url = str(url_obj)
+                    urls_to_check.append((entity, url))
+                    logger.debug(f"Found URL to check: {url} for entity {entity}")
+                elif isinstance(url_obj, Literal):
+                    url = str(url_obj)
+                    urls_to_check.append((entity, url))
+                    logger.debug(f"Found URL literal to check: {url} for entity {entity}")
+        
         total = len(urls_to_check)
         logger.debug(f"Total URLs to validate: {total}")
         
         if total == 0:
             logger.debug(f"No URLs found to validate with property {self.property_uri}")
             return (0, 0)
-    
+        
+        # Get settings from context
+        timeout = context.get('timeout', 5) if context else 5
+        verify_ssl = not ALLOW_INSECURE_URLS if ALLOW_INSECURE_URLS else SSL_VERIFY
+        
+        # SEGUNDO: Verificar cada URL
         for entity, url in urls_to_check:
             try:
                 # Try to normalize URL if it's not properly formatted
@@ -297,7 +307,7 @@ class EntityTypeURLStatusChecker(MetricChecker):
                 # First try HEAD request which is faster
                 try:
                     logger.debug(f"Attempting HEAD request for {url}")
-                    response = requests.head(url, timeout=timeout, allow_redirects=True, verify=SSL_VERIFY)
+                    response = requests.head(url, timeout=timeout, allow_redirects=True, verify=verify_ssl)
                     if 200 <= response.status_code < 300:
                         count += 1
                         logger.debug(f"✅ Valid URL (HEAD) {url} - Status: {response.status_code}")
@@ -310,13 +320,16 @@ class EntityTypeURLStatusChecker(MetricChecker):
                     pass
                 
                 # If HEAD didn't work or status code wasn't 2xx, try GET
-                logger.debug(f"Attempting GET request for {url}")
-                response = requests.get(url, timeout=timeout, allow_redirects=True, verify=SSL_VERIFY)
-                if 200 <= response.status_code < 300:
-                    count += 1
-                    logger.debug(f"✅ Valid URL (GET) {url} - Status: {response.status_code}")
-                else:
-                    logger.debug(f"❌ GET request failed for {url} - Status: {response.status_code}")
+                try:
+                    logger.debug(f"Attempting GET request for {url}")
+                    response = requests.get(url, timeout=timeout, allow_redirects=True, verify=verify_ssl)
+                    if 200 <= response.status_code < 300:
+                        count += 1
+                        logger.debug(f"✅ Valid URL (GET) {url} - Status: {response.status_code}")
+                    else:
+                        logger.debug(f"❌ GET request failed for {url} - Status: {response.status_code}")
+                except Exception as e:
+                    logger.debug(f"GET request failed for {url}: {str(e)}")
             
             except Exception as e:
                 logger.error(f"Error validating URL {url} for entity {entity}: {str(e)}")
@@ -373,35 +386,37 @@ class VocabularyComplianceChecker(MetricChecker):
 class SHACLComplianceChecker(MetricChecker):
     """Check compliance with SHACL shapes."""
     
-    def __init__(self, shacl_files: List[str], fallback_url: str = None, conformance_ratio: float = 0.5):
+    def __init__(self, shacl_files: List[str], fallback_url: str = None, auto_update: bool = True):
         """
         Initialize the checker with SHACL shapes files.
         
         Args:
             shacl_files: List of paths to SHACL shapes files
             fallback_url: URL to use if local files are not available
-            conformance_ratio: Ratio of resources considered compliant on failure
+            auto_update: Whether to automatically update SHACL files
         """
         self.shacl_files = shacl_files
         self.fallback_url = fallback_url
-        self.conformance_ratio = conformance_ratio
+        self.auto_update = auto_update
     
     def check(self, g: Graph, resources: List[URIRef], context: Dict[str, Any] = None) -> Tuple[int, int]:
         """
-        Check SHACL compliance.
+        Check SHACL compliance. The entire graph either conforms or it doesn't.
         
         Args:
             g: RDFlib Graph
-            resources: Resource URIs to check
+            resources: Resource URIs (not used for SHACL validation)
             context: Optional additional context
             
         Returns:
-            Tuple of (count of compliant resources, total resources)
+            Tuple of (1 or 0 for compliance, 1 for the total)
         """
-        total = len(resources)
-        
-        if total == 0:
-            return (0, 0)
+        # Update SHACL files if auto-update is enabled
+        if self.auto_update:
+            try:
+                update_shacl_files()
+            except Exception as e:
+                logger.warning(f"Failed to update SHACL files: {e}")
         
         try:
             # Load all SHACL shapes into a single graph
@@ -430,49 +445,43 @@ class SHACLComplianceChecker(MetricChecker):
             
             if not local_files_loaded:
                 logger.error("Could not load any SHACL shapes")
-                return (0, total)
+                return (0, 1)  # No conformidad si no se pueden cargar las formas SHACL
             
             # Perform validation
             try:
                 conforms, results_graph, results_text = validate(g, shacl_graph=shapes_graph)
                 logger.info(f"SHACL validation result: {'Conforms' if conforms else 'Does not conform'}")
                 
-                if conforms:
-                    return (total, total)
-                else:
-                    # TODO: Implement more sophisticated partial compliance calculation
-                    # based on the number of failed validations compared to total
-                    
-                    # For now, use a predefined ratio
-                    compliant_count = int(total * self.conformance_ratio)
-                    return (compliant_count, total)
-                    
+                # Binary compliance - 1 if conforms, 0 if not
+                return (1, 1) if conforms else (0, 1)
+                        
             except Exception as e:
-                logger.error(f"Error during SHACL validation: {str(e)}")
-                return (0, total)
+                if "global flags not at the start of the expression" in str(e):
+                    logger.warning(f"SHACL validation skipped due to regex format issues in SHACL shapes: {str(e)}")
+                    return (0, 1)  # No conformidad para errores de expresiones regulares
+                else:
+                    logger.error(f"Error during SHACL validation: {str(e)}")
+                    return (0, 1)  # No conformidad para otros errores
             
         except Exception as e:
             logger.error(f"Error in SHACL compliance check: {str(e)}")
-            return (0, total)
+            return (0, 1)  # No conformidad para errores generales
 
 class MultiLevelSHACLComplianceChecker(MetricChecker):
     """Check compliance with multiple levels of SHACL validation."""
     
     def __init__(self, shacl_files_by_level: Dict[int, List[str]], 
-                 fallback_url: str = None, conformance_ratio: float = 0.5,
-                 level: int = SHACLLevel.LEVEL_1):
+                 fallback_url: str = None, level: int = SHACLLevel.LEVEL_1):
         """
         Initialize the checker with SHACL shapes files by level.
         
         Args:
             shacl_files_by_level: Dictionary mapping levels to lists of SHACL files
             fallback_url: URL to use if local files are not available
-            conformance_ratio: Ratio of resources considered compliant on failure
             level: The validation level to use (1-3)
         """
         self.shacl_files_by_level = shacl_files_by_level
         self.fallback_url = fallback_url
-        self.conformance_ratio = conformance_ratio
         self.level = level
     
     def check(self, g: Graph, resources: List[URIRef], context: Dict[str, Any] = None) -> Tuple[int, int]:
@@ -481,11 +490,11 @@ class MultiLevelSHACLComplianceChecker(MetricChecker):
         
         Args:
             g: RDFlib Graph
-            resources: Resource URIs to check
+            resources: Resource URIs (not used for SHACL validation)
             context: Optional additional context
             
         Returns:
-            Tuple of (count of compliant resources, total resources)
+            Tuple of (1 or 0 for compliance, 1 for the total)
         """
         # Get the validation level from context if provided
         level = context.get("shacl_level", self.level) if context else self.level
@@ -496,8 +505,7 @@ class MultiLevelSHACLComplianceChecker(MetricChecker):
         # Create a standard SHACL checker with these files
         checker = SHACLComplianceChecker(
             shacl_files=shacl_files,
-            fallback_url=self.fallback_url,
-            conformance_ratio=self.conformance_ratio
+            fallback_url=self.fallback_url
         )
         
         # Run the check
@@ -551,24 +559,21 @@ def register_standard_checkers():
                             MultiLevelSHACLComplianceChecker(
                                 DCAT_AP_SHACL_FILES,
                                 fallback_url=DCAT_AP_SHAPES_URL,
-                                conformance_ratio=1,
-                                level=SHACLLevel.LEVEL_2  # Default to Level 2
+                                level=SHACLLevel.LEVEL_2
                             ))
     
     # DCAT-AP-ES compliance
     registry.register_checker("dcat_ap_es_compliance", 
                             SHACLComplianceChecker(
                                 DCAT_AP_ES_SHACL_FILES,
-                                fallback_url=DCAT_AP_ES_SHAPES_URL,
-                                conformance_ratio=1
+                                fallback_url=DCAT_AP_ES_SHAPES_URL
                             ))
     
     # NTI-RISP compliance
     registry.register_checker("nti_risp_compliance", 
                             SHACLComplianceChecker(
                                 NTI_RISP_SHACL_FILES,
-                                fallback_url=NTI_RISP_SHAPES_URL,
-                                conformance_ratio=1
+                                fallback_url=NTI_RISP_SHAPES_URL
                             ))
     
     # Reusability checkers
@@ -693,10 +698,11 @@ def load_graph(url: str) -> Graph:
             format_guess = "json-ld"
         
         # Make a HEAD request to get content-type if format wasn't determined by extension
+        verify_ssl = not ALLOW_INSECURE_URLS if ALLOW_INSECURE_URLS else SSL_VERIFY
+        
         if not format_guess:
             try:
-                # Use verify=SSL_VERIFY from config
-                head_response = requests.head(url, verify=SSL_VERIFY, timeout=10)
+                head_response = requests.head(url, verify=verify_ssl, timeout=10)
                 content_type = head_response.headers.get('content-type', '')
                 
                 if 'xml' in content_type:
@@ -717,22 +723,26 @@ def load_graph(url: str) -> Graph:
         logger.info(f"Parsing RDF with format: {format_guess}")
         
         try:
-            # Try direct parsing first - but this might have SSL issues
-            # Create a custom context that doesn't verify SSL
-            custom_context = ssl._create_unverified_context() if not SSL_VERIFY else None
-            
-            # Tell rdflib to use our custom context
-            if custom_context:
-                rdflib.plugin.register('https', rdflib.parser.Parser, 
-                                   'rdflib.plugins.parsers.rdfxml', 'RDFXMLParser')
+            # Usar un contexto SSL personalizado cuando se permite URLs inseguras
+            if not verify_ssl:
+                # Desactivar completamente la verificación SSL para RDFlib
+                import urllib.request
+                ssl_ctx = ssl._create_unverified_context()
+                opener = urllib.request.build_opener(
+                    urllib.request.HTTPSHandler(context=ssl_ctx)
+                )
+                urllib.request.install_opener(opener)
+                
+                # Parse the URL without SSL verification
                 g.parse(location=url, format=format_guess, publicID=url)
             else:
+                # Parse with standard SSL verification
                 g.parse(location=url, format=format_guess, publicID=url)
                 
         except Exception as parse_error:
             logger.warning(f"Direct parsing failed: {str(parse_error)}, trying manual request")
             # If direct parsing fails, try with manual request
-            response = requests.get(url, verify=SSL_VERIFY, timeout=10)
+            response = requests.get(url, verify=verify_ssl, timeout=10)
             response.raise_for_status()
             
             # Try to parse the content directly

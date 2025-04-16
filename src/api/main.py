@@ -2,7 +2,7 @@
 FastAPI application for the Metadata Quality API.
 This module defines the API endpoints for validating and retrieving metadata quality reports.
 """
-from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi import FastAPI, Request, HTTPException, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -14,9 +14,11 @@ import urllib.parse
 import logging
 from pydantic import BaseModel
 
+from .shacl_updater import update_shacl_files
 from .models import QualityReport
 from .repositories.tinydb_repo import TinyDBRepository
-from .validators import validate_metadata_quality, validate_metadata_from_content
+from .validators import register_standard_checkers, validate_metadata_quality, validate_metadata_from_content
+
 from .converters import convert_to_jsonld_dqv
 
 # Configure logging
@@ -258,3 +260,48 @@ async def get_reports_by_rating(rating: str):
     
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/admin/update-shacl", response_model=Dict[str, Any])
+@limiter.limit("5/minute")
+async def update_shacl(request: Request, force: bool = Query(False, description="Forzar actualización")):
+    """
+    Actualiza los archivos SHACL desde las fuentes remotas.
+    
+    Args:
+        force: Si se debe forzar la actualización, ignorando los tiempos de caducidad
+        
+    Returns:
+        Resultado de la actualización
+    """
+    try:
+        updated, total = update_shacl_files(force=force)
+        return {
+            "success": True,
+            "message": f"SHACL files updated: {updated}/{total}",
+            "updated": updated,
+            "total": total
+        }
+    except Exception as e:
+        logger.error(f"Error updating SHACL files: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to update SHACL files: {str(e)}"
+        )
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize components on app startup."""
+    # Asegúrate de haber importado esta función
+    try:
+        register_standard_checkers()
+        logger.info("Registered standard checkers")
+    except Exception as e:
+        logger.error(f"Failed to register standard checkers: {e}")
+    
+    # Iniciar actualización de archivos SHACL en segundo plano
+    try:
+        import threading
+        threading.Thread(target=update_shacl_files, daemon=True).start()
+        logger.info("Started SHACL updater background thread")
+    except Exception as e:
+        logger.warning(f"Failed to start SHACL updater thread: {e}")
