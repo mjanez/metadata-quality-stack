@@ -1,0 +1,432 @@
+/* Custom CSS for Metadata Quality Assessment Tool */
+
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #0dcaf0;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+}
+
+/* Loading overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    color: white;
+}
+
+/* Metric cards */
+.metric-card {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+    height: 100%;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* Rating cards with colors */
+.rating-excellent .metric-card {
+    background-color: #d1e7dd;
+    border-color: #a3cfbb;
+}
+
+.rating-good .metric-card {
+    background-color: #cff4fc;
+    border-color: #9eeaf9;
+}
+
+.rating-sufficient .metric-card {
+    background-color: #fff3cd;
+    border-color: #ffecb5;
+}
+
+.rating-insufficient .metric-card {
+    background-color: #f8d7da;
+    border-color: #f1aeb5;
+}
+
+/* Chart containers */
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    min-height: 450px;
+    max-height: 90vh;
+    overflow: hidden;
+    margin: 0 auto 2rem auto;
+    border-radius: 0.5rem;
+    background: transparent;
+    padding: 1rem;
+}
+
+.chart-wrapper {
+    position: relative;
+    width: 100%;
+    height: 550px;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(248, 249, 250, 0.5);
+    border-radius: 0.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+#radarChart, 
+#hierarchicalChart,
+#radarChartContainer canvas,
+#hierarchicalChartContainer canvas {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 400px !important;
+    min-height: 400px !important;
+}
+
+/* Ensure containers maintain size */
+#radarChartContainer,
+#hierarchicalChartContainer {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+[data-bs-theme="dark"] .chart-wrapper {
+    background: rgba(45, 55, 72, 0.5);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Chart type selector */
+.chart-selector {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.chart-selector .form-check {
+    margin: 0;
+}
+
+.chart-selector .form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Enhanced chart visibility */
+.chart-container canvas {
+    border-radius: 0.375rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+[data-bs-theme="dark"] .chart-container canvas {
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+}
+
+/* Chart loading and error states */
+.chart-loading,
+.chart-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: var(--secondary-color);
+    text-align: center;
+    padding: 2rem;
+}
+
+.chart-loading .spinner-border {
+    margin-bottom: 1rem;
+}
+
+.chart-error {
+    color: var(--danger-color);
+}
+
+/* Sunburst chart specific styles */
+.sunburst-chart {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.sunburst-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+/* SVG text styling for sunburst */
+.sunburst-chart text {
+    fill: #333;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+[data-bs-theme="dark"] .sunburst-chart text {
+    fill: #fff;
+}
+
+[data-bs-theme="dark"] .sunburst-chart circle {
+    fill: #1f2937;
+}
+
+.chart-error i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+/* Rating table */
+.rating-table {
+    width: 100%;
+    font-size: 0.875rem;
+}
+
+.rating-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.rating-row:last-child {
+    border-bottom: none;
+}
+
+.rating-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+}
+
+.rating-excellent {
+    background-color: var(--success-color);
+}
+
+.rating-good {
+    background-color: var(--info-color);
+}
+
+.rating-sufficient {
+    background-color: var(--warning-color);
+    color: var(--dark-color);
+}
+
+.rating-insufficient {
+    background-color: var(--danger-color);
+}
+
+/* Dark theme support */
+[data-bs-theme="dark"] {
+    --bs-body-bg: #1a1a1a;
+    --bs-body-color: #ffffff;
+}
+
+[data-bs-theme="dark"] .metric-card {
+    background: #2d3748;
+    border-color: #4a5568;
+    color: #ffffff;
+}
+
+[data-bs-theme="dark"] .metric-label {
+    color: #a0aec0;
+}
+
+[data-bs-theme="dark"] .card {
+    background-color: #2d3748;
+    border-color: #4a5568;
+}
+
+[data-bs-theme="dark"] .rating-row {
+    border-color: #4a5568;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .chart-container {
+        height: 480px;
+        min-height: 420px;
+    }
+    
+    .chart-wrapper {
+        height: 520px;
+        min-height: 460px;
+    }
+}
+
+@media (max-width: 768px) {
+    .metric-card {
+        margin-bottom: 1rem;
+    }
+    
+    .chart-container {
+        height: 400px;
+        min-height: 350px;
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+    }
+    
+    .chart-wrapper {
+        height: 450px;
+        min-height: 400px;
+    }
+    
+    #radarChart, 
+    #hierarchicalChart,
+    #radarChartContainer canvas,
+    #hierarchicalChartContainer canvas {
+        min-width: 320px !important;
+        min-height: 320px !important;
+    }
+    
+    .chart-selector {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .chart-selector .form-check {
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .chart-container {
+        height: 350px;
+        min-height: 300px;
+        padding: 0.25rem;
+    }
+    
+    .chart-wrapper {
+        height: 380px;
+        min-height: 320px;
+    }
+    
+    #radarChart, 
+    #hierarchicalChart,
+    #radarChartContainer canvas,
+    #hierarchicalChartContainer canvas {
+        min-width: 280px !important;
+        min-height: 280px !important;
+    }
+    
+    .metric-card {
+        font-size: 0.875rem;
+    }
+    
+    .metric-value {
+        font-size: 1.25rem;
+    }
+}
+
+/* Ensure no horizontal scroll */
+.container-fluid {
+    overflow-x: hidden;
+}
+
+.row {
+    margin: 0;
+}
+
+.col, .col-* {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+/* Form improvements */
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+/* Animation for results appearing */
+#resultsSection {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Accordion improvements */
+.accordion-button:not(.collapsed) {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.accordion-button:focus {
+    box-shadow: none;
+    border-color: var(--primary-color);
+}
+
+/* Table styling for metrics */
+.metrics-table {
+    font-size: 0.875rem;
+}
+
+.metrics-table th {
+    background-color: var(--light-color);
+    font-weight: 600;
+}
+
+[data-bs-theme="dark"] .metrics-table th {
+    background-color: #374151;
+}

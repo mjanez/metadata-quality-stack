@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:dcat="http://www.w3.org/ns/dcat#"
+    xmlns:dcterms="http://purl.org/dc/terms/">
+    
+    <dcat:Dataset rdf:about="https://example.com/dataset/1">
+        <dcterms:title>Example Dataset</dcterms:title>
+        <dcterms:description>This is an example dataset in RDF/XML format for testing.</dcterms:description>
+        <dcat:keyword>test</dcat:keyword>
+        <dcat:keyword>example</dcat:keyword>
+        <dcterms:license>http://creativecommons.org/licenses/by/4.0/</dcterms:license>
+    </dcat:Dataset>
+    
+</rdf:RDF>

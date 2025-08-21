@@ -1,7 +1,24 @@
 # Metadata Quality Stack
-[![ES](https://img.shields.io/badge/lang-ES-yellow.svg)](README.es.md) [![EN](https://img.shields.io/badge/lang-EN-blue.svg)](README.md)
+[![ES](https://img.shields.io/badge/lang-ES-yellow.svg)](README.es.md) [![EN](https://img.shields.io/badge/lang-EN-blue.svg)](README.md) [![Static Demo](https://img.shields.io/badge/demo-GitHub%20Pages-green.svg)](https://mjanez.github.io/metadata-quality-stack/)
 
 A comprehensive toolkit for analyzing the quality of open data metadata. Based on the European Data Portal's Metadata Quality Assessment ([MQA](https://data.europa.eu/mqa/methodology?locale=en)) methodology.
+
+## Quick Start
+
+### **Try the simply static Version** (No Installation Required)
+Try the simplified browser version (**no installation needed**):  
+**[Live Demo →](https://mjanez.github.io/metadata-quality-stack/)**  
+This edition runs entirely client-side and includes the core MQA validator for instant metadata quality checks in your browser.
+
+The static version runs entirely client-side with full functionality for metadata validation and quality assessment.
+
+### **Full docker dployment** (Recommended for Production)
+For complete features including historical tracking and API access:
+```bash
+git clone https://github.com/your-organization/metadata-quality-stack.git
+cd metadata-quality-stack
+docker-compose up
+```
 
 ## Overview
 
@@ -9,12 +26,29 @@ This tool helps data publishers and consumers evaluate and improve the quality o
 
 ## Features
 
-- **Quality Assessment**: Evaluate metadata according to the [MQA methodology](https://data.europa.eu/mqa/methodology?locale=en)
-- **API Integration**: REST API for programmatic access to validation services
-- **Web Interface**: User-friendly interface for non-technical users
-- **Historical Tracking**: Store and visualize quality evolution over time
-- **[SHACL](https://www.w3.org/TR/shacl/) Validation**: Check compliance with [DCAT-AP](https://semiceu.github.io/DCAT-AP/releases/3.0.0/), [DCAT-AP-ES](https://github.com/datosgobes/DCAT-AP-ES), and [NTI-RISP](https://github.com/datosgobes/NTI-RISP) standards.
+### **Two Deployment Options**
+1. **[Static Version](static/)** - GitHub Pages compatible, no backend required
+2. **[Docker Version](#installation)** - Full-featured with database and API
 
+### **Core Capabilities**
+- **Quality Assessment**: Evaluate metadata according to the [MQA methodology](https://data.europa.eu/mqa/methodology?locale=en)
+- **Multiple Profiles**: Support for DCAT-AP, DCAT-AP-ES, and NTI-RISP standards
+- **Real-time Validation**: Instant feedback on metadata quality
+- **Interactive Visualizations**: Radar charts and detailed metrics breakdown
+- **Multilingual Support**: English and Spanish interfaces
+- **API Integration**: REST API for programmatic access (Docker version)
+- **Historical Tracking**: Store and visualize quality evolution over time (Docker version)
+- **[SHACL](https://www.w3.org/TR/shacl/) Validation**: Check compliance with official shapes from:
+  - **[DCAT-AP](https://github.com/SEMICeu/DCAT-AP)**: European data portal standard
+  - **[DCAT-AP-ES](https://github.com/datosgobes/DCAT-AP-ES)**: Spanish national profile  
+  - **[NTI-RISP](https://github.com/datosgobes/NTI-RISP)**: Spanish interoperability standard
+
+
+### Static version
+![Home](/docs/img/app_1.png)
+![Home](/docs/img/app_2.png)
+
+### Docker version
 ![Home](/docs/img/app_1.png)
 ![Home](/docs/img/app_2.png)
 ![Home](/docs/img/app_3.png)
@@ -24,14 +58,52 @@ This tool helps data publishers and consumers evaluate and improve the quality o
 
 ## Architecture
 
-The project consists of two main components:
+### **Deployment Options**
+
+#### **1. Static Version** (Client-Side Only)
+- **Location**: [`/static`](static/) directory
+- **Technology**: HTML, CSS, JavaScript with N3.js and Chart.js  
+- **Deployment**: GitHub Pages, any static hosting
+- **Features**: Full metadata validation, visualization, no backend required
+- **Use Case**: Quick deployment, demo environments, edge cases
+
+#### **2. Docker Version** (Full Stack)
+- **Technology**: FastAPI backend + Streamlit frontend + nginx proxy
+- **Features**: Complete functionality + database + API + historical tracking
+- **Use Case**: Production environments, enterprise deployment
+
+The project consists of these main components:
 
 1. **API**: [FastAPI](https://fastapi.tiangolo.com/)-based [backend](#backend-api) that validates metadata and generates reports
 2. **Frontend**: [Streamlit](https://streamlit.io/)-based [web interface](#frontend-web-interface) for visualizing reports
+3. **Static Version**: Client-side implementation for easy deployment
 
 ## Installation
 
-### Using Docker (Recommended)
+### **Static Version** (Quick Start)
+
+For immediate testing and development:
+
+```bash
+# Clone the repository
+git clone https://github.com/your-organization/metadata-quality-stack.git
+cd metadata-quality-stack/static
+
+# Start local development server (choose one)
+python3 -m http.server 8000
+# OR
+npx serve .
+# OR use VS Code Live Server extension
+
+# Open browser
+open http://localhost:8000
+```
+
+**Features**: Full metadata validation, SHACL compliance checking with official shapes, no backend required.
+
+### 🐳 **Docker Version** (Production)
+
+For complete functionality with database and API:
 
 1. Clone the repository:
    ```bash
@@ -44,7 +116,7 @@ The project consists of two main components:
    docker-compose up
    ```
 
-### Manual Installation
+### 🔧 **Manual Installation**
 
 1. Clone the repository:
    ```bash
@@ -134,6 +206,105 @@ xgettext -d mqa --from-code=UTF-8 -o locales/mqa.pot src/frontend/app.py
 # Compile MO files (Spanish)
 msgfmt -o locale/es/LC_MESSAGES/mqa.mo locale/es/LC_MESSAGES/mqa.po
 ``` 
+
+## Extending Profile Metrics
+
+The system is designed to be modular, allowing you to easily extend or customize metrics for specific profiles (DCAT-AP, DCAT-AP-ES, NTI-RISP, etc.). Follow these steps to extend or create metrics for a profile:
+
+### 1. Define Your Metrics in `config.py`
+
+Each metric is defined as a dictionary with ID, dimension, and weight. To add metrics for a new or existing profile:
+
+```python
+# Define specific metrics for your profile
+MY_PROFILE_SPECIFIC_METRICS = [
+    {"id": "my_new_metric", "dimension": "interoperability", "weight": 20},
+    {"id": "another_metric", "dimension": "reusability", "weight": 15}
+]
+
+# Add your metrics to the METRICS_BY_PROFILE dictionary
+METRICS_BY_PROFILE["my_profile"] = COMMON_METRICS + MY_PROFILE_SPECIFIC_METRICS
+```
+
+### 2. Create Checkers for Your Metrics in `validators.py`
+
+For each new metric, create a checker that implements the validation logic:
+
+```python
+# Create a checker class if existing ones don't fit your needs
+class MyCustomChecker(MetricChecker):
+    def __init__(self, property_uri: URIRef):
+        self.property_uri = property_uri
+    
+    def check(self, g: Graph, resources: List[URIRef], context: Dict[str, Any] = None) -> Tuple[int, int]:
+        # Implement your checking logic here
+        # Return a tuple of (successful count, total count)
+        return (count, total)
+
+# Add your checker to the CHECKER_DEFINITIONS dictionary
+CHECKER_DEFINITIONS.update({
+    "my_new_metric": lambda: MyCustomChecker(MY_PROPERTY_URI),
+    "another_metric": lambda: ExistingCheckerClass(MY_OTHER_PROPERTY)
+})
+```
+
+### 3. Update Dimension Scores (If Needed)
+
+If you're adding metrics to a new dimension, ensure the dimension is registered in the DimensionType enum in `models.py` and update the `calculate_dimension_scores` function in `validators.py` to include your new dimension.
+
+### 4. Register Your Profile in Frontend (Optional)
+
+To make your profile selectable in the UI, update the `PROFILES` dictionary in `frontend/config.py`:
+
+```python
+PROFILES = {
+    "dcat_ap": "DCAT-AP 2.0",
+    "dcat_ap_es": "DCAT-AP-ES 2.0",
+    "nti_risp": "NTI-RISP",
+    "my_profile": "My Custom Profile"
+}
+```
+
+### Example: Adding Label-Based Format Checker for NTI-RISP
+
+Here's an example of extending NTI-RISP with a label-based format checker:
+
+1. Create the specialized checker class:
+
+```python
+class VocabularyLabelComplianceChecker(MetricChecker):
+    """Check if property labels comply with a CSV-based vocabulary."""
+    
+    def __init__(self, property_uris: List[URIRef], csv_path: str, 
+                 compare_column: str = None, label_property: URIRef = RDFS.label):
+        self.property_uris = property_uris
+        self.csv_path = csv_path
+        self.compare_column = compare_column
+        self.label_property = label_property
+        # Initialize allowed values from CSV file
+        # ...
+    
+    def check(self, g: Graph, resources: List[URIRef], context: Dict[str, Any] = None) -> Tuple[int, int]:
+        # Check values against the allowed values, considering labels
+        # ...
+```
+
+2. Add to `CHECKER_DEFINITIONS`:
+
+```python
+CHECKER_DEFINITIONS.update({
+    "dct_format_nonproprietary_nti": lambda: VocabularyLabelComplianceChecker(
+        [DCTERMS.format], MQA_VOCABS['non_proprietary']
+    )
+})
+```
+
+3. Add the metric to `NTI_RISP_SPECIFIC_METRICS`:
+
+```python
+NTI_RISP_SPECIFIC_METRICS.append(
+    {"id": "dct_format_nonproprietary_nti", "dimension": "interoperability", "weight": 25}
+)
 
 ## Update SSL Certificate
 To update the local SSL certificate, follow these steps:
