@@ -1,0 +1,8 @@
+{"source": "docs/vocabularies/access_rights.csv", "generated": "2025-08-21T15:04:29Z", "format": "jsonl", "type": "uri_label", "name": "access_rights", "count": 7}
+{"uri": "http://publications.europa.eu/resource/authority/access-right/CONFIDENTIAL", "label": "CONFIDENTIAL"}
+{"uri": "http://publications.europa.eu/resource/authority/access-right/NON_PUBLIC", "label": "NON_PUBLIC"}
+{"uri": "http://publications.europa.eu/resource/authority/access-right/NORMAL", "label": "NORMAL"}
+{"uri": "http://publications.europa.eu/resource/authority/access-right/OP_DATPRO", "label": "OP_DATPRO"}
+{"uri": "http://publications.europa.eu/resource/authority/access-right/PUBLIC", "label": "PUBLIC"}
+{"uri": "http://publications.europa.eu/resource/authority/access-right/RESTRICTED", "label": "RESTRICTED"}
+{"uri": "http://publications.europa.eu/resource/authority/access-right/SENSITIVE", "label": "SENSITIVE"}
