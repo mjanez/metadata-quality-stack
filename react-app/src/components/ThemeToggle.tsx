@@ -9,9 +9,16 @@ const ThemeToggle: React.FC = () => {
   });
 
   useEffect(() => {
+    // Set theme on document root for Bootstrap theme support
     document.documentElement.setAttribute('data-bs-theme', theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  // Initialize theme on first load
+  useEffect(() => {
+    const initialTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-bs-theme', initialTheme);
+  }, []);
 
   const toggleTheme = () => {
     setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');

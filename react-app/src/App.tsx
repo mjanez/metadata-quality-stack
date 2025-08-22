@@ -19,7 +19,6 @@ function App() {
   const [result, setResult] = useState<ValidationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<ValidationProfile>('dcat_ap');
-  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
 
   const handleValidation = async (input: ValidationInput, profile: ValidationProfile) => {
     setIsValidating(true);
@@ -61,6 +60,18 @@ function App() {
       
       console.log('✅ Validation completed successfully');
       setResult(validationResult);
+      
+      // Auto-switch to results tab after successful validation
+      setTimeout(() => {
+        const resultsTab = document.getElementById('results-tab');
+        if (resultsTab) {
+          const bootstrap = (window as any).bootstrap;
+          if (bootstrap && bootstrap.Tab) {
+            const tabInstance = new bootstrap.Tab(resultsTab);
+            tabInstance.show();
+          }
+        }
+      }, 100); // Small delay to ensure DOM is updated
     } catch (err) {
       console.error('❌ Validation error:', err);
       setError(err instanceof Error ? err.message : 'Validation failed');
@@ -75,27 +86,18 @@ function App() {
   };
 
   return (
-    <div className="App" data-bs-theme={localStorage.getItem('theme') || 'light'}>
+    <div className="App">
       {/* MQA Info Sidebar */}
-      <MQAInfoSidebar 
-        selectedProfile={selectedProfile}
-        isVisible={isSidebarVisible}
-        validationResult={result}
-      />
-
-      {/* Main Content */}
+        {/* MQA Info Sidebar */}
+        <MQAInfoSidebar
+          selectedProfile={selectedProfile}
+          validationResult={result}
+        />      {/* Main Content */}
       <div className="main-content">
         {/* Navigation Bar */}
         <nav className="navbar navbar-expand-lg navbar-light bg-light border-bottom">
           <div className="container-fluid">
             <div className="d-flex align-items-center">
-              <button
-                className="btn btn-outline-secondary me-3"
-                onClick={() => setIsSidebarVisible(!isSidebarVisible)}
-                title={isSidebarVisible ? t('sidebar.collapse') : t('sidebar.expand')}
-              >
-                <i className={`bi bi-layout-sidebar${isSidebarVisible ? '' : '-inset'}`}></i>
-              </button>
               <span className="navbar-brand mb-0 h1">
                 <i className="bi bi-shield-check me-2 text-primary"></i>
                 {t('common.title')}

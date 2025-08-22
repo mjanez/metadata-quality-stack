@@ -65,7 +65,8 @@
     "text_placeholder": "Paste your RDF content here (RDF/XML, Turtle, JSON-LD, N-Triples)",
     "url_invalid": "Please enter a valid URL",
     "text_required": "RDF content is required",
-    "validation_error": "Validation failed. Please check your input and try again."
+    "validation_error": "Validation failed. Please check your input and try again.",
+    "validating": "Validating..."
   },
   "profiles": {
     "dcat_ap": "DCAT-AP 2.1.1",

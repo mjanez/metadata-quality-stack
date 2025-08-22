@@ -25,7 +25,7 @@ from .models import Rating, DimensionType
 from .config import (
     RATING_THRESHOLDS, MAX_SCORES, SHACLLevel,
     DCAT_AP_SHACL_FILES, DCAT_AP_ES_SHACL_FILES, DCAT_AP_ES_HVD_SHACL_FILES, NTI_RISP_SHACL_FILES,
-    DCAT_AP_SHAPES_URL, DCAT_AP_ES_SHAPES_URL, NTI_RISP_SHAPES_URL, DEFAULT_METRICS, SSL_VERIFY, ALLOW_INSECURE_URLS, MQA_VOCABS
+    DCAT_AP_SHAPES_URL, DCAT_AP_ES_SHAPES_URL, NTI_RISP_SHAPES_URL, DEFAULT_METRICS, SSL_VERIFY, ALLOW_INSECURE_URLS, MQA_VOCABS, METRICS_BY_PROFILE
 )
 
 # Configure logging
@@ -36,6 +36,39 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 VOCAB_CACHE = {}
+
+# Calcular la puntuación máxima posible para cada perfil
+def calculate_max_score(metrics):
+    """Calculate maximum possible score from a list of metrics."""
+    max_score = 0
+    for metric in metrics:
+        max_score += metric["weight"]
+    return max_score
+
+MAX_SCORES = {
+    "dcat_ap": 405,  # Valor predefinido para DCAT-AP
+    "dcat_ap_es": 405,  # Valor predefinido para DCAT-AP-ES
+    "nti_risp": calculate_max_score(METRICS_BY_PROFILE["nti_risp"])
+}
+
+# Umbrales de puntuación por perfil
+RATING_THRESHOLDS_BY_PROFILE = {
+    "dcat_ap": {
+        "excellent": 351,
+        "good": 221,
+        "sufficient": 121
+    },
+    "dcat_ap_es": {
+        "excellent": 351,
+        "good": 221,
+        "sufficient": 121
+    },
+    "nti_risp": {
+        "excellent": int(MAX_SCORES["nti_risp"] * 0.8),  # Calculando dinámicamente para NTI-RISP
+        "good": int(MAX_SCORES["nti_risp"] * 0.6),
+        "sufficient": int(MAX_SCORES["nti_risp"] * 0.4)
+    }
+}
 
 # Abstract checker class for implementing metric checks
 class MetricChecker(ABC):
@@ -133,13 +166,25 @@ class MetricRegistry:
 registry = MetricRegistry()
 
 # Register all metrics based on MQA methodology from config
-def register_standard_metrics():
-    """Register all standard metrics based on MQA methodology."""
-    for metric in DEFAULT_METRICS:
+def register_standard_metrics(profile="dcat_ap_es"):
+    """
+    Register metrics based on the selected profile.
+    
+    Args:
+        profile: The profile to use ('dcat_ap', 'dcat_ap_es', 'nti_risp')
+    """
+    # Limpiar registro previo si existe
+    registry.metrics = {}
+    
+    # Obtener métricas específicas del perfil
+    metrics_to_register = METRICS_BY_PROFILE.get(profile, DEFAULT_METRICS)
+    
+    # Registrar las métricas
+    for metric in metrics_to_register:
         registry.register_metric(metric["id"], metric["dimension"], metric["weight"])
 
-# Register standard metrics at module import time
-register_standard_metrics()
+# Inicialmente registramos las métricas para DCAT-AP-ES por defecto
+register_standard_metrics("dcat_ap_es")
 
 # Metric checker implementations
 class PropertyChecker(MetricChecker):
@@ -511,105 +556,177 @@ class MultiLevelSHACLComplianceChecker(MetricChecker):
         # Run the check
         return checker.check(g, resources, context)
 
+class VocabularyLabelComplianceChecker_NTI(MetricChecker):
+    """
+    Check if property format labels comply with a CSV-based vocabulary using the second column.
+    Specifically designed for NTI-RISP where format values often use rdfs:label.
+    """
+
+    def __init__(
+        self,
+        property_uris: List[URIRef],
+        csv_path: str,
+        label_column: str = "label_es",  # Segundo columna que contiene las etiquetas
+        label_property: URIRef = RDFS.label
+    ):
+        """
+        Initialize with property URIs, path to CSV vocabulary file, and label column.
+        
+        Args:
+            property_uris: The RDF properties to check
+            csv_path: Path to the CSV file containing allowed values
+            label_column: Column in CSV with labels to compare against
+            label_property: Property to get the label from (defaults to rdfs:label)
+        """
+        self.property_uris = property_uris
+        self.csv_path = csv_path
+        self.label_column = label_column
+        self.label_property = label_property
+        self.allowed_labels = set()  # Will store label values
+
+        # Load allowed labels from CSV
+        cache_key = f"{self.csv_path}_{self.label_column}"
+        if cache_key not in VOCAB_CACHE:
+            allowed_labels = set()
+            with open(self.csv_path, mode="r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                
+                # Get the allowed labels from the specified column
+                for row in reader:
+                    if self.label_column in row and row[self.label_column]:
+                        # Add label values (lowercased for case-insensitive matching)
+                        allowed_labels.add(row[self.label_column].lower())
+                
+            VOCAB_CACHE[cache_key] = allowed_labels
+            
+        self.allowed_labels = VOCAB_CACHE[cache_key]
+        logger.debug(f"Loaded {len(self.allowed_labels)} allowed labels for NTI-RISP format checking")
+
+    def check(self, g: Graph, resources: List[URIRef], context: Dict[str, Any] = None) -> Tuple[int, int]:
+        total_values = 0
+        compliant_count = 0
+
+        for res in resources:
+            for prop in self.property_uris:
+                for _, _, format_value in g.triples((res, prop, None)):
+                    total_values += 1
+                    
+                    # Case 1: Check if it's a URI and has a label
+                    if isinstance(format_value, URIRef):
+                        has_matching_label = False
+                        for _, _, label in g.triples((format_value, self.label_property, None)):
+                            label_text = str(label).lower()
+                            if label_text in self.allowed_labels:
+                                compliant_count += 1
+                                has_matching_label = True
+                                break
+                        
+                        # If no label was found, try the URI itself
+                        if not has_matching_label:
+                            uri_text = str(format_value).lower()
+                            if any(label in uri_text for label in self.allowed_labels):
+                                compliant_count += 1
+                    
+                    # Case 2: Check if it's a BNode with a label
+                    elif isinstance(format_value, BNode):
+                        has_matching_label = False
+                        for _, _, label in g.triples((format_value, self.label_property, None)):
+                            label_text = str(label).lower()
+                            if label_text in self.allowed_labels:
+                                compliant_count += 1
+                                has_matching_label = True
+                                break
+                    
+                    # Case 3: Check if it's a literal that matches directly
+                    elif isinstance(format_value, Literal):
+                        literal_text = str(format_value).lower()
+                        if literal_text in self.allowed_labels:
+                            compliant_count += 1
+
+        return (compliant_count, total_values)
+
 # Register all checkers for metrics
-def register_standard_checkers():
-    """Register all standard checkers for the metrics."""
+CHECKER_DEFINITIONS = {
     # Findability checkers
-    registry.register_checker("dcat_keyword",
-                              EntityTypePropertyChecker(DCAT.keyword, DCAT.Dataset))
-    registry.register_checker("dcat_theme",
-                              EntityTypePropertyChecker(DCAT.theme, DCAT.Dataset))
-    registry.register_checker("dct_spatial",
-                              EntityTypePropertyChecker(DCTERMS.spatial, DCAT.Dataset))
-    registry.register_checker("dct_temporal",
-                              EntityTypePropertyChecker(DCTERMS.temporal, DCAT.Dataset))
+    "dcat_keyword": lambda: EntityTypePropertyChecker(DCAT.keyword, DCAT.Dataset),
+    "dcat_theme": lambda: EntityTypePropertyChecker(DCAT.theme, DCAT.Dataset),
+    "dct_spatial": lambda: EntityTypePropertyChecker(DCTERMS.spatial, DCAT.Dataset),
+    "dct_temporal": lambda: EntityTypePropertyChecker(DCTERMS.temporal, DCAT.Dataset),
     
     # Accessibility checkers
-    registry.register_checker("dcat_accessURL_status", 
-                              EntityTypeURLStatusChecker(DCAT.accessURL, DCAT.Distribution))
-    registry.register_checker("dcat_downloadURL", 
-                              EntityTypePropertyChecker(DCAT.downloadURL, DCAT.Distribution))
-    registry.register_checker("dcat_downloadURL_status", 
-                              EntityTypeURLStatusChecker(DCAT.downloadURL, DCAT.Distribution))
+    "dcat_accessURL_status": lambda: EntityTypeURLStatusChecker(DCAT.accessURL, DCAT.Distribution),
+    "dcat_downloadURL": lambda: EntityTypePropertyChecker(DCAT.downloadURL, DCAT.Distribution),
+    "dcat_downloadURL_status": lambda: EntityTypeURLStatusChecker(DCAT.downloadURL, DCAT.Distribution),
     
     # Interoperability checkers
-    registry.register_checker("dct_format",
-                              EntityTypePropertyChecker(DCTERMS.format, DCAT.Distribution))
-    registry.register_checker("dcat_mediaType",
-                              EntityTypePropertyChecker(DCAT.mediaType, DCAT.Distribution))
-    registry.register_checker("dct_format_vocabulary",
-                            VocabularyComplianceChecker(
-                                [DCTERMS.format],
-                                MQA_VOCABS['file_types']))
-    registry.register_checker("dct_mediaType_vocabulary",
-                            VocabularyComplianceChecker(
-                                [DCAT.mediaType],
-                                MQA_VOCABS['media_types']))
-    registry.register_checker("dct_format_nonproprietary",
-                            VocabularyComplianceChecker(
-                                [DCTERMS.format],
-                                MQA_VOCABS['non_proprietary']))
-    registry.register_checker("dct_format_machinereadable",
-                            VocabularyComplianceChecker(
-                                [DCTERMS.format],
-                                MQA_VOCABS['machine_readable']))
-        
-    # DCAT-AP compliance with multi-level validation
-    registry.register_checker("dcat_ap_compliance", 
-                            MultiLevelSHACLComplianceChecker(
-                                DCAT_AP_SHACL_FILES,
-                                fallback_url=DCAT_AP_SHAPES_URL,
-                                level=SHACLLevel.LEVEL_2
-                            ))
+    "dct_format": lambda: EntityTypePropertyChecker(DCTERMS.format, DCAT.Distribution),
+    "dcat_mediaType": lambda: EntityTypePropertyChecker(DCAT.mediaType, DCAT.Distribution),
+    "dct_format_vocabulary": lambda: VocabularyComplianceChecker([DCTERMS.format], MQA_VOCABS['file_types']),
+    "dct_mediaType_vocabulary": lambda: VocabularyComplianceChecker([DCAT.mediaType], MQA_VOCABS['media_types']),
+    "dct_format_nonproprietary": lambda: VocabularyComplianceChecker([DCTERMS.format], MQA_VOCABS['non_proprietary']),
+    "dct_format_machinereadable": lambda: VocabularyComplianceChecker([DCTERMS.format], MQA_VOCABS['machine_readable']),
     
-    # DCAT-AP-ES compliance
-    registry.register_checker("dcat_ap_es_compliance", 
-                            SHACLComplianceChecker(
-                                DCAT_AP_ES_SHACL_FILES,
-                                fallback_url=DCAT_AP_ES_SHAPES_URL
-                            ))
-    
-    # NTI-RISP compliance
-    registry.register_checker("nti_risp_compliance", 
-                            SHACLComplianceChecker(
-                                NTI_RISP_SHACL_FILES,
-                                fallback_url=NTI_RISP_SHAPES_URL
-                            ))
+    # SHACL compliance checkers
+    "dcat_ap_compliance": lambda: MultiLevelSHACLComplianceChecker(
+                            DCAT_AP_SHACL_FILES,
+                            fallback_url=DCAT_AP_SHAPES_URL,
+                            level=SHACLLevel.LEVEL_2),
+    "dcat_ap_es_compliance": lambda: SHACLComplianceChecker(
+                            DCAT_AP_ES_SHACL_FILES,
+                            fallback_url=DCAT_AP_ES_SHAPES_URL),
+    "nti_risp_compliance": lambda: SHACLComplianceChecker(
+                            NTI_RISP_SHACL_FILES,
+                            fallback_url=NTI_RISP_SHAPES_URL),
     
     # Reusability checkers
-    registry.register_checker("dct_license", 
-                              EntityTypePropertyChecker(DCTERMS.license, DCAT.Distribution))
-    registry.register_checker("dct_license_vocabulary",
-                            VocabularyComplianceChecker(
-                                [DCTERMS.license],
-                                MQA_VOCABS['license']))
-    registry.register_checker("dct_accessRights", 
-                              EntityTypePropertyChecker(DCTERMS.accessRights, DCAT.Dataset))
-    registry.register_checker("dct_accessRights_vocabulary",
-                            VocabularyComplianceChecker(
-                                [DCTERMS.accessRights],
-                                MQA_VOCABS['access_rights']))
-    registry.register_checker("dcat_contactPoint", 
-                              EntityTypePropertyChecker(DCAT.contactPoint, DCAT.Dataset))
-    registry.register_checker("dct_publisher", 
-                              EntityTypePropertyChecker(DCTERMS.publisher, DCAT.Dataset))
+    "dct_license": lambda: EntityTypePropertyChecker(DCTERMS.license, DCAT.Distribution),
+    "dct_license_vocabulary": lambda: VocabularyComplianceChecker([DCTERMS.license], MQA_VOCABS['license']),
+    "dct_accessRights": lambda: EntityTypePropertyChecker(DCTERMS.accessRights, DCAT.Dataset),
+    "dct_accessRights_vocabulary": lambda: VocabularyComplianceChecker([DCTERMS.accessRights], MQA_VOCABS['access_rights']),
+    "dcat_contactPoint": lambda: EntityTypePropertyChecker(DCAT.contactPoint, DCAT.Dataset),
+    "dct_publisher": lambda: EntityTypePropertyChecker(DCTERMS.publisher, DCAT.Dataset),
     
     # Contextuality checkers
-    registry.register_checker("dct_rights", 
-                              EntityTypePropertyChecker(DCTERMS.rights, DCAT.Distribution))
-    registry.register_checker("dcat_byteSize", 
-                              EntityTypePropertyChecker(DCAT.byteSize, DCAT.Distribution))
-    registry.register_checker(
-        "dct_issued",
-        MultipleEntityTypesPropertyChecker(DCTERMS.issued, [DCAT.Dataset, DCAT.Distribution])
-    )
-    registry.register_checker(
-        "dct_modified",
-        MultipleEntityTypesPropertyChecker(DCTERMS.modified, [DCAT.Dataset, DCAT.Distribution])
-    )
+    "dct_rights": lambda: EntityTypePropertyChecker(DCTERMS.rights, DCAT.Distribution),
+    "dcat_byteSize": lambda: EntityTypePropertyChecker(DCAT.byteSize, DCAT.Distribution),
+    "dct_issued": lambda: MultipleEntityTypesPropertyChecker(DCTERMS.issued, [DCAT.Dataset, DCAT.Distribution]),
+    "dct_modified": lambda: MultipleEntityTypesPropertyChecker(DCTERMS.modified, [DCAT.Dataset, DCAT.Distribution]),
+    
+    # NTI-RISP specific checkers
+    "dct_format_vocabulary_nti_risp": lambda: VocabularyLabelComplianceChecker_NTI(
+        [DCTERMS.format], MQA_VOCABS['file_types'], label_column="label_es"
+    )    
+}
 
-# Register standard checkers
-register_standard_checkers()
+# Nueva función para registrar checkers específicos por perfil
+def register_standard_checkers(profile="dcat_ap_es"):
+    """
+    Registra los checkers correspondientes al perfil especificado.
+    
+    Args:
+        profile: El perfil a utilizar ('dcat_ap', 'dcat_ap_es', 'nti_risp')
+    """
+    # Obtener métricas específicas del perfil
+    metrics_to_register = METRICS_BY_PROFILE.get(profile, DEFAULT_METRICS)
+    
+    # Limpiar registro previo de checkers
+    registry.checkers = {}
+    
+    # Para cada métrica en el perfil, registrar su checker correspondiente
+    for metric in metrics_to_register:
+        metric_id = metric["id"]
+        
+        # Obtener el constructor del checker para esta métrica
+        checker_constructor = CHECKER_DEFINITIONS.get(metric_id)
+        if checker_constructor:
+            try:
+                # Crear y registrar el checker
+                registry.register_checker(metric_id, checker_constructor())
+                logger.debug(f"Registered checker for metric {metric_id}")
+            except Exception as e:
+                logger.error(f"Error registering checker for metric {metric_id}: {str(e)}")
+        else:
+            logger.warning(f"No checker defined for metric {metric_id}")
 
 def validate_metadata_quality(url: str, model: str = "dcat_ap_es", shacl_level: int = SHACLLevel.LEVEL_2) -> Dict[str, Any]:
     """
@@ -633,6 +750,10 @@ def validate_metadata_quality(url: str, model: str = "dcat_ap_es", shacl_level: 
         g = load_graph(url)
         logger.info(f"Loaded graph with {len(g)} triples")
         
+        # Registrar métricas específicas para el modelo seleccionado
+        register_standard_metrics(model)
+        register_standard_checkers(model) 
+        
         # Create a context with model-specific settings
         context = {
             "model": model,
@@ -649,7 +770,7 @@ def validate_metadata_quality(url: str, model: str = "dcat_ap_es", shacl_level: 
         total_score = sum(dimension_scores.values())
         
         # Determine rating
-        rating = determine_rating(total_score)
+        rating = determine_rating(total_score, model)
         
         # Create report
         report = {
@@ -668,7 +789,6 @@ def validate_metadata_quality(url: str, model: str = "dcat_ap_es", shacl_level: 
     except Exception as e:
         logger.error(f"Error validating {url}: {str(e)}")
         raise Exception(f"Failed to validate metadata: {str(e)}")
-
 def load_graph(url: str) -> Graph:
     """
     Load an RDF graph from a URL.
@@ -883,21 +1003,25 @@ def calculate_dimension_scores(metrics: List[Dict[str, Any]]) -> Dict[str, int]:
     
     return dimension_scores
 
-def determine_rating(total_score: int) -> Rating:
+def determine_rating(total_score: int, model: str = "dcat_ap_es") -> Rating:
     """
     Determine the quality rating based on the total score.
     
     Args:
         total_score: The total quality score
+        model: The model used for validation
         
     Returns:
         The quality rating
     """
-    if total_score >= RATING_THRESHOLDS["excellent"]:
+    # Usar los umbrales específicos del perfil
+    thresholds = RATING_THRESHOLDS_BY_PROFILE.get(model, RATING_THRESHOLDS)
+    
+    if total_score >= thresholds["excellent"]:
         return Rating.EXCELLENT
-    elif total_score >= RATING_THRESHOLDS["good"]:
+    elif total_score >= thresholds["good"]:
         return Rating.GOOD
-    elif total_score >= RATING_THRESHOLDS["sufficient"]:
+    elif total_score >= thresholds["sufficient"]:
         return Rating.SUFFICIENT
     else:
         return Rating.BAD
@@ -924,6 +1048,10 @@ def validate_metadata_from_content(content: str, content_type: str, model: str =
         # Parse the content into an RDFlib graph
         g = load_graph_from_content(content, content_type)
         
+        # Registrar métricas específicas para el modelo seleccionado
+        register_standard_metrics(model)
+        register_standard_checkers()
+        
         # Create context with model-specific settings
         context = {
             "model": model,
@@ -940,7 +1068,7 @@ def validate_metadata_from_content(content: str, content_type: str, model: str =
         total_score = sum(dimension_scores.values())
         
         # Determine rating
-        rating = determine_rating(total_score)
+        rating = determine_rating(total_score, model)
         
         # Create the report
         report = {
@@ -1007,3 +1135,4 @@ def load_graph_from_content(content: str, content_type: str) -> Graph:
     except Exception as e:
         logger.error(f"Error parsing content: {str(e)}")
         raise Exception(f"Error parsing content: {str(e)}")
+    

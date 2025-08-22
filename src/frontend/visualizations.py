@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 from typing import Dict, List, Any
 
 from src.frontend.i18n import _, get_metric_label
-from src.frontend.config import DIMENSION_COLORS
+from src.frontend.config import DIMENSION_COLORS, MAX_SCORES, DIMENSION_MAX_SCORES
 
 DIMENSION_LABELS = [
     _("Findability"),
@@ -87,25 +87,30 @@ def create_dimensions_chart(report: Dict[str, Any]) -> go.Figure:
 
 def create_radar_chart(report: Dict[str, Any]) -> go.Figure:
     """Create a radar chart visualization for dimension scores."""
-    scores = [
-        report['dimensions']['findability'] / 100 * 100,
-        report['dimensions']['accessibility'] / 100 * 100,
-        report['dimensions']['interoperability'] / 110 * 100,
-        report['dimensions']['reusability'] / 75 * 100,
-        report['dimensions']['contextuality'] / 20 * 100
-    ]
+    model = report.get('model', 'dcat_ap_es') 
+    dim_max_scores = DIMENSION_MAX_SCORES.get(model, DIMENSION_MAX_SCORES['dcat_ap_es'])
+    
+    # Normalizar valores (dividir por el máximo de cada dimensión)
+    normalized_scores = {
+        dim: score / dim_max_scores[dim] * 100
+        for dim, score in report['dimensions'].items()
+    }
+    
+    # Crear listas para el gráfico radar
+    dimensions = list(DIMENSION_LABELS)  # Usar una copia
+    values = [normalized_scores[dim.lower()] for dim in dimensions]
     
     # Add the first value again to close the loop
-    DIMENSION_LABELS.append(DIMENSION_LABELS[0])
-    scores.append(scores[0])
+    dimensions.append(dimensions[0])
+    values.append(values[0])
     
     # Create radar chart
     fig = go.Figure()
     
     # Add traces con los colores personalizados
     fig.add_trace(go.Scatterpolar(
-        r=scores,
-        theta=DIMENSION_LABELS,
+        r=values,
+        theta=dimensions,
         fill='toself',
         fillcolor='rgba(45, 69, 157, 0.3)',
         line=dict(color='#2d459d', width=2),
@@ -135,8 +140,8 @@ def create_radar_chart(report: Dict[str, Any]) -> go.Figure:
                     color='#2d459d'
                 ),
                 ticktext=[f'<b style="font-size: 16px; color: #2d459d">{d}</b>' 
-                         for d in DIMENSION_LABELS[:-1]],
-                tickvals=list(range(len(DIMENSION_LABELS)-1)),
+                         for d in dimensions[:-1]],  # Excluir el valor duplicado
+                tickvals=list(range(len(dimensions)-1)),
                 gridcolor='rgba(0, 0, 0, 0.1)'
             )
         ),
@@ -280,14 +285,19 @@ def create_hierarchical_dimension_chart(report: Dict[str, Any]) -> go.Figure:
         if not metrics:
             st.warning("No metrics data available")
             return go.Figure()
+            
+        # Obtener el modelo del reporte y los valores máximos correspondientes
+        model = report.get('model', 'dcat_ap_es')
+        max_score = MAX_SCORES.get(model, 405)
+        dim_max_scores = DIMENSION_MAX_SCORES.get(model, DIMENSION_MAX_SCORES['dcat_ap_es'])
 
-        # Base data structure con máximos por dimensión
+        # Base data structure with dimension max values from config
         dimension_data = {
-            "findability": {"metrics": [], "max": 100},
-            "accessibility": {"metrics": [], "max": 100},
-            "interoperability": {"metrics": [], "max": 110},
-            "reusability": {"metrics": [], "max": 75},
-            "contextuality": {"metrics": [], "max": 20}
+            "findability": {"metrics": [], "max": dim_max_scores["findability"]},
+            "accessibility": {"metrics": [], "max": dim_max_scores["accessibility"]},
+            "interoperability": {"metrics": [], "max": dim_max_scores["interoperability"]},
+            "reusability": {"metrics": [], "max": dim_max_scores["reusability"]},
+            "contextuality": {"metrics": [], "max": dim_max_scores["contextuality"]}
         }
 
         # Clasificar métricas por dimensión
@@ -305,11 +315,11 @@ def create_hierarchical_dimension_chart(report: Dict[str, Any]) -> go.Figure:
         # Preparar listas para el gráfico
         total_score = int(round(report['totalScore'], 0))
         ids = ['total']
-        # Usar HTML para dar formato a la etiqueta del Total con color #2d459d
-        labels = [f'<span style="font-size: 20px; color: #2d459d; font-weight: bold">Total: {total_score}/405</span>']    
+        # Usar HTML para dar formato a la etiqueta del Total con el máximo puntaje del modelo
+        labels = [f'<span style="font-size: 20px; color: #2d459d; font-weight: bold">Total: {total_score}/{max_score}</span>']    
         parents = ['']
-        values = [405]
-        marker_colors = ['#cfe2f3']  # Cambiar de 'lightgrey' a '#cfe2f3'
+        values = [max_score]  # Valor máximo total según el perfil
+        marker_colors = ['#cfe2f3']  # Color para el círculo total
         
         # Añadir dimensiones y sus métricas
         for dim_name, dim_info in dimension_data.items():

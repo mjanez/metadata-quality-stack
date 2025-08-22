@@ -1,98 +1,82 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ValidationProfile } from '../types';
+import mqaConfig from '../config/mqa-config.json';
 
 interface MQAInfoSidebarProps {
   selectedProfile?: ValidationProfile;
-  isVisible?: boolean;
-  validationResult?: any; // Add validation result to show dynamic stats
+  validationResult?: any;
 }
 
 const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({ 
   selectedProfile = 'dcat_ap', 
-  isVisible = true,
   validationResult = null
 }) => {
   const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const getProfileInfo = (profile: ValidationProfile) => {
+    const getProfileInfo = (profile: ValidationProfile) => {
+    const configProfile = mqaConfig.profiles[profile];
+    
     const profileData = {
       'dcat_ap': {
-        name: 'DCAT-AP',
+        name: configProfile?.name || 'DCAT-AP',
         badge: 'bg-primary',
         icon: '🇪🇺',
         description: 'European DCAT Application Profile',
-        maxPoints: 405,
-        url: 'https://data.europa.eu/mqa/methodology?locale=en'
+        maxPoints: configProfile?.maxScore || 405,
+        url: 'https://semiceu.github.io/DCAT-AP/'
       },
       'dcat_ap_es': {
-        name: 'DCAT-AP-ES',
+        name: configProfile?.name || 'DCAT-AP-ES',
         badge: 'bg-warning',
         icon: '🇪🇸',
         description: 'Spanish DCAT Application Profile',
-        maxPoints: 405,
+        maxPoints: configProfile?.maxScore || 405,
         url: 'https://datos.gob.es/es/documentacion/dcat-ap-es'
       },
       'nti_risp': {
-        name: 'NTI-RISP',
+        name: configProfile?.name || 'NTI-RISP',
         badge: 'bg-success',
-        icon: '📋',
-        description: 'Norma Técnica de Interoperabilidad RISP',
-        maxPoints: 405,
-        url: 'https://datos.gob.es/es/documentacion/norma-tecnica-de-interoperabilidad-de-reutilizacion-de-recursos-de-informacion'
+        icon: '🏛️',
+        description: 'Spanish Technical Norm for Reuse',
+        maxPoints: configProfile?.maxScore || 310,
+        url: 'https://www.boe.es/eli/es/res/2013/02/19/(4)'
       }
     };
     return profileData[profile] || profileData['dcat_ap'];
   };
 
-  const getRatingRanges = () => [
-    { label: t('ratings.excellent'), points: '351-405', color: 'success' },
-    { label: t('ratings.good'), points: '221-350', color: 'warning' },
-    { label: t('ratings.sufficient'), points: '121-220', color: 'info' },
-    { label: t('ratings.poor'), points: '0-120', color: 'danger' }
-  ];
-
   const profileInfo = getProfileInfo(selectedProfile);
-  const ratings = getRatingRanges();
+  
+  const getRatingRanges = (maxPoints: number) => {
+    // Calculate ranges based on percentage ranges: 85%+, 55-84%, 30-54%, 0-29%
+    const excellent = Math.round(maxPoints * 0.85);
+    const good = Math.round(maxPoints * 0.55);
+    const sufficient = Math.round(maxPoints * 0.30);
+    
+    return [
+      { label: t('ratings.excellent'), points: `${excellent}-${maxPoints}`, color: 'success' },
+      { label: t('ratings.good'), points: `${good}-${excellent-1}`, color: 'warning' },
+      { label: t('ratings.sufficient'), points: `${sufficient}-${good-1}`, color: 'info' },
+      { label: t('ratings.poor'), points: `0-${sufficient-1}`, color: 'danger' }
+    ];
+  };
 
-  if (!isVisible) return null;
+  const ratings = getRatingRanges(profileInfo.maxPoints);
 
   return (
     <>
-      {/* Sidebar */}
+      {/* Fixed Sidebar */}
       <div 
-        className={`position-fixed top-0 start-0 h-100 bg-light border-end shadow-sm transition-all duration-300 ${
-          isCollapsed ? 'collapsed-sidebar' : 'expanded-sidebar'
-        }`}
+        className="mqa-sidebar position-fixed top-0 start-0 h-100 border-end shadow-sm"
         style={{
-          width: isCollapsed ? '60px' : '350px',
           zIndex: 1040,
-          transition: 'width 0.3s ease-in-out',
           paddingTop: '76px' // Account for navbar height
         }}
       >
-        {/* Toggle Button */}
-        <button
-          className="btn btn-outline-primary position-absolute"
-          style={{
-            right: isCollapsed ? '10px' : '15px',
-            top: '85px',
-            zIndex: 1041,
-            borderRadius: '50%',
-            width: '40px',
-            height: '40px',
-            padding: '0'
-          }}
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          title={isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
-        >
-          <i className={`bi bi-chevron-${isCollapsed ? 'right' : 'left'}`}></i>
-        </button>
-
         {/* Sidebar Content */}
-        {!isCollapsed && (
-          <div className="p-3 h-100 overflow-auto">
+        <div className="p-3 h-100 overflow-auto">
             {/* Profile Banner */}
             <div className="card mb-3 border-0 bg-gradient">
               <div className="card-body text-center py-3">
@@ -293,30 +277,14 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
                   </a>
                 </div>
               </div>
-            </div>
           </div>
-        )}
-
-        {/* Collapsed State Icon */}
-        {isCollapsed && (
-          <div className="text-center mt-4">
-            <div className="mb-3">
-              <span className="fs-3" role="img" aria-label={profileInfo.name}>
-                {profileInfo.icon}
-              </span>
-            </div>
-            <div className="mb-3">
-              <i className="bi bi-info-circle text-muted" style={{ fontSize: '1.5rem' }}></i>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Content Offset */}
       <div 
         style={{
-          marginLeft: isCollapsed ? '60px' : '350px',
-          transition: 'margin-left 0.3s ease-in-out'
+          marginLeft: '350px'
         }}
       />
     </>

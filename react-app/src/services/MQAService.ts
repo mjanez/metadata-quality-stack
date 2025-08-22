@@ -220,9 +220,13 @@ export class MQAService {
    */
   private async checkVocabularyMatch(values: string[], vocabularyName: string): Promise<boolean> {
     const vocabulary = await this.loadVocabulary(vocabularyName);
-    return values.some(value => 
+    
+    // Filter out empty or invalid values
+    const validValues = values.filter(value => value && typeof value === 'string' && value.trim().length > 0);
+    
+    return validValues.some(value => 
       vocabulary.some(item => 
-        this.normalizeValue(item.value) === this.normalizeValue(value) ||
+        (item.value && this.normalizeValue(item.value) === this.normalizeValue(value)) ||
         (item.label && this.normalizeValue(item.label) === this.normalizeValue(value))
       )
     );
@@ -256,7 +260,10 @@ export class MQAService {
   /**
    * Normalize value for comparison
    */
-  private normalizeValue(value: string): string {
+  private normalizeValue(value: string | undefined | null): string {
+    if (!value || typeof value !== 'string') {
+      return '';
+    }
     return value.toLowerCase().trim();
   }
 

@@ -65,7 +65,8 @@
     "text_placeholder": "Pega tu contenido RDF aquí (RDF/XML, Turtle, JSON-LD, N-Triples)",
     "url_invalid": "Por favor introduce una URL válida",
     "text_required": "El contenido RDF es requerido",
-    "validation_error": "La validación falló. Por favor revisa tu entrada e inténtalo de nuevo."
+    "validation_error": "La validación falló. Por favor revisa tu entrada e inténtalo de nuevo.",
+    "validating": "Validando..."
   },
   "profiles": {
     "dcat_ap": "DCAT-AP 2.1.1",
