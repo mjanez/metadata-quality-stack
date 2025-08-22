@@ -123,7 +123,15 @@ export class RDFService {
   /**
    * Parse and count RDF statistics
    */
-  public static async parseAndCount(turtleContent: string): Promise<{ triples: number; subjects: number; predicates: number; objects: number }> {
+  public static async parseAndCount(turtleContent: string): Promise<{ 
+    triples: number; 
+    subjects: number; 
+    predicates: number; 
+    objects: number;
+    datasets: number;
+    dataServices: number;
+    distributions: number;
+  }> {
     return new Promise((resolve, reject) => {
       const store = new N3Store();
       const parser = new N3Parser({ format: 'text/turtle' });
@@ -138,19 +146,39 @@ export class RDFService {
           const subjects = new Set();
           const predicates = new Set();
           const objects = new Set();
+          
+          // DCAT entity counters
+          const datasets = new Set();
+          const dataServices = new Set();
+          const distributions = new Set();
 
           const quads = store.getQuads();
           quads.forEach(quad => {
             subjects.add(quad.subject.value);
             predicates.add(quad.predicate.value);
             objects.add(quad.object.value);
+            
+            // Count DCAT entities based on rdf:type
+            if (quad.predicate.value === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type') {
+              const objectValue = quad.object.value;
+              if (objectValue === 'http://www.w3.org/ns/dcat#Dataset') {
+                datasets.add(quad.subject.value);
+              } else if (objectValue === 'http://www.w3.org/ns/dcat#DataService') {
+                dataServices.add(quad.subject.value);
+              } else if (objectValue === 'http://www.w3.org/ns/dcat#Distribution') {
+                distributions.add(quad.subject.value);
+              }
+            }
           });
 
           resolve({
             triples: store.size,
             subjects: subjects.size,
             predicates: predicates.size,
-            objects: objects.size
+            objects: objects.size,
+            datasets: datasets.size,
+            dataServices: dataServices.size,
+            distributions: distributions.size
           });
         }
       });

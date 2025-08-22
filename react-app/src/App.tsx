@@ -64,14 +64,26 @@ function App() {
       // Auto-switch to results tab after successful validation
       setTimeout(() => {
         const resultsTab = document.getElementById('results-tab');
-        if (resultsTab) {
-          const bootstrap = (window as any).bootstrap;
-          if (bootstrap && bootstrap.Tab) {
-            const tabInstance = new bootstrap.Tab(resultsTab);
-            tabInstance.show();
-          }
+        const formTab = document.getElementById('form-tab');
+        const resultsPane = document.getElementById('results-pane');
+        const formPane = document.getElementById('form-pane');
+        
+        if (resultsTab && formTab && resultsPane && formPane) {
+          // Remove active class from form tab and pane
+          formTab.classList.remove('active');
+          formTab.setAttribute('aria-selected', 'false');
+          formPane.classList.remove('show', 'active');
+          
+          // Add active class to results tab and pane
+          resultsTab.classList.add('active');
+          resultsTab.setAttribute('aria-selected', 'true');
+          resultsPane.classList.add('show', 'active');
+          
+          console.log('🎯 Switched to results tab');
+        } else {
+          console.warn('⚠️ Could not find tab elements for auto-switch');
         }
-      }, 100); // Small delay to ensure DOM is updated
+      }, 300); // Increased delay to ensure DOM is fully updated
     } catch (err) {
       console.error('❌ Validation error:', err);
       setError(err instanceof Error ? err.message : 'Validation failed');
@@ -95,7 +107,7 @@ function App() {
         />      {/* Main Content */}
       <div className="main-content">
         {/* Navigation Bar */}
-        <nav className="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+        <nav className="navbar navbar-expand-lg border-bottom">
           <div className="container-fluid">
             <div className="d-flex align-items-center">
               <span className="navbar-brand mb-0 h1">

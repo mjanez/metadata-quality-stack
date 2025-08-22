@@ -11,10 +11,31 @@
   background-color: var(--bs-tertiary-bg);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  left: 0;
+}
+
+.sidebar-expanded {
+  transform: translateX(0) !important;
+}
+
+.sidebar-collapsed {
+  transform: translateX(-100%) !important;
 }
 
 .main-content {
-  margin-left: 350px;
+  margin-left: 0;
+  transition: margin-left 0.3s ease-in-out;
+}
+
+/* Desktop: sidebar always visible */
+@media (min-width: 992px) {
+  .mqa-sidebar {
+    transform: translateX(0) !important;
+  }
+  
+  .main-content {
+    margin-left: 350px;
+  }
 }
 
 /* Sidebar card improvements */
@@ -35,13 +56,9 @@
 }
 
 /* Responsive sidebar */
-@media (max-width: 992px) {
+@media (max-width: 991px) {
   .mqa-sidebar {
     width: 300px !important;
-    position: fixed;
-    z-index: 1040;
-    height: 100vh;
-    overflow-y: auto;
   }
   
   .main-content {
@@ -108,6 +125,42 @@
 
 [data-bs-theme="dark"] .mqa-sidebar .text-muted {
   color: var(--bs-secondary) !important;
+}
+
+/* Enhanced dark theme support for navbar and buttons */
+[data-bs-theme="dark"] .navbar {
+  background-color: var(--bs-dark) !important;
+  border-color: var(--bs-border-color) !important;
+}
+
+[data-bs-theme="dark"] .navbar-light .navbar-brand {
+  color: var(--bs-light) !important;
+}
+
+[data-bs-theme="dark"] .btn-outline-secondary {
+  color: var(--bs-light);
+  border-color: var(--bs-border-color);
+  background-color: var(--bs-dark);
+}
+
+[data-bs-theme="dark"] .btn-outline-secondary:hover {
+  color: var(--bs-dark);
+  background-color: var(--bs-light);
+  border-color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .dropdown-menu {
+  background-color: var(--bs-dark);
+  border-color: var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] .dropdown-item {
+  color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .dropdown-item:hover {
+  background-color: var(--bs-secondary);
+  color: var(--bs-light);
 }
 
 .card {

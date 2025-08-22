@@ -172,10 +172,10 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
           onChange={(e) => setFormat(e.target.value as RDFFormat)}
         >
           <option value="auto">🔍 Auto-detect</option>
-          <option value="turtle">🐢 Turtle</option>
-          <option value="rdfxml">📄 RDF/XML</option>
-          <option value="jsonld">🔗 JSON-LD</option>
-          <option value="ntriples">�� N-Triples</option>
+          <option value="turtle">Turtle</option>
+          <option value="rdfxml">RDF/XML</option>
+          <option value="jsonld">JSON-LD</option>
+          <option value="ntriples">N-Triples</option>
         </select>
       </div>
 

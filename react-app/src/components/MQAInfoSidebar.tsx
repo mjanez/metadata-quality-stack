@@ -23,7 +23,7 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
         name: configProfile?.name || 'DCAT-AP',
         badge: 'bg-primary',
         icon: '🇪🇺',
-        description: 'European DCAT Application Profile',
+        description: t('profiles.dcat_ap_desc'),
         maxPoints: configProfile?.maxScore || 405,
         url: 'https://semiceu.github.io/DCAT-AP/'
       },
@@ -31,15 +31,15 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
         name: configProfile?.name || 'DCAT-AP-ES',
         badge: 'bg-warning',
         icon: '🇪🇸',
-        description: 'Spanish DCAT Application Profile',
+        description: t('profiles.dcat_ap_es_desc'),
         maxPoints: configProfile?.maxScore || 405,
-        url: 'https://datos.gob.es/es/documentacion/dcat-ap-es'
+        url: 'https://semiceu.github.io/DCAT-AP/releases/2.1.1/'
       },
       'nti_risp': {
         name: configProfile?.name || 'NTI-RISP',
         badge: 'bg-success',
-        icon: '🏛️',
-        description: 'Spanish Technical Norm for Reuse',
+        icon: '�️',
+        description: t('profiles.nti_risp_desc'),
         maxPoints: configProfile?.maxScore || 310,
         url: 'https://www.boe.es/eli/es/res/2013/02/19/(4)'
       }
@@ -67,12 +67,43 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
 
   return (
     <>
-      {/* Fixed Sidebar */}
+      {/* Sidebar Toggle Button for Mobile */}
+      <button
+        className="btn btn-primary position-fixed d-lg-none"
+        style={{
+          top: '80px',
+          left: isCollapsed ? '10px' : '310px',
+          zIndex: 1050,
+          transition: 'left 0.3s ease-in-out'
+        }}
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        aria-label={isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+      >
+        <i className={`bi bi-${isCollapsed ? 'layout-sidebar' : 'x-lg'}`}></i>
+      </button>
+
+      {/* Sidebar Overlay for Mobile */}
+      {!isCollapsed && (
+        <div 
+          className="position-fixed w-100 h-100 d-lg-none"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 1030,
+            top: 0,
+            left: 0
+          }}
+          onClick={() => setIsCollapsed(true)}
+        />
+      )}
+
+      {/* Responsive Sidebar */}
       <div 
-        className="mqa-sidebar position-fixed top-0 start-0 h-100 border-end shadow-sm"
+        className={`mqa-sidebar position-fixed top-0 h-100 border-end shadow-sm ${isCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded'}`}
         style={{
           zIndex: 1040,
-          paddingTop: '76px' // Account for navbar height
+          paddingTop: '76px',
+          transform: isCollapsed ? 'translateX(-100%)' : 'translateX(0)',
+          transition: 'transform 0.3s ease-in-out'
         }}
       >
         {/* Sidebar Content */}
@@ -127,10 +158,32 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
                     <div className="col-6">
                       <div className="card bg-light border-0">
                         <div className="card-body py-2">
-                          <div className="fs-6 fw-bold text-success">
-                            {validationResult.stats.triples.toLocaleString()}
+                          <div className="fs-6 fw-bold text-info">
+                            {validationResult.stats.datasets}
                           </div>
-                          <small className="text-muted">{t('sidebar.triples')}</small>
+                          <small className="text-muted">{t('sidebar.datasets')}</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="row g-2 text-center mt-1">
+                    <div className="col-6">
+                      <div className="card bg-light border-0">
+                        <div className="card-body py-2">
+                          <div className="fs-6 fw-bold text-warning">
+                            {validationResult.stats.dataServices}
+                          </div>
+                          <small className="text-muted">{t('sidebar.data_services')}</small>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-6">
+                      <div className="card bg-light border-0">
+                        <div className="card-body py-2">
+                          <div className="fs-6 fw-bold text-success">
+                            {validationResult.stats.distributions}
+                          </div>
+                          <small className="text-muted">{t('sidebar.distributions')}</small>
                         </div>
                       </div>
                     </div>
@@ -161,7 +214,7 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
               </div>
               <div className="card-body py-2">
                 <p className="small mb-2">
-                  {t('sidebar.mqa_description')}
+                  {t('sidebar.mqa_description')} <strong>{profileInfo.name}</strong>.
                 </p>
                 <a 
                   href={profileInfo.url}

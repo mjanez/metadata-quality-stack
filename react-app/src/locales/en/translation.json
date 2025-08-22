@@ -36,7 +36,7 @@
     "collapse": "Collapse Sidebar",
     "about_mqa": "About MQA",
     "mqa_description": "This tool evaluates metadata quality based on the Metadata Quality Assessment (MQA) methodology from the European Data Portal.",
-    "learn_more": "Learn More",
+    "learn_more": "Profile info",
     "fairc_principles": "FAIR+C Principles",
     "rating_scale": "Rating Scale",
     "rating": "Rating",
@@ -47,7 +47,10 @@
     "fair_principles": "FAIR Principles",
     "current_validation": "Current Validation",
     "total_score": "Total Score",
-    "triples": "Triples"
+    "triples": "Triples",
+    "datasets": "Datasets",
+    "data_services": "Data Services",
+    "distributions": "Distributions"
   },
   "ratings": {
     "excellent": "Excellent",
@@ -71,7 +74,10 @@
   "profiles": {
     "dcat_ap": "DCAT-AP 2.1.1",
     "dcat_ap_es": "DCAT-AP-ES 1.0.0",
-    "nti_risp": "NTI-RISP 1.0.0"
+    "nti_risp": "NTI-RISP 1.0.0",
+    "dcat_ap_desc": "European DCAT Application Profile",
+    "dcat_ap_es_desc": "Spanish DCAT Application Profile", 
+    "nti_risp_desc": "Spanish Technical Norm for Reuse"
   },
   "dimensions": {
     "findability": "Findability",

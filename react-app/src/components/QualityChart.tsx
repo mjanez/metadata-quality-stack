@@ -108,6 +108,7 @@ const QualityChart: React.FC<QualityChartProps> = ({ data }) => {
         ticks: {
           stepSize: 20,
           color: textColor,
+          backdropColor: 'transparent', // Remove background
           callback: function(value: any) {
             return value + '%';
           }

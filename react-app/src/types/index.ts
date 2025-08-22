@@ -75,6 +75,9 @@ export interface ValidationResult {
     subjects: number;
     predicates: number;
     objects: number;
+    datasets: number;
+    dataServices: number;
+    distributions: number;
   };
   timestamp: string;
 }
