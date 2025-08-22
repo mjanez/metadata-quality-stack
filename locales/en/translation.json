@@ -1,0 +1,95 @@
+{
+  "common": {
+    "title": "Metadata Quality Assessment",
+    "subtitle": "Evaluate RDF metadata quality based on FAIR+C principles",
+    "loading": "Loading...",
+    "validate": "Validate",
+    "validating": "Validating...",
+    "error": "Error",
+    "warning": "Warning",
+    "success": "Success",
+    "close": "Close",
+    "download": "Download",
+    "export": "Export",
+    "clear": "Clear",
+    "reset": "Reset"
+  },
+  "navigation": {
+    "home": "Home",
+    "validation": "Validation",
+    "results": "Results",
+    "about": "About"
+  },
+  "theme": {
+    "light": "Light Mode",
+    "dark": "Dark Mode",
+    "toggle": "Toggle Theme"
+  },
+  "language": {
+    "english": "English",
+    "spanish": "Español",
+    "select": "Select Language"
+  },
+  "form": {
+    "profile": "Validation Profile",
+    "profile_select": "Select a validation profile",
+    "input_method": "Input Method",
+    "url_tab": "URL",
+    "text_tab": "Direct Text",
+    "url_placeholder": "Enter RDF URL (e.g., https://example.org/dataset.rdf)",
+    "text_placeholder": "Paste your RDF content here (RDF/XML, Turtle, JSON-LD, N-Triples)",
+    "url_invalid": "Please enter a valid URL",
+    "text_required": "RDF content is required",
+    "validation_error": "Validation failed. Please check your input and try again."
+  },
+  "profiles": {
+    "dcat_ap": "DCAT-AP 2.1.1",
+    "dcat_ap_es": "DCAT-AP-ES 1.0.0",
+    "nti_risp": "NTI-RISP 1.0.0"
+  },
+  "dimensions": {
+    "findability": "Findability",
+    "accessibility": "Accessibility", 
+    "interoperability": "Interoperability",
+    "reusability": "Reusability",
+    "contextuality": "Contextuality",
+    "findability_desc": "How easy it is to find the dataset",
+    "accessibility_desc": "How accessible the data is",
+    "interoperability_desc": "Technical interoperability of the data",
+    "reusability_desc": "How easy it is to reuse the data",
+    "contextuality_desc": "Contextual information about the data"
+  },
+  "results": {
+    "title": "Validation Results",
+    "summary": "Quality Summary",
+    "overall_score": "Overall Score",
+    "max_score": "Maximum Score",
+    "percentage": "Quality Percentage",
+    "details": "Detailed Metrics",
+    "chart_title": "FAIR+C Quality Radar",
+    "no_results": "No validation results yet. Please validate some RDF content first.",
+    "metrics_by_dimension": "Metrics by Dimension",
+    "expand_all": "Expand All",
+    "collapse_all": "Collapse All"
+  },
+  "metrics": {
+    "name": "Metric",
+    "score": "Score", 
+    "max_score": "Max",
+    "weight": "Weight",
+    "description": "Description",
+    "found": "Found",
+    "not_found": "Not Found",
+    "valid": "Valid",
+    "invalid": "Invalid",
+    "present": "Present",
+    "missing": "Missing"
+  },
+  "errors": {
+    "fetch_failed": "Failed to fetch RDF content from URL",
+    "parse_failed": "Failed to parse RDF content",
+    "validation_failed": "Validation process failed",
+    "network_error": "Network error occurred",
+    "unknown_error": "An unknown error occurred"
+  }
+}
