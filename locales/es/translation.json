@@ -12,7 +12,8 @@
     "download": "Descargar",
     "export": "Exportar",
     "clear": "Limpiar",
-    "reset": "Reiniciar"
+    "reset": "Reiniciar",
+    "points": "puntos"
   },
   "navigation": {
     "home": "Inicio",

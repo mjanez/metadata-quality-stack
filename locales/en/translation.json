@@ -12,7 +12,8 @@
     "download": "Download",
     "export": "Export",
     "clear": "Clear",
-    "reset": "Reset"
+    "reset": "Reset",
+    "points": "points"
   },
   "navigation": {
     "home": "Home",
