@@ -10,7 +10,7 @@ from datetime import datetime
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "docs" / "vocabularies"
-DST = ROOT / "static" / "data"
+DST = ROOT / "react-app" / "public" / "data" 
 
 VOCABS = {
     "access_rights": {"type": "uri_label"},
