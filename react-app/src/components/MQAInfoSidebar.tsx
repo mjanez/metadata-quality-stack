@@ -22,14 +22,6 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
     const configProfile = mqaConfig.profiles[profile];
     
     const profileData = {
-      'dcat_ap': {
-        name: configProfile?.name || 'DCAT-AP',
-        style: 'text-primary',
-        icon: 'img/icons/eur.svg', // EU flag SVG
-        description: t('profiles.dcat_ap_desc'),
-        maxPoints: configProfile?.maxScore || 405,
-        url: 'https://semiceu.github.io/DCAT-AP/'
-      },
       'dcat_ap_es': {
         name: configProfile?.name || 'DCAT-AP-ES',
         style: 'text-primary',
@@ -37,6 +29,14 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
         description: t('profiles.dcat_ap_es_desc'),
         maxPoints: configProfile?.maxScore || 405,
         url: 'https://datosgobes.github.io/DCAT-AP-ES/'
+      },
+      'dcat_ap': {
+        name: configProfile?.name || 'DCAT-AP',
+        style: 'text-primary',
+        icon: 'img/icons/eur.svg', // EU flag SVG
+        description: t('profiles.dcat_ap_desc'),
+        maxPoints: configProfile?.maxScore || 405,
+        url: 'https://semiceu.github.io/DCAT-AP/'
       },
       'nti_risp': {
         name: configProfile?.name || 'NTI-RISP',

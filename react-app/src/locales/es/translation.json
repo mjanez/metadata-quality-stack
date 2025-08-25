@@ -76,10 +76,10 @@
   "profiles": {
     "dcat_ap": "DCAT-AP 2.1.1",
     "dcat_ap_es": "DCAT-AP-ES 1.0.0",
-    "nti_risp": "NTI-RISP 1.0.0",
-    "dcat_ap_desc": "Perfil Europeo de Aplicación DCAT",
-    "dcat_ap_es_desc": "Perfil Español de Aplicación DCAT",
-    "nti_risp_desc": "Norma Técnica Española para Reutilización"
+    "nti_risp": "NTI-RISP (2013)",
+    "dcat_ap_desc": "Perfil de aplicación DCAT para portales de datos en Europa",
+    "dcat_ap_es_desc": "Perfil de aplicación DCAT-AP en España",
+    "nti_risp_desc": "Modelo de metadatos de la Norma Técnica de Interoperabilidad (2013)"
   },
   "dimensions": {
     "findability": "Encontrabilidad",
@@ -100,12 +100,20 @@
     "max_score": "Puntuación Máxima",
     "percentage": "Porcentaje de Calidad",
     "details": "Métricas Detalladas",
-    "graphic_results": "Resultados gráficos",
     "chart_title": "Radar de Calidad FAIR+C",
+    "chart_label": "Resultados",
     "no_results": "Aún no hay resultados de validación. Por favor valida algún contenido RDF primero.",
     "metrics_by_dimension": "Métricas por Dimensión",
     "expand_all": "Expandir Todo",
     "collapse_all": "Contraer Todo"
+  },
+  "metadata_info": {
+    "title": "Información de validación",
+    "profile": "Perfil de aplicación",
+    "triples": "Tripletas",
+    "subjects": "Sujetos",
+    "predicates": "Predicados",
+    "objects": "Objetos"
   },
   "metrics": {
     "name": "Métrica",

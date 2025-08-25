@@ -76,8 +76,8 @@
   "profiles": {
     "dcat_ap": "DCAT-AP 2.1.1",
     "dcat_ap_es": "DCAT-AP-ES 1.0.0",
-    "nti_risp": "NTI-RISP 1.0.0",
-    "dcat_ap_desc": "European DCAT Application Profile",
+    "nti_risp": "NTI-RISP (2013)",
+    "dcat_ap_desc": "DCAT Application profile for data portals in Europe",
     "dcat_ap_es_desc": "Spanish DCAT Application Profile", 
     "nti_risp_desc": "Spanish Technical Norm for Reuse"
   },
@@ -106,6 +106,14 @@
     "metrics_by_dimension": "Metrics by Dimension",
     "expand_all": "Expand All",
     "collapse_all": "Collapse All"
+  },
+  "metadata_info": {
+    "title": "Validation information",
+    "profile": "Application profile",
+    "triples": "Triples",
+    "subjects": "Subjects",
+    "predicates": "Predicates",
+    "objects": "Objects"
   },
   "metrics": {
     "name": "Metric",
