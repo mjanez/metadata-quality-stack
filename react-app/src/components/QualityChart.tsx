@@ -68,7 +68,7 @@ const QualityChart: React.FC<QualityChartProps> = ({ data }) => {
     ),
     datasets: [
       {
-        label: t('results.chart_title'),
+        label: t('results.chart_label'),
         data: validCategories.map(([_, scores]) => scores.percentage),
         backgroundColor: 'rgba(13, 110, 253, 0.2)',
         borderColor: 'rgba(13, 110, 253, 1)',
@@ -86,7 +86,7 @@ const QualityChart: React.FC<QualityChartProps> = ({ data }) => {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top' as const,
+        position: 'bottom' as const,
         labels: {
           color: textColor,
         }

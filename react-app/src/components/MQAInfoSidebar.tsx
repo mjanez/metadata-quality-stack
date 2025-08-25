@@ -24,7 +24,7 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
     const profileData = {
       'dcat_ap': {
         name: configProfile?.name || 'DCAT-AP',
-        badge: 'bg-primary',
+        style: 'text-primary',
         icon: 'img/icons/eur.svg', // EU flag SVG
         description: t('profiles.dcat_ap_desc'),
         maxPoints: configProfile?.maxScore || 405,
@@ -32,7 +32,7 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
       },
       'dcat_ap_es': {
         name: configProfile?.name || 'DCAT-AP-ES',
-        badge: 'bg-warning',
+        style: 'text-primary',
         icon: 'img/icons/esp.svg', // Spain flag SVG
         description: t('profiles.dcat_ap_es_desc'),
         maxPoints: configProfile?.maxScore || 405,
@@ -40,14 +40,14 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
       },
       'nti_risp': {
         name: configProfile?.name || 'NTI-RISP',
-        badge: 'bg-success',
+        style: 'text-primary',
         icon: 'img/icons/esp.svg', // Spain flag SVG
         description: t('profiles.nti_risp_desc'),
         maxPoints: configProfile?.maxScore || 310,
         url: 'https://www.boe.es/eli/es/res/2013/02/19/(4)'
       }
     };
-    return profileData[profile] || profileData['dcat_ap'];
+    return profileData[profile] || profileData['dcat_ap_es'];
   };
 
   const profileInfo = getProfileInfo(selectedProfile);
@@ -135,7 +135,7 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
                   />
                 </div>
                 <h6 className="card-title mb-1">
-                  <span className={`badge ${profileInfo.badge} fs-6`}>
+                  <span className={`${profileInfo.style} fw-bold fs-5`}>
                     {profileInfo.name}
                   </span>
                 </h6>

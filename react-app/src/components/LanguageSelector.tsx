@@ -28,7 +28,7 @@ const LanguageSelector: React.FC = () => {
             onClick={() => changeLanguage('en')}
           >
             <img 
-              src="/img/icons/gbr.svg" 
+              src="img/icons/gbr.svg" 
               alt="English"
               className="rounded-circle me-2"
               style={{ 
@@ -46,7 +46,7 @@ const LanguageSelector: React.FC = () => {
             onClick={() => changeLanguage('es')}
           >
             <img 
-              src="/img/icons/esp.svg" 
+              src="img/icons/esp.svg" 
               alt="Español"
               className="rounded-circle me-2"
               style={{ 
