@@ -6,14 +6,17 @@ import mqaConfig from '../config/mqa-config.json';
 interface MQAInfoSidebarProps {
   selectedProfile?: ValidationProfile;
   validationResult?: any;
+  isVisible?: boolean;
+  onToggle?: () => void;
 }
 
 const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({ 
-  selectedProfile = 'dcat_ap', 
-  validationResult = null
+  selectedProfile = 'dcat_ap_es', 
+  validationResult = null,
+  isVisible = true,
+  onToggle
 }) => {
   const { t } = useTranslation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
     const getProfileInfo = (profile: ValidationProfile) => {
     const configProfile = mqaConfig.profiles[profile];
@@ -22,7 +25,7 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
       'dcat_ap': {
         name: configProfile?.name || 'DCAT-AP',
         badge: 'bg-primary',
-        icon: '🇪🇺',
+        icon: 'img/icons/eur.svg', // EU flag SVG
         description: t('profiles.dcat_ap_desc'),
         maxPoints: configProfile?.maxScore || 405,
         url: 'https://semiceu.github.io/DCAT-AP/'
@@ -30,15 +33,15 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
       'dcat_ap_es': {
         name: configProfile?.name || 'DCAT-AP-ES',
         badge: 'bg-warning',
-        icon: '🇪🇸',
+        icon: 'img/icons/esp.svg', // Spain flag SVG
         description: t('profiles.dcat_ap_es_desc'),
         maxPoints: configProfile?.maxScore || 405,
-        url: 'https://semiceu.github.io/DCAT-AP/releases/2.1.1/'
+        url: 'https://datosgobes.github.io/DCAT-AP-ES/'
       },
       'nti_risp': {
         name: configProfile?.name || 'NTI-RISP',
         badge: 'bg-success',
-        icon: '�️',
+        icon: 'img/icons/esp.svg', // Spain flag SVG
         description: t('profiles.nti_risp_desc'),
         maxPoints: configProfile?.maxScore || 310,
         url: 'https://www.boe.es/eli/es/res/2013/02/19/(4)'
@@ -57,10 +60,17 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
     
     return [
       { label: t('ratings.excellent'), points: `${excellent}-${maxPoints}`, color: 'success' },
-      { label: t('ratings.good'), points: `${good}-${excellent-1}`, color: 'warning' },
-      { label: t('ratings.sufficient'), points: `${sufficient}-${good-1}`, color: 'info' },
+      { label: t('ratings.good'), points: `${good}-${excellent-1}`, color: 'success-light' },
+      { label: t('ratings.sufficient'), points: `${sufficient}-${good-1}`, color: 'warning' },
       { label: t('ratings.poor'), points: `0-${sufficient-1}`, color: 'danger' }
     ];
+  };
+
+  const getBadgeColor = (percentage: number) => {
+    if (percentage >= 85) return 'bg-success';      // Excellent - Dark Green
+    if (percentage >= 55) return 'bg-success-light'; // Good - Light Green
+    if (percentage >= 30) return 'bg-warning';       // Sufficient - Warning (Yellow)
+    return 'bg-danger';                             // Poor - Red
   };
 
   const ratings = getRatingRanges(profileInfo.maxPoints);
@@ -72,18 +82,18 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
         className="btn btn-primary position-fixed d-lg-none"
         style={{
           top: '80px',
-          left: isCollapsed ? '10px' : '310px',
+          left: !isVisible ? '10px' : '310px',
           zIndex: 1050,
           transition: 'left 0.3s ease-in-out'
         }}
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        aria-label={isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+        onClick={onToggle}
+        aria-label={!isVisible ? t('sidebar.expand') : t('sidebar.collapse')}
       >
-        <i className={`bi bi-${isCollapsed ? 'layout-sidebar' : 'x-lg'}`}></i>
+        <i className={`bi bi-${!isVisible ? 'layout-sidebar' : 'x-lg'}`}></i>
       </button>
 
       {/* Sidebar Overlay for Mobile */}
-      {!isCollapsed && (
+      {isVisible && (
         <div 
           className="position-fixed w-100 h-100 d-lg-none"
           style={{
@@ -92,17 +102,17 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
             top: 0,
             left: 0
           }}
-          onClick={() => setIsCollapsed(true)}
+          onClick={onToggle}
         />
       )}
 
       {/* Responsive Sidebar */}
       <div 
-        className={`mqa-sidebar position-fixed top-0 h-100 border-end shadow-sm ${isCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded'}`}
+        className={`mqa-sidebar position-fixed top-0 h-100 border-end shadow-sm ${!isVisible ? 'sidebar-collapsed' : 'sidebar-expanded'}`}
         style={{
           zIndex: 1040,
           paddingTop: '76px',
-          transform: isCollapsed ? 'translateX(-100%)' : 'translateX(0)',
+          transform: !isVisible ? 'translateX(-100%)' : 'translateX(0)',
           transition: 'transform 0.3s ease-in-out'
         }}
       >
@@ -112,9 +122,17 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
             <div className="card mb-3 border-0 bg-gradient">
               <div className="card-body text-center py-3">
                 <div className="mb-2">
-                  <span className="fs-1" role="img" aria-label={profileInfo.name}>
-                    {profileInfo.icon}
-                  </span>
+                  <img 
+                    src={profileInfo.icon} 
+                    alt={profileInfo.name}
+                    className="rounded-circle"
+                    style={{ 
+                      width: '3rem', 
+                      height: '3rem',
+                      objectFit: 'cover'
+                    }}
+                    aria-label={profileInfo.name}
+                  />
                 </div>
                 <h6 className="card-title mb-1">
                   <span className={`badge ${profileInfo.badge} fs-6`}>
@@ -126,7 +144,7 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
                 </small>
                 {validationResult && (
                   <div className="mt-2">
-                    <div className="badge bg-primary fs-6">
+                    <div className={`badge ${getBadgeColor(validationResult.quality.percentage)} fs-6`}>
                       {validationResult.quality.percentage.toFixed(1)}%
                     </div>
                   </div>
@@ -146,44 +164,44 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
                 <div className="card-body py-2">
                   <div className="row g-2 text-center">
                     <div className="col-6">
-                      <div className="card bg-light border-0">
+                      <div className="card border-0" style={{ backgroundColor: 'var(--bs-secondary-bg)' }}>
                         <div className="card-body py-2">
                           <div className="fs-6 fw-bold text-primary">
                             {validationResult.quality.totalScore}
                           </div>
-                          <small className="text-muted">{t('sidebar.total_score')}</small>
+                          <small className="text-muted small-summary">{t('sidebar.total_score')}</small>
                         </div>
                       </div>
                     </div>
                     <div className="col-6">
-                      <div className="card bg-light border-0">
+                      <div className="card border-0" style={{ backgroundColor: 'var(--bs-secondary-bg)' }}>
                         <div className="card-body py-2">
                           <div className="fs-6 fw-bold text-info">
                             {validationResult.stats.datasets}
                           </div>
-                          <small className="text-muted">{t('sidebar.datasets')}</small>
+                          <small className="text-muted small-summary">{t('sidebar.datasets')}</small>
                         </div>
                       </div>
                     </div>
                   </div>
                   <div className="row g-2 text-center mt-1">
                     <div className="col-6">
-                      <div className="card bg-light border-0">
+                      <div className="card border-0" style={{ backgroundColor: 'var(--bs-secondary-bg)' }}>
                         <div className="card-body py-2">
                           <div className="fs-6 fw-bold text-warning">
                             {validationResult.stats.dataServices}
                           </div>
-                          <small className="text-muted">{t('sidebar.data_services')}</small>
+                          <small className="text-muted small-summary">{t('sidebar.data_services')}</small>
                         </div>
                       </div>
                     </div>
                     <div className="col-6">
-                      <div className="card bg-light border-0">
+                      <div className="card border-0" style={{ backgroundColor: 'var(--bs-secondary-bg)' }}>
                         <div className="card-body py-2">
                           <div className="fs-6 fw-bold text-success">
                             {validationResult.stats.distributions}
                           </div>
-                          <small className="text-muted">{t('sidebar.distributions')}</small>
+                          <small className="text-muted small-summary">{t('sidebar.distributions')}</small>
                         </div>
                       </div>
                     </div>
@@ -239,18 +257,18 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
               <div className="card-body py-2">
                 <div className="list-group list-group-flush">
                   {[
-                    { key: 'findability', icon: '🔍', letter: 'F' },
-                    { key: 'accessibility', icon: '🔓', letter: 'A' },
-                    { key: 'interoperability', icon: '🔗', letter: 'I' },
-                    { key: 'reusability', icon: '♻️', letter: 'R' },
-                    { key: 'contextuality', icon: '📋', letter: 'C' }
+                    { key: 'findability', icon: 'bi-search', letter: 'F' },
+                    { key: 'accessibility', icon: 'bi-unlock', letter: 'A' },
+                    { key: 'interoperability', icon: 'bi-link-45deg', letter: 'I' },
+                    { key: 'reusability', icon: 'bi-recycle', letter: 'R' },
+                    { key: 'contextuality', icon: 'bi-clipboard-data', letter: 'C' }
                   ].map(({ key, icon, letter }) => (
                     <div key={key} className="list-group-item border-0 px-0 py-1">
                       <div className="d-flex align-items-center">
                         <span className="badge bg-secondary rounded-circle me-2" style={{ width: '24px', height: '24px', fontSize: '12px' }}>
                           {letter}
                         </span>
-                        <span className="me-2">{icon}</span>
+                        <i className={`${icon} me-2`}></i>
                         <small className="flex-grow-1">
                           <strong>{t(`dimensions.${key}`)}</strong>
                         </small>
@@ -327,6 +345,15 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
                   >
                     <i className="bi bi-book me-1"></i>
                     {t('sidebar.fair_principles')}
+                  </a>
+                  <a 
+                    href="https://github.com/mjanez/metadata-quality-stack"
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="btn btn-outline-dark btn-sm"
+                  >
+                    <i className="bi bi-github me-1"></i>
+                    {t('sidebar.github_repository')}
                   </a>
                 </div>
               </div>

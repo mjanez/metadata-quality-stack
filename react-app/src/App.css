@@ -27,13 +27,13 @@
   transition: margin-left 0.3s ease-in-out;
 }
 
-/* Desktop: sidebar always visible */
+.main-content.sidebar-open {
+  margin-left: 350px;
+}
+
+/* Main content responsive to sidebar state on desktop */
 @media (min-width: 992px) {
-  .mqa-sidebar {
-    transform: translateX(0) !important;
-  }
-  
-  .main-content {
+  .main-content.sidebar-open {
     margin-left: 350px;
   }
 }

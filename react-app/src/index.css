@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -8,6 +8,22 @@ body {
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  font-family: 'Source Code Pro', source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* Custom badge colors */
+.bg-success-light {
+  background-color: #7dd87d !important; /* Light green, lighter than Bootstrap's success (#198754) */
+  color: #000 !important;
+}
+
+/* Custom text colors */
+.text-success-light {
+  color: #7dd87d !important; /* Light green text for scores */
+}
+
+/* Custom text sizes */
+.small-summary {
+  font-size: .7em !important; /* Small text for summary cards */
 }

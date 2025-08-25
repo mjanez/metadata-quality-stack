@@ -13,7 +13,8 @@
     "export": "Export",
     "clear": "Clear",
     "reset": "Reset",
-    "points": "points"
+    "points": "points",
+    "github_repository": "GitHub Repository"
   },
   "navigation": {
     "home": "Home",
@@ -35,7 +36,7 @@
     "expand": "Expand Sidebar",
     "collapse": "Collapse Sidebar",
     "about_mqa": "About MQA",
-    "mqa_description": "This tool evaluates metadata quality based on the Metadata Quality Assessment (MQA) methodology from the European Data Portal.",
+    "mqa_description": "This tool evaluates metadata quality based on the Metadata Quality Assessment (MQA) methodology from the European Data Portal using ",
     "learn_more": "Profile info",
     "fairc_principles": "FAIR+C Principles",
     "rating_scale": "Rating Scale",
@@ -45,6 +46,7 @@
     "quick_links": "Quick Links",
     "mqa_methodology": "MQA Methodology",
     "fair_principles": "FAIR Principles",
+    "github_repository": "GitHub Repository",
     "current_validation": "Current Validation",
     "total_score": "Total Score",
     "triples": "Triples",
@@ -123,5 +125,16 @@
     "validation_failed": "Validation process failed",
     "network_error": "Network error occurred",
     "unknown_error": "An unknown error occurred"
+  },
+  "validation_results": {
+    "csv_metrics": "Metrics (CSV)",
+    "csv_metrics_title": "Download detailed metrics as CSV",
+    "json_results": "Resultados (JSON)",
+    "json_results_title": "Download validation results as JSON",
+    "json_ld_dqv": "JSON-LD (DQV)",
+    "json_ld_dqv_title": "Download as JSON-LD with DQV vocabulary",
+    "source_rdf": "Source RDF",
+    "source_rdf_title": "View source RDF content"
+
   }
 }

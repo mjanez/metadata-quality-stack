@@ -13,7 +13,8 @@
     "export": "Exportar",
     "clear": "Limpiar",
     "reset": "Reiniciar",
-    "points": "puntos"
+    "points": "puntos",
+    "github_repository": "Repositorio GitHub"
   },
   "navigation": {
     "home": "Inicio",
@@ -35,7 +36,7 @@
     "expand": "Expandir Barra Lateral",
     "collapse": "Contraer Barra Lateral",
     "about_mqa": "Acerca de MQA",
-    "mqa_description": "Esta herramienta evalúa la calidad de metadatos basada en la metodología de Evaluación de Calidad de Metadatos (MQA) del Portal Europeo de Datos.",
+    "mqa_description": "Esta herramienta evalúa la calidad de metadatos basada en la metodología de Evaluación de Calidad de Metadatos (MQA) del Portal Europeo de Datos usando ",
     "learn_more": "Saber Más",
     "fairc_principles": "Principios FAIR+C",
     "rating_scale": "Escala de Calificación",
@@ -45,6 +46,7 @@
     "quick_links": "Enlaces Rápidos",
     "mqa_methodology": "Metodología MQA",
     "fair_principles": "Principios FAIR",
+    "github_repository": "Repositorio GitHub",
     "current_validation": "Validación Actual",
     "total_score": "Puntuación Total",
     "triples": "Tripletas",
@@ -123,5 +125,16 @@
     "validation_failed": "El proceso de validación falló",
     "network_error": "Ocurrió un error de red",
     "unknown_error": "Ocurrió un error desconocido"
+  },
+  "validation_results": {
+    "csv_metrics": "Métricas (CSV)",
+    "csv_metrics_title": "Descargar métricas como CSV",
+    "json_results": "Resultados (JSON)",
+    "json_results_title": "Descargar resultados de validación como JSON",
+    "json_ld_dqv": "JSON-LD (DQV)",
+    "json_ld_dqv_title": "Descargar como JSON-LD con vocabulario DQV",
+    "source_rdf": "RDF de origen",
+    "source_rdf_title": "Ver contenido RDF de origen"
+
   }
 }

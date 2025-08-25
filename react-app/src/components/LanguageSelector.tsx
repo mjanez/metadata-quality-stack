@@ -27,7 +27,17 @@ const LanguageSelector: React.FC = () => {
             className={`dropdown-item ${i18n.language === 'en' ? 'active' : ''}`}
             onClick={() => changeLanguage('en')}
           >
-            🇺🇸 {t('language.english')}
+            <img 
+              src="/img/icons/gbr.svg" 
+              alt="English"
+              className="rounded-circle me-2"
+              style={{ 
+                width: '20px', 
+                height: '20px',
+                objectFit: 'cover'
+              }}
+            />
+            {t('language.english')}
           </button>
         </li>
         <li>
@@ -35,7 +45,17 @@ const LanguageSelector: React.FC = () => {
             className={`dropdown-item ${i18n.language === 'es' ? 'active' : ''}`}
             onClick={() => changeLanguage('es')}
           >
-            🇪🇸 {t('language.spanish')}
+            <img 
+              src="/img/icons/esp.svg" 
+              alt="Español"
+              className="rounded-circle me-2"
+              style={{ 
+                width: '20px', 
+                height: '20px',
+                objectFit: 'cover'
+              }}
+            />
+            {t('language.spanish')}
           </button>
         </li>
       </ul>

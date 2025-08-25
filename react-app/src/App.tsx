@@ -19,6 +19,7 @@ function App() {
   const [result, setResult] = useState<ValidationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<ValidationProfile>('dcat_ap');
+  const [sidebarVisible, setSidebarVisible] = useState(true);
 
   const handleValidation = async (input: ValidationInput, profile: ValidationProfile) => {
     setIsValidating(true);
@@ -97,25 +98,50 @@ function App() {
     setError(null);
   };
 
+  const toggleSidebar = () => {
+    setSidebarVisible(!sidebarVisible);
+  };
+
   return (
     <div className="App">
       {/* MQA Info Sidebar */}
-        {/* MQA Info Sidebar */}
-        <MQAInfoSidebar
-          selectedProfile={selectedProfile}
-          validationResult={result}
-        />      {/* Main Content */}
-      <div className="main-content">
+      <MQAInfoSidebar
+        selectedProfile={selectedProfile}
+        validationResult={result}
+        isVisible={sidebarVisible}
+        onToggle={toggleSidebar}
+      />
+      
+      {/* Main Content */}
+      <div className={`main-content ${sidebarVisible ? 'sidebar-open' : ''}`}>
         {/* Navigation Bar */}
         <nav className="navbar navbar-expand-lg border-bottom">
           <div className="container-fluid">
             <div className="d-flex align-items-center">
+              <button
+                className="btn btn-outline-secondary me-2"
+                onClick={toggleSidebar}
+                title={sidebarVisible ? t('sidebar.collapse') : t('sidebar.expand')}
+                aria-label={sidebarVisible ? t('sidebar.collapse') : t('sidebar.expand')}
+              >
+                <i className={`bi bi-${sidebarVisible ? 'layout-sidebar-inset-reverse' : 'layout-sidebar-inset'}`}></i>
+              </button>
               <span className="navbar-brand mb-0 h1">
-                <i className="bi bi-shield-check me-2 text-primary"></i>
+                <i className="bi bi-check-all me-2 text-primary"></i>
                 {t('common.title')}
               </span>
             </div>
             <div className="d-flex align-items-center">
+              <a 
+                href="https://github.com/mjanez/metadata-quality-stack"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-outline-secondary me-2"
+                title={t('common.github_repository')}
+                aria-label={t('common.github_repository')}
+              >
+                <i className="bi bi-github"></i>
+              </a>
               <ThemeToggle />
               <div className="ms-2">
                 <LanguageSelector />

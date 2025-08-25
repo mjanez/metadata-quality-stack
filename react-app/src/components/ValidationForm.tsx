@@ -60,10 +60,26 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
   
 </rdf:RDF>`;
 
-  const loadSample = () => {
-    setTextContent(sampleRdfXml);
-    setFormat('rdfxml');
-    setActiveTab('text');
+  const loadSample = async () => {
+    try {
+      const response = await fetch('https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/examples/ttl/1.0.0/E_DCAT-AP-ES_Catalog.ttl');
+      if (response.ok) {
+        const turtleContent = await response.text();
+        setTextContent(turtleContent);
+        setFormat('turtle');
+        setActiveTab('text');
+      } else {
+        // Fallback to local sample if GitHub is not accessible
+        setTextContent(sampleRdfXml);
+        setFormat('rdfxml');
+        setActiveTab('text');
+      }
+    } catch (error) {
+      // Fallback to local sample if there's an error
+      setTextContent(sampleRdfXml);
+      setFormat('rdfxml');
+      setActiveTab('text');
+    }
   };
 
   return (
@@ -131,7 +147,8 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
                   className="btn btn-link btn-sm p-0"
                   onClick={loadSample}
                 >
-                  Load sample RDF/XML data
+                  <i className="bi bi-download me-1"></i>
+                  Load DCAT-AP-ES sample catalog
                 </button>
               </div>
             </div>
