@@ -1,6 +1,7 @@
 import { Parser as N3Parser, Writer as N3Writer, Store as N3Store } from 'n3';
 import { RdfXmlParser } from 'rdfxml-streaming-parser';
-import { RDFFormat } from '../types';
+import { RDFFormat, ValidationProfile, SHACLReport } from '../types';
+import { SHACLValidationService } from './SHACLValidationService';
 
 export class RDFService {
   /**
@@ -202,6 +203,43 @@ export class RDFService {
     } else {
       throw new Error(`Unsupported RDF format: ${format}`);
     }
+  }
+
+  /**
+   * Validate RDF content against SHACL shapes for profile compliance
+   */
+  public static async validateWithSHACL(
+    content: string, 
+    profile: ValidationProfile,
+    format: RDFFormat = 'turtle'
+  ): Promise<SHACLReport> {
+    try {
+      // Normalize content to turtle if needed
+      let normalizedContent = content;
+      if (format !== 'turtle') {
+        normalizedContent = await this.normalizeToTurtle(content);
+      }
+
+      // Perform SHACL validation
+      return await SHACLValidationService.validateRDF(normalizedContent, profile, 'turtle');
+    } catch (error) {
+      console.error('SHACL validation error in RDFService:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Calculate compliance score based on SHACL validation results
+   */
+  public static calculateComplianceScore(shaclReport: SHACLReport): number {
+    return SHACLValidationService.calculateComplianceScore(shaclReport);
+  }
+
+  /**
+   * Export SHACL report as Turtle
+   */
+  public static async exportSHACLReport(shaclReport: SHACLReport): Promise<string> {
+    return await SHACLValidationService.exportReportAsTurtle(shaclReport);
   }
 }
 

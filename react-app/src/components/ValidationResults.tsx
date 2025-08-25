@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ValidationResult } from '../types';
+import { ExtendedValidationResult } from '../types';
 import QualityChart from './QualityChart';
+import SHACLReportViewer from './SHACLReportViewer';
+import { RDFService } from '../services/RDFService';
 
 interface ValidationResultsProps {
-  result: ValidationResult;
+  result: ExtendedValidationResult;
   onReset?: () => void;
 }
 
@@ -191,7 +193,19 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
         <div className="col">
           <div className="card border-primary">
             <div className="card-body text-center">
-              <h4 className="card-title">{t('results.overall_score')}</h4>
+              <div className="mb-2">
+                <span className={`badge fs-6 ${
+                  quality.percentage >= 85 ? 'bg-success' :
+                  quality.percentage >= 55 ? 'bg-success-light' :
+                  quality.percentage >= 30 ? 'bg-warning' : 'bg-danger'
+                }`} style={{
+                  backgroundColor: quality.percentage >= 55 && quality.percentage < 85 ? '#7dd87d' : undefined
+                }}>
+                  {quality.percentage >= 85 ? t('quality_rating.excellent') : 
+                   quality.percentage >= 55 ? t('quality_rating.good') : 
+                   quality.percentage >= 30 ? t('quality_rating.sufficient') : t('quality_rating.poor')}
+                </span>
+              </div>
               <div className={`display-4 fw-bold ${getScoreColor(quality.percentage)}`}>
                 {quality.totalScore}
               </div>
@@ -288,6 +302,30 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
           </div>
         </div>
       </div>
+
+      {/* SHACL Compliance Report */}
+      {result.shaclReport && (
+        <div className="row mb-4">
+          <div className="col">
+            <SHACLReportViewer 
+              report={result.shaclReport} 
+              onExportReport={async () => {
+                try {
+                  const reportTurtle = await RDFService.exportSHACLReport(result.shaclReport!);
+                  const blob = new Blob([reportTurtle], { type: 'text/turtle' });
+                  const link = document.createElement('a');
+                  link.href = URL.createObjectURL(blob);
+                  link.download = `shacl-report-${result.shaclReport!.profile}-${new Date().toISOString().split('T')[0]}.ttl`;
+                  link.click();
+                  URL.revokeObjectURL(link.href);
+                } catch (error) {
+                  console.error('Error exporting SHACL report:', error);
+                }
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Category Breakdown */}
       <div className="row mb-4">

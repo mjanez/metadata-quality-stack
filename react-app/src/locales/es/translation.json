@@ -93,7 +93,7 @@
     "accessibility": "Accesibilidad",
     "interoperability": "Interoperabilidad", 
     "reusability": "Reutilización",
-    "contextuality": "Contextualidad",
+    "contextuality": "Contexto",
     "findability_desc": "Qué tan fácil es encontrar el conjunto de datos",
     "accessibility_desc": "Qué tan accesibles son los datos",
     "interoperability_desc": "Interoperabilidad técnica de los datos",
@@ -101,18 +101,18 @@
     "contextuality_desc": "Información contextual sobre los datos"
   },
   "results": {
-    "title": "Resultados de Validación",
-    "summary": "Resumen de Calidad",
-    "overall_score": "Puntuación General",
-    "max_score": "Puntuación Máxima",
-    "percentage": "Porcentaje de Calidad",
-    "details": "Métricas Detalladas",
-    "chart_title": "Radar de Calidad FAIR+C",
+    "title": "Resultados de validación",
+    "summary": "Resumen de calidad",
+    "overall_score": "Puntuación total",
+    "max_score": "Puntuación máxima",
+    "percentage": "Porcentaje de calidad",
+    "details": "Métricas detalladas",
+    "chart_title": "Radar de calidad FAIR+C",
     "chart_label": "Resultados",
     "no_results": "Aún no hay resultados de validación. Por favor valida algún contenido RDF primero.",
-    "metrics_by_dimension": "Métricas por Dimensión",
-    "expand_all": "Expandir Todo",
-    "collapse_all": "Contraer Todo"
+    "metrics_by_dimension": "Métricas por dimensión",
+    "expand_all": "Expandir todo",
+    "collapse_all": "Contraer todo"
   },
   "metadata_info": {
     "title": "Información de validación",
@@ -151,6 +151,11 @@
     "json_ld_dqv_title": "Descargar como JSON-LD con vocabulario DQV",
     "source_rdf": "RDF de origen",
     "source_rdf_title": "Ver contenido RDF de origen"
-
+  },
+  "quality_rating": {
+    "excellent": "Excelente",
+    "good": "Bueno", 
+    "sufficient": "Suficiente",
+    "poor": "Deficiente"
   }
 }

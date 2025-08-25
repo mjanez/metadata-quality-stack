@@ -1,5 +1,6 @@
 import { Store as N3Store, Parser as N3Parser } from 'n3';
-import { ValidationProfile, MQAConfig, QualityResult, QualityMetric, VocabularyItem } from '../types';
+import { ValidationProfile, MQAConfig, QualityResult, QualityMetric, VocabularyItem, SHACLReport } from '../types';
+import { RDFService } from './RDFService';
 import mqaConfig from '../config/mqa-config.json';
 
 export class MQAService {
@@ -290,6 +291,59 @@ export class MQAService {
 
     // If already a full URI or no prefix found, return as is
     return property;
+  }
+
+  /**
+   * Calculate quality with SHACL validation included
+   */
+  public async calculateQualityWithSHACL(
+    content: string, 
+    profile: ValidationProfile
+  ): Promise<{ quality: QualityResult; shaclReport: SHACLReport }> {
+    try {
+      console.log(`🔍 Starting MQA+SHACL evaluation for profile: ${profile}`);
+
+      // Run standard MQA evaluation
+      const quality = await this.calculateQuality(content, profile);
+
+      // Run SHACL validation
+      const shaclReport = await RDFService.validateWithSHACL(content, profile);
+
+      // Update compliance metric if it exists
+      const complianceMetric = quality.metrics.find(m => m.id.includes('compliance'));
+      if (complianceMetric) {
+        const complianceScore = RDFService.calculateComplianceScore(shaclReport);
+        complianceMetric.score = Math.round((complianceScore / 100) * complianceMetric.maxScore);
+        complianceMetric.found = shaclReport.conforms;
+        complianceMetric.value = shaclReport.conforms ? 'compliant' : 'non-compliant';
+
+        // Recalculate totals
+        const totalScore = quality.metrics.reduce((sum, m) => sum + m.score, 0);
+        const maxScore = quality.metrics.reduce((sum, m) => sum + m.maxScore, 0);
+        const percentage = maxScore > 0 ? (totalScore / maxScore) * 100 : 0;
+
+        quality.totalScore = totalScore;
+        quality.percentage = percentage;
+
+        // Update category totals
+        for (const [, categoryData] of Object.entries(quality.byCategory)) {
+          const categoryMetrics = categoryData.metrics;
+          const categoryScore = categoryMetrics.reduce((sum: number, m: QualityMetric) => sum + m.score, 0);
+          const categoryMaxScore = categoryMetrics.reduce((sum: number, m: QualityMetric) => sum + m.maxScore, 0);
+          
+          categoryData.score = categoryScore;
+          categoryData.percentage = categoryMaxScore > 0 ? (categoryScore / categoryMaxScore) * 100 : 0;
+        }
+      }
+
+      console.log(`✅ MQA+SHACL evaluation completed. SHACL conforms: ${shaclReport.conforms}`);
+
+      return { quality, shaclReport };
+
+    } catch (error) {
+      console.error('❌ MQA+SHACL evaluation failed:', error);
+      throw error;
+    }
   }
 
   /**

@@ -120,3 +120,40 @@ export interface AppConfig {
   };
   vocabularies: string[];
 }
+
+// SHACL Validation types
+export interface SHACLValidationResult {
+  conforms: boolean;
+  results: SHACLViolation[];
+  text?: string;
+  graph?: any;
+}
+
+export interface SHACLViolation {
+  focusNode: string;
+  path?: string;
+  value?: string;
+  message: string[];
+  severity: SHACLSeverity;
+  sourceConstraintComponent: string;
+  sourceShape: string;
+  resultSeverity?: string;
+}
+
+export type SHACLSeverity = 'Violation' | 'Warning' | 'Info';
+
+export interface SHACLReport {
+  profile: ValidationProfile;
+  conforms: boolean;
+  totalViolations: number;
+  violations: SHACLViolation[];
+  warnings: SHACLViolation[];
+  infos: SHACLViolation[];
+  timestamp: string;
+  reportDataset?: any;
+}
+
+// Extended Validation Result with SHACL
+export interface ExtendedValidationResult extends ValidationResult {
+  shaclReport?: SHACLReport;
+}

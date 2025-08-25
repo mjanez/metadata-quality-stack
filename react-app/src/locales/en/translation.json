@@ -16,6 +16,26 @@
     "points": "points",
     "github_repository": "GitHub Repository"
   },
+  "shacl": {
+    "compliance_report": "SHACL Compliance Report",
+    "conforms": "Conforms",
+    "does_not_conform": "Does Not Conform",
+    "profile": "Profile",
+    "violations": "Violations",
+    "warnings": "Warnings",
+    "infos": "Information",
+    "validation_results": "Validation Results",
+    "filter_by_severity": "Filter by severity",
+    "all": "All",
+    "no_results_for_filter": "No results for the selected filter",
+    "perfect_compliance": "Perfect Compliance!",
+    "no_violations_found": "No violations were found in the metadata",
+    "focus_node": "Focus Node",
+    "value": "Value",
+    "source_shape": "Source Shape",
+    "no_path": "No path specified",
+    "export_report": "Export SHACL Report"
+  },
   "navigation": {
     "home": "Home",
     "validation": "Validation",
@@ -102,17 +122,17 @@
   },
   "results": {
     "title": "Validation Results",
-    "summary": "Quality Summary",
-    "overall_score": "Overall Score",
-    "max_score": "Maximum Score",
-    "percentage": "Quality Percentage",
-    "details": "Detailed Metrics",
+    "summary": "Quality summary",
+    "overall_score": "Total score",
+    "max_score": "Maximum score",
+    "percentage": "Quality percentage",
+    "details": "Detailed metrics",
     "chart_title": "FAIR+C quality radar",
     "chart_label": "Results",
     "no_results": "No validation results yet. Please validate some RDF content first.",
-    "metrics_by_dimension": "Metrics by Dimension",
-    "expand_all": "Expand All",
-    "collapse_all": "Collapse All"
+    "metrics_by_dimension": "Metrics by dimension",
+    "expand_all": "Expand all",
+    "collapse_all": "Collapse all"
   },
   "metadata_info": {
     "title": "Validation information",
@@ -151,6 +171,11 @@
     "json_ld_dqv_title": "Download as JSON-LD with DQV vocabulary",
     "source_rdf": "Source RDF",
     "source_rdf_title": "View source RDF content"
-
+  },
+  "quality_rating": {
+    "excellent": "Excellent",
+    "good": "Good", 
+    "sufficient": "Sufficient",
+    "poor": "Poor"
   }
 }
