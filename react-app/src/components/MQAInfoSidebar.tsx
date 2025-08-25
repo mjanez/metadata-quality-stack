@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { Tooltip } from 'react-tooltip';
 import { ValidationProfile } from '../types';
 import mqaConfig from '../config/mqa-config.json';
 
@@ -142,84 +143,125 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
                 <small className="text-muted d-block">
                   {profileInfo.description}
                 </small>
-                {validationResult && (
-                  <div className="mt-2">
-                    <div className={`badge ${getBadgeColor(validationResult.quality.percentage)} fs-6`}>
-                      {validationResult.quality.percentage.toFixed(1)}%
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
             {/* Current Validation Stats - Show only when there are results */}
             {validationResult && (
-              <div className="card mb-3">
-                <div className="card-header py-2">
-                  <h6 className="card-title mb-0">
-                    <i className="bi bi-graph-up me-2"></i>
-                    {t('sidebar.current_validation')}
-                  </h6>
+              <>
+                {/* Total Score Card */}
+                <div className="card mb-3">
+                  <div className="card-header py-2">
+                    <h6 className="card-title mb-0">
+                      <i className="bi bi-trophy me-2"></i>
+                      {t('sidebar.total_score')}
+                    </h6>
+                  </div>
+                  <div className="card-body py-3 text-center">
+                    <div className={`display-6 fw-bold ${getBadgeColor(validationResult.quality.percentage).replace('bg-', 'text-')}`}>
+                      {validationResult.quality.totalScore}
+                    </div>
+                    <div className="progress mt-2" style={{ height: '6px' }}>
+                      <div
+                        className={`progress-bar ${
+                          validationResult.quality.percentage >= 85 ? 'bg-success' :
+                          validationResult.quality.percentage >= 55 ? 'bg-success' :
+                          validationResult.quality.percentage >= 30 ? 'bg-warning' : 'bg-danger'
+                        }`}
+                        style={{ 
+                          width: `${validationResult.quality.percentage}%`,
+                          backgroundColor: validationResult.quality.percentage >= 55 && validationResult.quality.percentage < 85 ? '#7dd87d' : undefined
+                        }}
+                      ></div>
+                    </div>
+                    <small className="text-muted mt-1 d-block">
+                      {validationResult.quality.totalScore} / {validationResult.quality.maxScore} ({validationResult.quality.percentage.toFixed(1)}%)
+                    </small>
+                  </div>
                 </div>
-                <div className="card-body py-2">
-                  <div className="row g-2 text-center">
-                    <div className="col-6">
-                      <div className="card border-0" style={{ backgroundColor: 'var(--bs-secondary-bg)' }}>
-                        <div className="card-body py-2">
-                          <div className="fs-6 fw-bold text-primary">
-                            {validationResult.quality.totalScore}
+
+                {/* Entity Counts Cards */}
+                <div className="card mb-3">
+                  <div className="card-header py-2">
+                    <h6 className="card-title mb-0">
+                      <i className="bi bi-collection me-2"></i>
+                      {t('sidebar.current_validation')}
+                    </h6>
+                  </div>
+                  <div className="card-body py-2">
+                    <div className="row g-2 text-center">
+                      {/* Datasets */}
+                      <div className="col-4">
+                        <div className="card border-0" style={{ backgroundColor: 'var(--bs-secondary-bg)' }}>
+                          <div className="card-body py-2">
+                            <div className="d-flex align-items-center justify-content-center mb-1">
+                              <i className="bi bi-database text-primary me-1"></i>
+                              <button 
+                                type="button" 
+                                className="btn btn-link p-0 text-decoration-none"
+                                data-tooltip-id="datasets-help"
+                                data-tooltip-content={t('sidebar.datasets_help')}
+                                style={{ border: 'none', background: 'none' }}
+                              >
+                                <i className="bi bi-question-circle-fill text-muted small"></i>
+                              </button>
+                            </div>
+                            <div className="fs-6 fw-bold text-primary">
+                              {validationResult.stats.datasets}
+                            </div>
                           </div>
-                          <small className="text-muted small-summary">{t('sidebar.total_score')}</small>
                         </div>
                       </div>
-                    </div>
-                    <div className="col-6">
-                      <div className="card border-0" style={{ backgroundColor: 'var(--bs-secondary-bg)' }}>
-                        <div className="card-body py-2">
-                          <div className="fs-6 fw-bold text-info">
-                            {validationResult.stats.datasets}
+                      
+                      {/* Data Services */}
+                      <div className="col-4">
+                        <div className="card border-0" style={{ backgroundColor: 'var(--bs-secondary-bg)' }}>
+                          <div className="card-body py-2">
+                            <div className="d-flex align-items-center justify-content-center mb-1">
+                              <i className="bi bi-cloud-arrow-up text-warning me-1"></i>
+                              <button 
+                                type="button" 
+                                className="btn btn-link p-0 text-decoration-none"
+                                data-tooltip-id="data-services-help"
+                                data-tooltip-content={t('sidebar.data_services_help')}
+                                style={{ border: 'none', background: 'none' }}
+                              >
+                                <i className="bi bi-question-circle-fill text-muted small"></i>
+                              </button>
+                            </div>
+                            <div className="fs-6 fw-bold text-warning">
+                              {validationResult.stats.dataServices}
+                            </div>
                           </div>
-                          <small className="text-muted small-summary">{t('sidebar.datasets')}</small>
+                        </div>
+                      </div>
+                      
+                      {/* Distributions */}
+                      <div className="col-4">
+                        <div className="card border-0" style={{ backgroundColor: 'var(--bs-secondary-bg)' }}>
+                          <div className="card-body py-2">
+                            <div className="d-flex align-items-center justify-content-center mb-1">
+                              <i className="bi bi-folder-symlink text-success me-1"></i>
+                              <button 
+                                type="button" 
+                                className="btn btn-link p-0 text-decoration-none"
+                                data-tooltip-id="distributions-help"
+                                data-tooltip-content={t('sidebar.distributions_help')}
+                                style={{ border: 'none', background: 'none' }}
+                              >
+                                <i className="bi bi-question-circle-fill text-muted small"></i>
+                              </button>
+                            </div>
+                            <div className="fs-6 fw-bold text-success">
+                              {validationResult.stats.distributions}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="row g-2 text-center mt-1">
-                    <div className="col-6">
-                      <div className="card border-0" style={{ backgroundColor: 'var(--bs-secondary-bg)' }}>
-                        <div className="card-body py-2">
-                          <div className="fs-6 fw-bold text-warning">
-                            {validationResult.stats.dataServices}
-                          </div>
-                          <small className="text-muted small-summary">{t('sidebar.data_services')}</small>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="col-6">
-                      <div className="card border-0" style={{ backgroundColor: 'var(--bs-secondary-bg)' }}>
-                        <div className="card-body py-2">
-                          <div className="fs-6 fw-bold text-success">
-                            {validationResult.stats.distributions}
-                          </div>
-                          <small className="text-muted small-summary">{t('sidebar.distributions')}</small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="progress mt-2" style={{ height: '6px' }}>
-                    <div
-                      className={`progress-bar ${
-                        validationResult.quality.percentage >= 80 ? 'bg-success' :
-                        validationResult.quality.percentage >= 60 ? 'bg-warning' : 'bg-danger'
-                      }`}
-                      style={{ width: `${validationResult.quality.percentage}%` }}
-                    ></div>
-                  </div>
-                  <small className="text-muted">
-                    {validationResult.quality.totalScore} / {validationResult.quality.maxScore} ({validationResult.quality.percentage.toFixed(1)}%)
-                  </small>
                 </div>
-              </div>
+              </>
             )}
 
             {/* MQA Information */}
@@ -366,6 +408,26 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
         style={{
           marginLeft: '350px'
         }}
+      />
+
+      {/* React Tooltip Components */}
+      <Tooltip 
+        id="datasets-help" 
+        place="top"
+        style={{ zIndex: 10000 }}
+        className="custom-tooltip"
+      />
+      <Tooltip 
+        id="data-services-help" 
+        place="top"
+        style={{ zIndex: 10000 }}
+        className="custom-tooltip"
+      />
+      <Tooltip 
+        id="distributions-help" 
+        place="top"
+        style={{ zIndex: 10000 }}
+        className="custom-tooltip"
       />
     </>
   );

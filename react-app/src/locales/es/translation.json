@@ -52,7 +52,10 @@
     "triples": "Tripletas",
     "datasets": "Conjuntos de Datos",
     "data_services": "Servicios de Datos",
-    "distributions": "Distribuciones"
+    "distributions": "Distribuciones",
+    "datasets_help": "Número de conjuntos de datos (dcat:Dataset) encontrados en los metadatos RDF",
+    "data_services_help": "Número de servicios de datos (dcat:DataService) encontrados en los metadatos RDF",
+    "distributions_help": "Número de distribuciones (dcat:Distribution) encontradas en los metadatos RDF"
   },
   "ratings": {
     "excellent": "Excelente",
@@ -82,7 +85,7 @@
     "nti_risp_desc": "Modelo de metadatos de la Norma Técnica de Interoperabilidad (2013)"
   },
   "dimensions": {
-    "findability": "Encontrabilidad",
+    "findability": "Descubrimiento",
     "accessibility": "Accesibilidad",
     "interoperability": "Interoperabilidad", 
     "reusability": "Reutilización",

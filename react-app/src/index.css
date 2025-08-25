@@ -27,3 +27,33 @@ code {
 .small-summary {
   font-size: .7em !important; /* Small text for summary cards */
 }
+
+/* React-tooltip custom styles */
+.react-tooltip {
+  z-index: 10000 !important; /* Ensure tooltips appear above everything, higher than sidebar (1040) and overlay (1050) */
+  background-color: #212529 !important; /* Dark background */
+  color: #ffffff !important; /* White text */
+  border-radius: 6px !important; /* Rounded corners */
+  padding: 8px 12px !important; /* Nice padding */
+  font-size: 0.85rem !important; /* Readable font size */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important; /* Subtle shadow */
+  max-width: 250px !important; /* Maximum width for long text */
+  word-wrap: break-word !important; /* Break long words */
+  opacity: 1 !important; /* Ensure full opacity */
+}
+
+/* Tooltip arrow styles */
+.react-tooltip .react-tooltip-arrow {
+  border-color: #212529 !important; /* Match background color */
+}
+
+/* Ensure tooltip container has proper positioning */
+[data-tooltip-id] {
+  position: relative !important;
+}
+
+/* Custom tooltip class for additional styling */
+.custom-tooltip {
+  z-index: 10000 !important;
+  position: fixed !important;
+}

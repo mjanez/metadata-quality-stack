@@ -52,7 +52,10 @@
     "triples": "Triples",
     "datasets": "Datasets",
     "data_services": "Data Services",
-    "distributions": "Distributions"
+    "distributions": "Distributions",
+    "datasets_help": "Number of datasets (dcat:Dataset) found in the RDF metadata",
+    "data_services_help": "Number of data services (dcat:DataService) found in the RDF metadata",
+    "distributions_help": "Number of distributions (dcat:Distribution) found in the RDF metadata"
   },
   "ratings": {
     "excellent": "Excellent",

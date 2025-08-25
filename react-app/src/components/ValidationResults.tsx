@@ -193,11 +193,24 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
             <div className="card-body text-center">
               <h4 className="card-title">{t('results.overall_score')}</h4>
               <div className={`display-4 fw-bold ${getScoreColor(quality.percentage)}`}>
-                {quality.percentage.toFixed(1)}%
+                {quality.totalScore}
               </div>
-              <p className="text-muted mb-0">
-                {quality.totalScore} / {quality.maxScore} {t('common.points')}
-              </p>
+              <div className="progress mt-2" style={{ height: '6px' }}>
+                <div
+                  className={`progress-bar ${
+                    quality.percentage >= 85 ? 'bg-success' :
+                    quality.percentage >= 55 ? 'bg-success' :
+                    quality.percentage >= 30 ? 'bg-warning' : 'bg-danger'
+                  }`}
+                  style={{ 
+                    width: `${quality.percentage}%`,
+                    backgroundColor: quality.percentage >= 55 && quality.percentage < 85 ? '#7dd87d' : undefined
+                  }}
+                ></div>
+              </div>
+              <small className="text-muted mt-1 d-block">
+                {quality.totalScore} / {quality.maxScore} ({quality.percentage.toFixed(1)}%)
+              </small>
             </div>
           </div>
         </div>
@@ -447,27 +460,27 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
         <div className="col">
           <div className="card">
             <div className="card-header">
-              <h5 className="card-title mb-0">Validation Metadata</h5>
+              <h5 className="card-title mb-0">{t('metadata_info.title')}</h5>
             </div>
             <div className="card-body">
               <div className="row">
                 <div className="col-md-6">
                   <dl className="row">
-                    <dt className="col-sm-4">Profile:</dt>
+                    <dt className="col-sm-4">{t('metadata_info.profile')}</dt>
                     <dd className="col-sm-8">
                       <span className="badge bg-primary">{t(`profiles.${profile}`)}</span>
                     </dd>
-                    <dt className="col-sm-4">Triples:</dt>
+                    <dt className="col-sm-4">{t('metadata_info.triples')}</dt>
                     <dd className="col-sm-8">{stats.triples.toLocaleString()}</dd>
                   </dl>
                 </div>
                 <div className="col-md-6">
                   <dl className="row">
-                    <dt className="col-sm-4">Subjects:</dt>
+                    <dt className="col-sm-4">{t('metadata_info.subjects')}</dt>
                     <dd className="col-sm-8">{stats.subjects.toLocaleString()}</dd>
-                    <dt className="col-sm-4">Predicates:</dt>
+                    <dt className="col-sm-4">{t('metadata_info.predicates')}</dt>
                     <dd className="col-sm-8">{stats.predicates.toLocaleString()}</dd>
-                    <dt className="col-sm-4">Objects:</dt>
+                    <dt className="col-sm-4">{t('metadata_info.objects')}</dt>
                     <dd className="col-sm-8">{stats.objects.toLocaleString()}</dd>
                   </dl>
                 </div>

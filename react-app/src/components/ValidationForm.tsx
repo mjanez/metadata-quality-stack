@@ -205,12 +205,32 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
         >
           {isLoading ? (
             <>
-              <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+              <img
+                src={`${process.env.PUBLIC_URL}/logo.svg`}
+                alt=""
+                className="me-2 spinner-border-sm"
+                style={{ 
+                  width: '1em', 
+                  height: '1em', 
+                  verticalAlign: '-0.125em',
+                  animation: 'spin 1s linear infinite'
+                }}
+              />
               {t('common.validating')}
             </>
           ) : (
             <>
-              ✅ {t('common.validate')}
+              <img
+                src={`${process.env.PUBLIC_URL}/logo.svg`}
+                alt=""
+                className="me-2"
+                style={{ 
+                  width: '1em', 
+                  height: '1em', 
+                  verticalAlign: '-0.125em'
+                }}
+              />
+              {t('common.validate')}
             </>
           )}
         </button>
