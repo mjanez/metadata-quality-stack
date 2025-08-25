@@ -74,7 +74,11 @@
     "url_invalid": "Please enter a valid URL",
     "text_required": "RDF content is required",
     "validation_error": "Validation failed. Please check your input and try again.",
-    "validating": "Validating..."
+    "validating": "Validating...",
+    "validation_sample": "Try with sample data",
+    "validation_url": "Enter a URL pointing to RDF content",
+    "validation_format": "RDF format",
+    "validation_autodetect": "Auto-detect"  
   },
   "profiles": {
     "dcat_ap": "DCAT-AP 2.1.1",

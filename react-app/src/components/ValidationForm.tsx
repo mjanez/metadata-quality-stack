@@ -148,7 +148,7 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
                   onClick={loadSample}
                 >
                   <i className="bi bi-download me-1"></i>
-                  Load DCAT-AP-ES sample catalog
+                  {t('form.validation_sample')}
                 </button>
               </div>
             </div>
@@ -159,7 +159,7 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
           <div className="tab-pane active">
             <div className="mb-3">
               <label htmlFor="rdfUrl" className="form-label">
-                RDF URL
+                URL
               </label>
               <input
                 id="rdfUrl"
@@ -170,7 +170,7 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
                 placeholder={t('form.url_placeholder')}
               />
               <div className="form-text">
-                Enter a URL pointing to RDF content
+                {t('form.validation_url')}
               </div>
             </div>
           </div>
@@ -180,7 +180,7 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
       {/* Format Selection */}
       <div className="mb-3">
         <label htmlFor="formatSelector" className="form-label">
-          RDF Format
+          {t('form.validation_format')}
         </label>
         <select
           id="formatSelector"
@@ -188,7 +188,7 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
           value={format}
           onChange={(e) => setFormat(e.target.value as RDFFormat)}
         >
-          <option value="auto">🔍 Auto-detect</option>
+          <option value="auto">🔍 {t('form.validation_autodetect')}</option>
           <option value="turtle">Turtle</option>
           <option value="rdfxml">RDF/XML</option>
           <option value="jsonld">JSON-LD</option>
