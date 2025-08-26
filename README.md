@@ -1,18 +1,17 @@
 # Metadata Quality Stack
 [![ES](https://img.shields.io/badge/lang-ES-yellow.svg)](README.es.md) [![EN](https://img.shields.io/badge/lang-EN-blue.svg)](README.md) [![Static Demo](https://img.shields.io/badge/demo-GitHub%20Pages-green.svg)](https://mjanez.github.io/metadata-quality-stack/)
 
-A comprehensive toolkit for analyzing the quality of open data metadata. Based on the European Data Portal's Metadata Quality Assessment ([MQA](https://data.europa.eu/mqa/methodology?locale=en)) methodology.
+A comprehensive toolkit for analyzing the quality of open data metadata. Based on the European Data Portal's Metadata Quality Assessment ([MQA](https://data.europa.eu/mqa/methodology?locale=en)) methodology and [SHACL validation](https://www.w3.org/TR/shacl/) for [DCAT-AP](https://semiceu.github.io/DCAT-AP/), [DCAT-AP-ES](https://datosgobes.github.io/DCAT-AP-ES/) and [NTI-RISP (2013)](https://www.boe.es/eli/es/res/2013/02/19/(4)). profiles.
 
 ## Quick Start
 
 ### **Try the simply static Version** (No Installation Required)
-Try the simplified browser version (**no installation needed**):  
-**[Live Demo →](https://mjanez.github.io/metadata-quality-stack/)**  
-This edition runs entirely client-side and includes the core MQA validator for instant metadata quality checks in your browser.
+Try the simplified browser version (**no installation needed**), more info at [react-app/README.md](react-app/README.md).
+> [!TIP]
+> **Live Demo**: [https://mjanez.github.io/metadata-quality-stack/](https://mjanez.github.io/metadata-quality-stack/)
+> This edition runs entirely client-side and includes the core MQA and SHACL validator for instant metadata quality checks in your browser.
 
-The static version runs entirely client-side with full functionality for metadata validation and quality assessment.
-
-### **Full docker dployment** (Recommended for Production)
+### **Full docker deployment** (Recommended for Production)
 For complete features including historical tracking and API access:
 ```bash
 git clone https://github.com/your-organization/metadata-quality-stack.git
