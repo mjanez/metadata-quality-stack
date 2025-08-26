@@ -14,7 +14,8 @@ ALLOW_INSECURE_URLS = os.environ.get('ALLOW_INSECURE_URLS', 'True').lower() in [
 # Base path for local resources
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCS_DIR = os.path.join(os.path.dirname(BASE_DIR), "docs")
-SHACL_DIR = os.path.join(DOCS_DIR, "shacl")
+PUBLIC_DIR = os.path.join(BASE_DIR, "react-app", "public")
+SHACL_DIR = os.path.join(PUBLIC_DIR, "shacl")
 VOCAB_DIR = os.path.join(DOCS_DIR, "vocabularies")
 
 # Maximum scores per dimension according to MQA methodology

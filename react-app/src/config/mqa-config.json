@@ -3,6 +3,15 @@
     "dcat_ap": {
       "name": "DCAT-AP",
       "maxScore": 405,
+      "shaclFiles": [
+        "/data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_deprecateduris.ttl",
+        "/data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_imports.ttl",
+        "/data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_mdr-vocabularies.shape.ttl",
+        "/data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_mdr_imports.ttl",
+        "/data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_range.ttl",
+        "/data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_shapes.ttl",
+        "/data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_shapes_recommended.ttl"
+      ],
       "dimensions": {
         "findability": { "maxScore": 100 },
         "accessibility": { "maxScore": 100 },
@@ -14,6 +23,16 @@
     "dcat_ap_es": {
       "name": "DCAT-AP-ES", 
       "maxScore": 405,
+      "shaclFiles": [
+        "/data/shacl/dcat-ap-es/1.0.0/shacl_catalog_shape.ttl",
+        "/data/shacl/dcat-ap-es/1.0.0/shacl_common_shapes.ttl",
+        "/data/shacl/dcat-ap-es/1.0.0/shacl_dataservice_shape.ttl",
+        "/data/shacl/dcat-ap-es/1.0.0/shacl_dataset_shape.ttl",
+        "/data/shacl/dcat-ap-es/1.0.0/shacl_distribution_shape.ttl",
+        "/data/shacl/dcat-ap-es/1.0.0/shacl_imports.ttl",
+        "/data/shacl/dcat-ap-es/1.0.0/shacl_mdr_imports.ttl",
+        "/data/shacl/dcat-ap-es/1.0.0/shacl_mdr-vocabularies.shape.ttl"
+      ],
       "dimensions": {
         "findability": { "maxScore": 100 },
         "accessibility": { "maxScore": 100 },
@@ -25,6 +44,15 @@
     "nti_risp": {
       "name": "NTI-RISP",
       "maxScore": 310,
+      "shaclFiles": [
+        "/data/shacl/nti-risp/2013/nti-risp_catalog_shape.ttl",
+        "/data/shacl/nti-risp/2013/nti-risp_common_shapes.ttl",
+        "/data/shacl/nti-risp/2013/nti-risp_dataset_shape.ttl",
+        "/data/shacl/nti-risp/2013/nti-risp_distribution_shape.ttl",
+        "/data/shacl/nti-risp/2013/nti-risp_shacl_imports.ttl",
+        "/data/shacl/nti-risp/2013/nti-risp_shacl_mdr_imports.ttl",
+        "/data/shacl/nti-risp/2013/nti-risp_vocabularies.shape.ttl"
+      ],
       "dimensions": {
         "findability": { "maxScore": 100 },
         "accessibility": { "maxScore": 50 },

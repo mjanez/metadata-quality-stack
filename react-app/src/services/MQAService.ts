@@ -9,7 +9,7 @@ export class MQAService {
   private vocabularies: Map<string, VocabularyItem[]> = new Map();
 
   private constructor() {
-    this.config = mqaConfig as MQAConfig;
+    this.config = mqaConfig as unknown as MQAConfig;
   }
 
   public static getInstance(): MQAService {

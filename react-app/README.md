@@ -23,14 +23,15 @@ A modern web application for evaluating RDF metadata quality based on FAIR+C pri
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| **React** | 19.1.1 | UI framework with modern hooks |
-| **TypeScript** | 4.9.5 | Static typing and safe development |
-| **N3.js** | 1.26.0 | RDF parsing and manipulation |
-| **rdfxml-streaming-parser** | 3.1.0 | RDF/XML → Turtle conversion |
-| **Bootstrap** | 5.3.7 | Responsive CSS framework |
-| **Chart.js** | 4.5.0 | Radar charts visualization |
-| **react-i18next** | Latest | Internationalization support |
-| **gh-pages** | 6.3.0 | Automated GitHub Pages deployment |
+| [**React**](https://github.com/facebook/react) | 19.1.1 | UI framework with modern hooks |
+| [**TypeScript*](https://github.com/microsoft/TypeScript)* | 4.9.5 | Static typing and safe development |
+| [**N3.js**](https://github.com/rdfjs/N3.js) | 1.26.0 | RDF parsing and manipulation |
+| [**rdfxml-streaming-parser**](https://github.com/rdfjs/rdfxml-streaming-parser.js) | 3.1.0 | RDF/XML → Turtle conversion |
+| [**shacl-engine**](https://github.com/rdf-ext/shacl-engine) | 1.0.2 | A fast RDF/JS SHACL engine includes SHACL SPARQL-based Constraints |
+| [**Bootstrap**](https://github.com/twbs/bootstrap) | 5.3.7 | Responsive CSS framework |
+| [**Chart.js**](https://github.com/chartjs/Chart.js) | 4.5.0 | Radar charts visualization |
+| [**react-i18next**](https://github.com/i18next/react-i18next) | Latest | Internationalization support |
+| [**gh-pages**](https://github.com/tschaub/gh-pages) | 6.3.0 | Automated GitHub Pages deployment |
 
 ## Local Development
 

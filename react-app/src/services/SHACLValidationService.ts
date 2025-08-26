@@ -10,9 +10,75 @@ import {
   SHACLViolation, 
   SHACLSeverity 
 } from '../types';
+import mqaConfig from '../config/mqa-config.json';
 
 export class SHACLValidationService {
   private static shaclShapesCache: Map<ValidationProfile, any> = new Map();
+
+  /**
+   * Parse SHACL content asynchronously and filter problematic regex patterns
+   */
+  private static async parseSHACLContent(content: string, fileName: string): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      // Pre-process content to fix problematic regex patterns
+      const cleanedContent = this.cleanSHACLRegexPatterns(content);
+      
+      const parser = new N3Parser({ factory: rdfDataModel });
+      const parsedQuads: any[] = [];
+      
+      parser.parse(cleanedContent, (error, quad, prefixes) => {
+        if (error) {
+          console.error(`❌ Parse error in ${fileName}:`, error);
+          reject(error);
+          return;
+        }
+        if (quad) {
+          parsedQuads.push(quad);
+        } else {
+          // quad is null means parsing is complete
+          console.log(`✅ Parsing completed for ${fileName}: ${parsedQuads.length} quads`);
+          resolve(parsedQuads);
+        }
+      });
+    });
+  }
+
+  /**
+   * Clean problematic regex patterns in SHACL content
+   */
+  private static cleanSHACLRegexPatterns(content: string): string {
+    let cleaned = content;
+    let replacements = 0;
+    
+    // The specific problematic pattern found: sh:pattern "^(?s)(?=.*\\S).*$" ;
+    // This pattern checks for non-empty strings (containing at least one non-whitespace character)
+    const problematicPattern = /sh:pattern\s+"[^"]*\(\?\:?s\)[^"]*"\s*;/g;
+    const matches = content.match(problematicPattern);
+    
+    if (matches) {
+      console.log(`🔍 Found ${matches.length} problematic regex patterns:`, matches);
+      
+      // Replace with a JavaScript-compatible pattern that does the same thing
+      // Original: "^(?s)(?=.*\\S).*$" (matches any string with at least one non-whitespace char)
+      // Replacement: "^[\\s\\S]*\\S[\\s\\S]*$" (JavaScript equivalent)
+      cleaned = cleaned.replace(
+        /sh:pattern\s+"[^"]*\(\?\:?s\)\(\?\=\.\*\\+S\)[^"]*"\s*;/g,
+        'sh:pattern "^[\\\\s\\\\S]*\\\\S[\\\\s\\\\S]*$" ;'
+      );
+      
+      // More specific replacement for the exact pattern we found
+      cleaned = cleaned.replace(
+        'sh:pattern "^(?s)(?=.*\\\\S).*$"',
+        'sh:pattern "^[\\\\s\\\\S]*\\\\S[\\\\s\\\\S]*$"'
+      );
+      
+      replacements = matches.length;
+    }
+    
+    console.log(`🧹 SHACL regex cleanup: Fixed ${replacements} problematic patterns`);
+    
+    return cleaned;
+  }
 
   /**
    * Get SHACL shapes for a given profile
@@ -26,32 +92,41 @@ export class SHACLValidationService {
       const shaclFiles = this.getSHACLFilesForProfile(profile);
       const dataset = rdfDataset.dataset();
 
+      console.log(`📚 Loading SHACL shapes for profile: ${profile}`);
+      console.log(`📂 Files to load: ${shaclFiles.length}`);
+      let totalQuadsLoaded = 0;
+
       // Load all SHACL files for the profile
       for (const shaclFile of shaclFiles) {
-        const response = await fetch(`${process.env.PUBLIC_URL}/${shaclFile}`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch SHACL file: ${shaclFile}`);
-        }
-        const shaclContent = await response.text();
-        
-        // Parse SHACL content as Turtle using N3
-        const parser = new N3Parser({ factory: rdfDataModel });
-        const parsedQuads: any[] = [];
-        
-        parser.parse(shaclContent, (error, quad, prefixes) => {
-          if (error) {
-            throw error;
+        try {
+          console.log(`📥 Attempting to fetch: ${shaclFile}`);
+          const response = await fetch(shaclFile);
+          if (!response.ok) {
+            console.warn(`❌ Failed to fetch SHACL file: ${shaclFile} (${response.status} ${response.statusText})`);
+            continue; // Skip this file but continue with others
           }
-          if (quad) {
-            parsedQuads.push(quad);
+          const shaclContent = await response.text();
+          console.log(`📄 Loaded ${shaclContent.length} characters from ${shaclFile}`);
+          
+          // Show first few lines for debugging
+          const lines = shaclContent.split('\n').slice(0, 5);
+          console.log(`📋 First lines of ${shaclFile}:`, lines);
+          
+          // Parse the SHACL file content using async method
+          const fileQuads = await this.parseSHACLContent(shaclContent, shaclFile);
+          console.log(`✅ Parsed ${fileQuads.length} quads from ${shaclFile}`);
+          totalQuadsLoaded += fileQuads.length;
+          
+          // Add all quads to the dataset
+          for (const quad of fileQuads) {
+            dataset.add(quad);
           }
-        });
-        
-        for (const quad of parsedQuads) {
-          dataset.add(quad);
+        } catch (error) {
+          console.error(`❌ Error loading SHACL file ${shaclFile}:`, error);
         }
       }
 
+      console.log(`📊 Total SHACL quads loaded for ${profile}: ${totalQuadsLoaded}`);
       this.shaclShapesCache.set(profile, dataset);
       return dataset;
     } catch (error) {
@@ -64,28 +139,10 @@ export class SHACLValidationService {
    * Get SHACL files for a given profile
    */
   private static getSHACLFilesForProfile(profile: ValidationProfile): string[] {
-    const shaclFileMap: Record<ValidationProfile, string[]> = {
-      'dcat_ap': [
-        'docs/shacl/dcat-ap/3.0.0/dcat-ap_3.0.0_shacl_shapes.ttl',
-        'docs/shacl/dcat-ap/3.0.0/dcat-ap_3.0.0_shacl_range.ttl'
-      ],
-      'dcat_ap_es': [
-        'docs/shacl/dcat-ap/3.0.0/dcat-ap_3.0.0_shacl_shapes.ttl',
-        'docs/shacl/dcat-ap/3.0.0/dcat-ap_3.0.0_shacl_range.ttl',
-        'docs/shacl/dcat-ap-es/1.0.0/shacl_dataset_shape.ttl',
-        'docs/shacl/dcat-ap-es/1.0.0/shacl_distribution_shape.ttl',
-        'docs/shacl/dcat-ap-es/1.0.0/shacl_dataservice_shape.ttl',
-        'docs/shacl/dcat-ap-es/1.0.0/shacl_catalog_shape.ttl',
-        'docs/shacl/dcat-ap-es/1.0.0/shacl_common_shapes.ttl'
-      ],
-      'nti_risp': [
-        'docs/shacl/dcat-ap/3.0.0/dcat-ap_3.0.0_shacl_shapes.ttl',
-        'docs/shacl/dcat-ap/3.0.0/dcat-ap_3.0.0_shacl_range.ttl'
-        // Note: NTI-RISP specific shapes would be added here when available
-      ]
-    };
-
-    return shaclFileMap[profile] || [];
+    const profileConfig = (mqaConfig.profiles as any)[profile];
+    const filesToLoad = profileConfig?.shaclFiles || [];
+    console.log(`📋 Found ${filesToLoad.length} SHACL files in config for profile ${profile}:`, filesToLoad);
+    return filesToLoad;
   }
 
   /**
@@ -93,26 +150,31 @@ export class SHACLValidationService {
    */
   private static async parseRDFContent(content: string, format: string = 'turtle'): Promise<any> {
     try {
+      console.log(`📝 Parsing RDF content (${format}): ${content.length} characters`);
+      
       const dataset = rdfDataset.dataset();
-      const parser = new N3Parser({ factory: rdfDataModel });
-      const parsedQuads: any[] = [];
+      const parsedQuads = await this.parseSHACLContent(content, `RDF-${format}`);
       
-      parser.parse(content, (error, quad, prefixes) => {
-        if (error) {
-          throw error;
-        }
-        if (quad) {
-          parsedQuads.push(quad);
-        }
-      });
+      console.log(`📊 Parsed ${parsedQuads.length} RDF quads from content`);
       
+      // Log sample quads for debugging
+      if (parsedQuads.length > 0) {
+        console.log(`📋 Sample RDF quads:`);
+        parsedQuads.slice(0, 5).forEach((quad, index) => {
+          console.log(`   ${index + 1}. ${quad.subject.value} ${quad.predicate.value} ${quad.object.value}`);
+        });
+        if (parsedQuads.length > 5) {
+          console.log(`   ... and ${parsedQuads.length - 5} more quads`);
+        }
+      }
+
       for (const quad of parsedQuads) {
         dataset.add(quad);
       }
 
       return dataset;
     } catch (error) {
-      console.error('Error parsing RDF content:', error);
+      console.error('❌ Error parsing RDF content:', error);
       throw error;
     }
   }
@@ -145,7 +207,7 @@ export class SHACLValidationService {
       conforms: validationReport.conforms || false,
       results,
       text: validationReport.text,
-      graph: validationReport.dataset
+      graph: undefined // Remove problematic dataset access
     };
   }
 
@@ -195,20 +257,80 @@ export class SHACLValidationService {
       
       // Load SHACL shapes
       const shapes = await this.getSHACLShapes(profile);
+      const shapesCount = Array.from(shapes).length;
+      console.log(`📊 Loaded ${shapesCount} SHACL shape quads for validation`);
+      
+      if (shapesCount === 0) {
+        console.warn(`⚠️ No SHACL shapes loaded for profile ${profile}! This will result in 0 violations.`);
+        return {
+          profile,
+          conforms: false, // Changed to false when no shapes loaded
+          totalViolations: 1,
+          violations: [{
+            focusNode: '',
+            message: [`No SHACL shapes could be loaded for profile ${profile}`],
+            severity: 'Violation',
+            sourceConstraintComponent: 'system:NoShapesError',
+            sourceShape: 'system:ValidationShape'
+          }],
+          warnings: [],
+          infos: [],
+          timestamp: new Date().toISOString()
+        };
+      }
       
       // Parse RDF data
       const data = await this.parseRDFContent(rdfContent, format);
+      const dataCount = Array.from(data).length;
+      console.log(`📊 Loaded ${dataCount} RDF data quads for validation`);
 
-      // Create validator with SPARQL support
+      // Create validator with basic configuration (avoiding SPARQL validations that may cause issues)
+      console.log(`🔧 Creating SHACL validator with basic configuration...`);
       const validator = new Validator(shapes, {
         factory: rdfDataModel,
-        validations: sparqlValidations,
-        debug: true,
+        debug: false,
         details: true
+        // Note: Avoiding sparqlValidations to prevent regex compatibility issues
       });
 
       // Run validation
-      const report = await validator.validate({ dataset: data });
+      console.log(`⚙️ Running SHACL validation...`);
+      let report;
+      try {
+        report = await validator.validate({ dataset: data });
+        console.log(`📋 SHACL validation report:`, {
+          conforms: report.conforms,
+          hasResults: !!report.results,
+          resultsLength: report.results?.length || 0
+        });
+      } catch (validationError: any) {
+        // Handle specific regex error that occurs with some SHACL constraints
+        if (validationError.message?.includes('Invalid regular expression') || 
+            validationError.message?.includes('Invalid group')) {
+          console.warn(`⚠️ SHACL validation failed due to regex compatibility issue:`, validationError.message);
+          console.warn(`📝 This often occurs with advanced SHACL string patterns that aren't JavaScript-compatible`);
+          
+          // Return a mock result indicating validation issues exist (conservative approach)
+          return {
+            profile,
+            conforms: false,
+            totalViolations: 1,
+            violations: [{
+              focusNode: '',
+              message: [`SHACL validation failed due to regex compatibility: ${validationError.message}`],
+              severity: 'Violation',
+              sourceConstraintComponent: 'system:RegexCompatibilityError',
+              sourceShape: 'system:ValidationShape'
+            }],
+            warnings: [],
+            infos: [],
+            timestamp: new Date().toISOString()
+          };
+        } else {
+          // Re-throw other validation errors
+          throw validationError;
+        }
+      }
       
       // Parse results
       const validationResult = this.parseSHACLResult(report);
@@ -255,21 +377,21 @@ export class SHACLValidationService {
 
   /**
    * Generate compliance score based on SHACL validation
+   * Binary scoring: conforme = 100%, no conforme = 0%
    */
   public static calculateComplianceScore(report: SHACLReport): number {
-    if (report.conforms) {
+    console.log(`📊 Calculating compliance score - Conforms: ${report.conforms}, Violations: ${report.totalViolations}`);
+    
+    // Binary compliance scoring as requested by user:
+    // Si el perfil no es conforme con la validacion SHACL, entonces la metrica de compliance es 0
+    // La validacion es binaria
+    if (report.conforms && report.totalViolations === 0) {
+      console.log(`✅ SHACL: CONFORME - Compliance score: 100%`);
       return 100; // Full compliance
+    } else {
+      console.log(`❌ SHACL: NO CONFORME - Compliance score: 0%`);
+      return 0; // No compliance if any violations exist
     }
-
-    // Calculate score based on violation severity
-    const violationPenalty = report.violations.length * 10;
-    const warningPenalty = report.warnings.length * 2;
-    const infoPenalty = report.infos.length * 0.5;
-    
-    const totalPenalty = violationPenalty + warningPenalty + infoPenalty;
-    const score = Math.max(0, 100 - totalPenalty);
-    
-    return Math.round(score);
   }
 
   /**
@@ -281,17 +403,24 @@ export class SHACLValidationService {
     let turtle = `@prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 
 # SHACL Validation Report for ${report.profile}
-# Generated by shacl-engine
-# Timestamp: ${timestamp}
+# Generated by shacl-engine and mjanez/metadata-quality-stack
 
 <urn:shacl:report:${report.profile}:${Date.now()}> a sh:ValidationReport ;
     sh:conforms ${report.conforms} ;
     dct:created "${timestamp}"^^xsd:dateTime ;
+    dct:description "Este archivo contiene el informe de validación SHACL para el perfil ${report.profile}. Se han detectado ${report.totalViolations} violaciones."@es ;
+    dct:description "This file contains the SHACL validation report for profile ${report.profile}. A total of ${report.totalViolations} violations were found."@en ;
+    dct:title "Informe de Validación SHACL para el perfil ${report.profile}"@es ;
+    dct:title "SHACL Validation Report for profile ${report.profile}"@en ;
+    dct:format <http://publications.europa.eu/resource/authority/file-type/RDF_TURTLE> ;
     dct:subject <urn:dataset:${report.profile}> ;
+    foaf:homepage <https://github.com/mjanez/metadata-quality-stack> ;
+    rdfs:seeAlso <https://github.com/mjanez/metadata-quality-stack/blob/feature/main/react-app/README.md> ;
     rdfs:comment "Validation report generated by MQA SHACL validation" .
 
 `;

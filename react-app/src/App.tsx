@@ -11,12 +11,12 @@ import ThemeToggle from './components/ThemeToggle';
 import MQAInfoSidebar from './components/MQAInfoSidebar';
 import RDFService from './services/RDFService';
 import { MQAService } from './services/MQAService';
-import { ValidationResult, ValidationProfile, ValidationInput } from './types';
+import { ValidationResult, ExtendedValidationResult, ValidationProfile, ValidationInput } from './types';
 
 function App() {
   const { t } = useTranslation();
   const [isValidating, setIsValidating] = useState(false);
-  const [result, setResult] = useState<ValidationResult | null>(null);
+  const [result, setResult] = useState<ExtendedValidationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<ValidationProfile>('dcat_ap');
   const [sidebarVisible, setSidebarVisible] = useState(true);
@@ -42,21 +42,22 @@ function App() {
       console.log('🔄 Normalizing content to Turtle format');
       const normalizedContent = await RDFService.normalizeToTurtle(content, false);
       
-      // Calculate quality with MQA
-      console.log('📊 Calculating quality metrics');
+      // Calculate quality with MQA + SHACL
+      console.log('📊 Calculating quality metrics with SHACL validation');
       const mqaService = MQAService.getInstance();
-      const qualityResult = await mqaService.calculateQuality(normalizedContent, profile);
+      const { quality: qualityResult, shaclReport } = await mqaService.calculateQualityWithSHACL(normalizedContent, profile);
       
       // Get stats
       console.log('📈 Parsing RDF statistics');
       const stats = await RDFService.parseAndCount(normalizedContent);
       
-      const validationResult: ValidationResult = {
+      const validationResult: ExtendedValidationResult = {
         quality: qualityResult,
         profile,
         stats,
         content: normalizedContent,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        shaclReport
       };
       
       console.log('✅ Validation completed successfully');
@@ -132,20 +133,22 @@ function App() {
               </span>
             </div>
             <div className="d-flex align-items-center">
+              <div className="me-2">
+                <LanguageSelector />
+              </div>
+              <ThemeToggle />
+              <div className="me-2"></div>
               <a 
                 href="https://github.com/mjanez/metadata-quality-stack"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn btn-outline-secondary me-2"
+                className="btn btn-outline-secondary"
+                style={{ marginRight: '0.5rem' }}
                 title={t('common.github_repository')}
                 aria-label={t('common.github_repository')}
               >
                 <i className="bi bi-github"></i>
               </a>
-              <ThemeToggle />
-              <div className="ms-2">
-                <LanguageSelector />
-              </div>
             </div>
           </div>
         </nav>

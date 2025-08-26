@@ -10,6 +10,7 @@ export interface MQAConfig {
     [key in ValidationProfile]: {
       name: string;
       maxScore: number;
+      shaclFiles: string[];
       dimensions: {
         [dimension: string]: {
           maxScore: number;

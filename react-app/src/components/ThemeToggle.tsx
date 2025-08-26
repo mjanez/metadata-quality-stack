@@ -33,13 +33,11 @@ const ThemeToggle: React.FC = () => {
     >
       {theme === 'light' ? (
         <>
-          <i className="bi bi-moon-fill me-1"></i>
-          {t('theme.dark')}
+          <i className="bi bi-moon-fill"></i>
         </>
       ) : (
         <>
-          <i className="bi bi-sun-fill me-1"></i>
-          {t('theme.light')}
+          <i className="bi bi-sun-fill"></i>
         </>
       )}
     </button>
