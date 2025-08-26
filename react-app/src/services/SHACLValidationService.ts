@@ -8,9 +8,10 @@ import {
   SHACLValidationResult, 
   SHACLReport, 
   SHACLViolation, 
-  SHACLSeverity 
+  SHACLSeverity,
+  MQAConfig
 } from '../types';
-import mqaConfig from '../config/mqa-config.json';
+import mqaConfigData from '../config/mqa-config.json';
 
 export class SHACLValidationService {
   private static shaclShapesCache: Map<ValidationProfile, any> = new Map();
@@ -139,10 +140,31 @@ export class SHACLValidationService {
    * Get SHACL files for a given profile
    */
   private static getSHACLFilesForProfile(profile: ValidationProfile): string[] {
-    const profileConfig = (mqaConfig.profiles as any)[profile];
-    const filesToLoad = profileConfig?.shaclFiles || [];
-    console.log(`📋 Found ${filesToLoad.length} SHACL files in config for profile ${profile}:`, filesToLoad);
-    return filesToLoad;
+    const mqaConfig = mqaConfigData as MQAConfig;
+    const profileConfig = mqaConfig.profiles[profile];
+    
+    if (!profileConfig) {
+      console.warn(`❌ No configuration found for profile: ${profile}`);
+      return [];
+    }
+
+    const defaultVersion = profileConfig.defaultVersion;
+    const versionConfig = profileConfig.versions[defaultVersion];
+    
+    if (!versionConfig) {
+      console.warn(`❌ No version configuration found for profile: ${profile}, version: ${defaultVersion}`);
+      return [];
+    }
+
+    // Get SHACL files from configuration
+    const shaclFiles = versionConfig.shaclFiles || [];
+    console.log(`📋 Found ${shaclFiles.length} SHACL files in config for profile ${profile} (v${defaultVersion}):`, shaclFiles);
+    
+    if (shaclFiles.length === 0) {
+      console.warn(`⚠️ No SHACL files configured for profile: ${profile}, version: ${defaultVersion}`);
+    }
+
+    return shaclFiles;
   }
 
   /**
@@ -182,7 +204,7 @@ export class SHACLValidationService {
   /**
    * Parse SHACL validation result from shacl-engine
    */
-  private static parseSHACLResult(validationReport: any): SHACLValidationResult {
+  private static parseSHACLResult(validationReport: any, shaclShapes?: any): SHACLValidationResult {
     const results: SHACLViolation[] = [];
 
     // shacl-engine returns results in validationReport.results
@@ -196,7 +218,8 @@ export class SHACLValidationService {
           severity: this.mapSeverityFromSHACLEngine(result.severity),
           sourceConstraintComponent: result.sourceConstraintComponent?.value || result.sourceConstraintComponent?.toString() || '',
           sourceShape: result.sourceShape?.value || result.sourceShape?.toString() || '',
-          resultSeverity: result.resultSeverity?.value || result.resultSeverity?.toString()
+          resultSeverity: result.resultSeverity?.value || result.resultSeverity?.toString(),
+          foafPage: this.extractFoafPage(result, shaclShapes)
         };
 
         results.push(violation);
@@ -223,6 +246,32 @@ export class SHACLValidationService {
       }
     }
     return ['Validation constraint violated'];
+  }
+
+  /**
+   * Extract foaf:page URL from SHACL shapes for additional information
+   */
+  private static extractFoafPage(result: any, shaclShapes?: any): string | undefined {
+    if (!shaclShapes || !result.sourceShape) {
+      return undefined;
+    }
+
+    try {
+      const sourceShapeUri = result.sourceShape?.value || result.sourceShape?.toString();
+      if (!sourceShapeUri) return undefined;
+
+      // Search for foaf:page in the SHACL shapes dataset
+      for (const quad of shaclShapes) {
+        if (quad.subject.value === sourceShapeUri && 
+            quad.predicate.value === 'http://xmlns.com/foaf/0.1/page') {
+          return quad.object.value;
+        }
+      }
+    } catch (error) {
+      console.warn('Error extracting foaf:page:', error);
+    }
+
+    return undefined;
   }
 
   /**
@@ -333,7 +382,7 @@ export class SHACLValidationService {
       }
       
       // Parse results
-      const validationResult = this.parseSHACLResult(report);
+      const validationResult = this.parseSHACLResult(report, shapes);
 
       // Categorize violations by severity
       const violations = validationResult.results.filter(r => r.severity === 'Violation');
@@ -488,6 +537,75 @@ ${resultId} a sh:ValidationResult ;
     });
 
     return turtle;
+  }
+
+  /**
+   * Export SHACL report as CSV for non-RDF users
+   */
+  public static async exportReportAsCSV(report: SHACLReport): Promise<string> {
+    const timestamp = new Date().toISOString();
+    
+    // CSV headers
+    const headers = [
+      'Severity',
+      'Focus Node',
+      'Path',
+      'Value',
+      'Message',
+      'Source Shape',
+      'Constraint Component',
+      'Additional Info URL'
+    ];
+    
+    // Combine all violations, warnings, and infos
+    const allIssues = [
+      ...report.violations,
+      ...report.warnings,
+      ...report.infos
+    ];
+    
+    // Convert to CSV rows
+    const csvRows = [];
+    
+    // Add metadata header
+    csvRows.push('# SHACL Validation Report');
+    csvRows.push(`# Profile: ${report.profile}`);
+    csvRows.push(`# Timestamp: ${timestamp}`);
+    csvRows.push(`# Conforms: ${report.conforms ? 'Yes' : 'No'}`);
+    csvRows.push(`# Total Issues: ${allIssues.length}`);
+    csvRows.push('# Results:'); // Empty line before data
+    csvRows.push(headers.join(','));
+    
+    for (const issue of allIssues) {
+      const row = [
+        issue.severity,
+        this.escapeCsvValue(issue.focusNode || ''),
+        this.escapeCsvValue(issue.path || ''),
+        this.escapeCsvValue(issue.value || ''),
+        this.escapeCsvValue(issue.message.join('; ')),
+        this.escapeCsvValue(issue.sourceShape || ''),
+        this.escapeCsvValue(issue.sourceConstraintComponent || ''),
+        this.escapeCsvValue(issue.foafPage || '')
+      ];
+      
+      csvRows.push(row.join(','));
+    }
+    
+    return csvRows.join('\n');
+  }
+
+  /**
+   * Escape CSV values (handle commas, quotes, newlines)
+   */
+  private static escapeCsvValue(value: string): string {
+    if (!value) return '';
+    
+    // If value contains comma, quote, or newline, wrap in quotes and escape existing quotes
+    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+      return `"${value.replace(/"/g, '""')}"`;
+    }
+    
+    return value;
   }
 
   /**

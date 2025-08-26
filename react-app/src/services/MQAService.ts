@@ -1,5 +1,5 @@
 import { Store as N3Store, Parser as N3Parser } from 'n3';
-import { ValidationProfile, MQAConfig, QualityResult, QualityMetric, VocabularyItem, SHACLReport } from '../types';
+import { ValidationProfile, MQAConfig, QualityResult, QualityMetric, VocabularyItem, SHACLReport, ProfileSelection } from '../types';
 import { RDFService } from './RDFService';
 import mqaConfig from '../config/mqa-config.json';
 
@@ -298,9 +298,14 @@ export class MQAService {
    */
   public async calculateQualityWithSHACL(
     content: string, 
-    profile: ValidationProfile
+    profileSelection: ProfileSelection | ValidationProfile
   ): Promise<{ quality: QualityResult; shaclReport: SHACLReport }> {
     try {
+      // Extract profile string from ProfileSelection or use as-is if it's a string
+      const profile: ValidationProfile = typeof profileSelection === 'string' 
+        ? profileSelection 
+        : profileSelection.profile;
+        
       console.log(`🔍 Starting MQA+SHACL evaluation for profile: ${profile}`);
 
       // Run standard MQA evaluation

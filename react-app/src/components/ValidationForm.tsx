@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ValidationInput, RDFFormat, ValidationProfile } from '../types';
+import { ValidationInput, RDFFormat, ValidationProfile, ProfileSelection } from '../types';
+import mqaConfigData from '../config/mqa-config.json';
 
 interface ValidationFormProps {
-  onValidate: (input: ValidationInput, profile: ValidationProfile) => Promise<void>;
+  onValidate: (input: ValidationInput, profileSelection: ProfileSelection) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -13,7 +14,45 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
   const [url, setUrl] = useState('');
   const [textContent, setTextContent] = useState('');
   const [format, setFormat] = useState<RDFFormat>('auto');
-  const [profile, setProfile] = useState<ValidationProfile>('dcat_ap');
+  const [profile, setProfile] = useState<ValidationProfile>('dcat_ap_es');
+  const [version, setVersion] = useState<string>('');
+
+  // Helper functions to handle the new configuration format
+  const getProfileConfig = (selectedProfile: ValidationProfile) => {
+    const config = (mqaConfigData as any).profiles[selectedProfile];
+    return config;
+  };
+
+  const getDefaultVersion = (selectedProfile: ValidationProfile) => {
+    const config = getProfileConfig(selectedProfile);
+    return config?.defaultVersion || Object.keys(config?.versions || {})[0] || '';
+  };
+
+  const getAvailableVersions = (selectedProfile: ValidationProfile) => {
+    const config = getProfileConfig(selectedProfile);
+    return config?.versions ? Object.keys(config.versions) : [];
+  };
+
+  const getVersionName = (selectedProfile: ValidationProfile, selectedVersion: string) => {
+    const config = getProfileConfig(selectedProfile);
+    return config?.versions?.[selectedVersion]?.name || t(`profiles.${selectedProfile}`);
+  };
+
+  // Initialize version when profile changes
+  useEffect(() => {
+    const defaultVer = getDefaultVersion(profile);
+    if (defaultVer) {
+      setVersion(defaultVer);
+    }
+  }, [profile]);
+
+  // Initialize default version on mount
+  useEffect(() => {
+    const defaultVer = getDefaultVersion(profile);
+    if (defaultVer) {
+      setVersion(defaultVer);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +74,12 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
       url: activeTab === 'url' ? url : undefined
     };
 
-    await onValidate(input, profile);
+    const profileSelection: ProfileSelection = {
+      profile,
+      version
+    };
+
+    await onValidate(input, profileSelection);
   };
 
   const sampleRdfXml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -62,18 +106,26 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
 
   const loadSample = async () => {
     try {
-      const response = await fetch('https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/examples/ttl/1.0.0/E_DCAT-AP-ES_Catalog.ttl');
-      if (response.ok) {
-        const turtleContent = await response.text();
-        setTextContent(turtleContent);
-        setFormat('turtle');
-        setActiveTab('text');
-      } else {
-        // Fallback to local sample if GitHub is not accessible
-        setTextContent(sampleRdfXml);
-        setFormat('rdfxml');
-        setActiveTab('text');
+      const profileConfig = getProfileConfig(profile);
+      const defaultVersion = getDefaultVersion(profile);
+      const versionConfig = profileConfig?.versions?.[defaultVersion];
+      const sampleUrl = versionConfig?.sampleUrl;
+
+      if (sampleUrl) {
+        const response = await fetch(sampleUrl);
+        if (response.ok) {
+          const turtleContent = await response.text();
+          setTextContent(turtleContent);
+          setFormat('turtle');
+          setActiveTab('text');
+          return;
+        }
       }
+
+      // Fallback to local sample if GitHub is not accessible or no sample URL
+      setTextContent(sampleRdfXml);
+      setFormat('rdfxml');
+      setActiveTab('text');
     } catch (error) {
       // Fallback to local sample if there's an error
       setTextContent(sampleRdfXml);
@@ -85,20 +137,45 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
   return (
     <form onSubmit={handleSubmit}>
       {/* Profile Selection */}
-      <div className="mb-3">
-        <label htmlFor="profileSelector" className="form-label">
-          <strong>{t('form.profile')}</strong>
-        </label>
-        <select
-          id="profileSelector"
-          className="form-select"
-          value={profile}
-          onChange={(e) => setProfile(e.target.value as ValidationProfile)}
-        >
-          <option value="dcat_ap">{t('profiles.dcat_ap')}</option>
-          <option value="dcat_ap_es">{t('profiles.dcat_ap_es')}</option>
-          <option value="nti_risp">{t('profiles.nti_risp')}</option>
-        </select>
+      <div className="row mb-3">
+        <div className="col-md-8">
+          <label htmlFor="profileSelector" className="form-label">
+            <strong>{t('form.profile')}</strong>
+          </label>
+          <select
+            id="profileSelector"
+            className="form-select"
+            value={profile}
+            onChange={(e) => setProfile(e.target.value as ValidationProfile)}
+          >
+            <option value="dcat_ap">{t('profiles.dcat_ap')}</option>
+            <option value="dcat_ap_es">{t('profiles.dcat_ap_es')}</option>
+            <option value="nti_risp">{t('profiles.nti_risp')}</option>
+          </select>
+        </div>
+        <div className="col-md-4">
+          <label htmlFor="versionSelector" className="form-label">
+            <strong>{t('form.version')}</strong>
+          </label>
+          <select
+            id="versionSelector"
+            className="form-select"
+            value={version}
+            onChange={(e) => setVersion(e.target.value)}
+            disabled={getAvailableVersions(profile).length <= 1}
+          >
+            {getAvailableVersions(profile).map((ver) => (
+              <option key={ver} value={ver}>
+                {ver}
+              </option>
+            ))}
+          </select>
+          <div className="form-text">
+            <small className="text-muted">
+              {getVersionName(profile, version)}
+            </small>
+          </div>
+        </div>
       </div>
 
       {/* Input Tabs */}

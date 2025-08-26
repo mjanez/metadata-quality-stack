@@ -1,6 +1,6 @@
 import { Parser as N3Parser, Writer as N3Writer, Store as N3Store } from 'n3';
 import { RdfXmlParser } from 'rdfxml-streaming-parser';
-import { RDFFormat, ValidationProfile, SHACLReport } from '../types';
+import { RDFFormat, ValidationProfile, SHACLReport, ProfileSelection } from '../types';
 import { SHACLValidationService } from './SHACLValidationService';
 
 export class RDFService {
@@ -210,10 +210,15 @@ export class RDFService {
    */
   public static async validateWithSHACL(
     content: string, 
-    profile: ValidationProfile,
+    profileSelection: ProfileSelection | ValidationProfile,
     format: RDFFormat = 'turtle'
   ): Promise<SHACLReport> {
     try {
+      // Extract profile string from ProfileSelection or use as-is if it's a string
+      const profile: ValidationProfile = typeof profileSelection === 'string' 
+        ? profileSelection 
+        : profileSelection.profile;
+        
       // Normalize content to turtle if needed
       let normalizedContent = content;
       if (format !== 'turtle') {

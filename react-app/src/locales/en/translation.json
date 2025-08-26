@@ -14,27 +14,31 @@
     "clear": "Clear",
     "reset": "Reset",
     "points": "points",
-    "github_repository": "GitHub Repository"
+    "github_repository": "GitHub repository"
   },
   "shacl": {
-    "compliance_report": "SHACL Compliance Report",
+    "compliance_report": "SHACL compliance report",
     "conforms": "Conforms",
-    "does_not_conform": "Does Not Conform",
+    "does_not_conform": "Does not conform",
     "profile": "Profile",
     "violations": "Violations",
     "warnings": "Warnings",
     "infos": "Information",
-    "validation_results": "Validation Results",
+    "validation_results": "Validation results",
     "filter_by_severity": "Filter by severity",
     "all": "All",
     "no_results_for_filter": "No results for the selected filter",
-    "perfect_compliance": "Perfect Compliance!",
+    "perfect_compliance": "Perfect compliance!",
     "no_violations_found": "No violations were found in the metadata",
-    "focus_node": "Focus Node",
+    "focus_node": "Focus node",
     "value": "Value",
-    "source_shape": "Source Shape",
+    "source_shape": "Source shape",
     "no_path": "No path specified",
-    "export_report": "Export SHACL Report"
+    "export_report": "Export SHACL report",
+    "export_csv": "Export CSV",
+    "open_link": "Open link in new tab",
+    "showing_results": "Showing {{count}} of {{total}} results",
+    "more_info": "More information"
   },
   "navigation": {
     "home": "Home",
@@ -43,35 +47,35 @@
     "about": "About"
   },
   "theme": {
-    "light": "Light Mode",
-    "dark": "Dark Mode",
-    "toggle": "Toggle Theme"
+    "light": "Light mode",
+    "dark": "Dark mode",
+    "toggle": "Toggle theme"
   },
   "language": {
     "english": "English",
     "spanish": "Español",
-    "select": "Select Language"
+    "select": "Select language"
   },
   "sidebar": {
-    "expand": "Expand Sidebar",
-    "collapse": "Collapse Sidebar",
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar",
     "about_mqa": "About MQA",
     "mqa_description": "This tool evaluates metadata quality based on the Metadata Quality Assessment (MQA) methodology from the European Data Portal using ",
     "learn_more": "Profile info",
-    "fairc_principles": "FAIR+C Principles",
-    "rating_scale": "Rating Scale",
+    "fairc_principles": "FAIR+C principles",
+    "rating_scale": "Rating scale",
     "rating": "Rating",
     "points": "Points",
-    "max_points": "Max Points",
-    "quick_links": "Quick Links",
-    "mqa_methodology": "MQA Methodology",
-    "fair_principles": "FAIR Principles",
-    "github_repository": "GitHub Repository",
-    "current_validation": "Current Validation",
-    "total_score": "Total Score",
+    "max_points": "Max points",
+    "quick_links": "Quick links",
+    "mqa_methodology": "MQA methodology",
+    "fair_principles": "FAIR principles",
+    "github_repository": "GitHub repository",
+    "current_validation": "Current validation",
+    "total_score": "Total score",
     "triples": "Triples",
     "datasets": "Datasets",
-    "data_services": "Data Services",
+    "data_services": "Data services",
     "distributions": "Distributions",
     "datasets_help": "Number of datasets (dcat:Dataset) found in the RDF metadata",
     "data_services_help": "Number of data services (dcat:DataService) found in the RDF metadata",
@@ -84,11 +88,12 @@
     "poor": "Poor"
   },
   "form": {
-    "profile": "Validation Profile",
+    "profile": "Validation profile",
+    "version": "Version",
     "profile_select": "Select a validation profile",
-    "input_method": "Input Method",
+    "input_method": "Input method",
     "url_tab": "URL",
-    "text_tab": "Direct Text",
+    "text_tab": "Direct text",
     "url_placeholder": "Enter RDF URL (e.g., https://example.org/dataset.rdf)",
     "text_placeholder": "Paste your RDF content here (RDF/XML, Turtle, JSON-LD, N-Triples)",
     "url_invalid": "Please enter a valid URL",
@@ -101,12 +106,12 @@
     "validation_autodetect": "Auto-detect"  
   },
   "profiles": {
-    "dcat_ap": "DCAT-AP 2.1.1",
-    "dcat_ap_es": "DCAT-AP-ES 1.0.0",
-    "nti_risp": "NTI-RISP (2013)",
+    "dcat_ap": "DCAT-AP",
+    "dcat_ap_es": "DCAT-AP-ES",
+    "nti_risp": "NTI-RISP",
     "dcat_ap_desc": "DCAT Application profile for data portals in Europe",
     "dcat_ap_es_desc": "Spanish DCAT Application Profile", 
-    "nti_risp_desc": "Spanish Technical Norm for Reuse"
+    "nti_risp_desc": "Metadata model of the Technical Interoperability Standard (2013)"
   },
   "dimensions": {
     "findability": "Findability",
@@ -121,7 +126,7 @@
     "contextuality_desc": "Contextual information about the data"
   },
   "results": {
-    "title": "Validation Results",
+    "title": "Validation results",
     "summary": "Quality summary",
     "overall_score": "Total score",
     "max_score": "Maximum score",

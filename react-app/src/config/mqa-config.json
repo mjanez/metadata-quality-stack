@@ -1,65 +1,112 @@
 {
   "profiles": {
     "dcat_ap": {
-      "name": "DCAT-AP",
-      "maxScore": 405,
-      "shaclFiles": [
-        "/data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_deprecateduris.ttl",
-        "/data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_imports.ttl",
-        "/data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_mdr-vocabularies.shape.ttl",
-        "/data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_mdr_imports.ttl",
-        "/data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_range.ttl",
-        "/data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_shapes.ttl",
-        "/data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_shapes_recommended.ttl"
-      ],
-      "dimensions": {
-        "findability": { "maxScore": 100 },
-        "accessibility": { "maxScore": 100 },
-        "interoperability": { "maxScore": 110 },
-        "reusability": { "maxScore": 75 },
-        "contextuality": { "maxScore": 20 }
-      }
+      "versions": {
+        "2.1.1": {
+          "name": "DCAT-AP v2.1.1",
+          "maxScore": 405,
+          "icon": "img/icons/eur.svg",
+          "url": "https://semiceu.github.io/DCAT-AP/",
+          "sampleUrl": "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/examples/dcat-ap_example.ttl",
+          "shaclFiles": [
+            "data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_deprecateduris.ttl",
+            "data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_imports.ttl",
+            "data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_mdr-vocabularies.shape.ttl",
+            "data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_mdr_imports.ttl",
+            "data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_range.ttl",
+            "data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_shapes.ttl",
+            "data/shacl/dcat-ap/2.1.1/dcat-ap_2.1.1_shacl_shapes_recommended.ttl"
+          ],
+          "dimensions": {
+            "findability": { "maxScore": 100 },
+            "accessibility": { "maxScore": 100 },
+            "interoperability": { "maxScore": 110 },
+            "reusability": { "maxScore": 75 },
+            "contextuality": { "maxScore": 20 }
+          }
+        },
+        "3.0.0": {
+          "name": "DCAT-AP v3.0.0",
+          "maxScore": 405,
+          "icon": "img/icons/eur.svg",
+          "url": "https://semiceu.github.io/DCAT-AP/",
+          "sampleUrl": "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/3.0.0/examples/dcat-ap_example.ttl",
+          "shaclFiles": [
+            "data/shacl/dcat-ap/3.0.0/dcat-ap_3.0.0_shacl_deprecateduris.ttl",
+            "data/shacl/dcat-ap/3.0.0/dcat-ap_3.0.0_shacl_imports.ttl",
+            "data/shacl/dcat-ap/3.0.0/dcat-ap_3.0.0_shacl_mdr-vocabularies.shape.ttl",
+            "data/shacl/dcat-ap/3.0.0/dcat-ap_3.0.0_shacl_mdr_imports.ttl",
+            "data/shacl/dcat-ap/3.0.0/dcat-ap_3.0.0_shacl_range.ttl",
+            "data/shacl/dcat-ap/3.0.0/dcat-ap_3.0.0_shacl_shapes.ttl",
+            "data/shacl/dcat-ap/3.0.0/dcat-ap_3.0.0_shacl_shapes_recommended.ttl"
+          ],
+          "dimensions": {
+            "findability": { "maxScore": 100 },
+            "accessibility": { "maxScore": 100 },
+            "interoperability": { "maxScore": 110 },
+            "reusability": { "maxScore": 75 },
+            "contextuality": { "maxScore": 20 }
+          }
+        }
+      },
+      "defaultVersion": "2.1.1"
     },
     "dcat_ap_es": {
-      "name": "DCAT-AP-ES", 
-      "maxScore": 405,
-      "shaclFiles": [
-        "/data/shacl/dcat-ap-es/1.0.0/shacl_catalog_shape.ttl",
-        "/data/shacl/dcat-ap-es/1.0.0/shacl_common_shapes.ttl",
-        "/data/shacl/dcat-ap-es/1.0.0/shacl_dataservice_shape.ttl",
-        "/data/shacl/dcat-ap-es/1.0.0/shacl_dataset_shape.ttl",
-        "/data/shacl/dcat-ap-es/1.0.0/shacl_distribution_shape.ttl",
-        "/data/shacl/dcat-ap-es/1.0.0/shacl_imports.ttl",
-        "/data/shacl/dcat-ap-es/1.0.0/shacl_mdr_imports.ttl",
-        "/data/shacl/dcat-ap-es/1.0.0/shacl_mdr-vocabularies.shape.ttl"
-      ],
-      "dimensions": {
-        "findability": { "maxScore": 100 },
-        "accessibility": { "maxScore": 100 },
-        "interoperability": { "maxScore": 110 },
-        "reusability": { "maxScore": 75 },
-        "contextuality": { "maxScore": 20 }
-      }
+      "versions": {
+        "1.0.0": {
+          "name": "DCAT-AP-ES v1.0.0", 
+          "maxScore": 405,
+          "icon": "img/icons/esp.svg",
+          "url": "https://datosgobes.github.io/DCAT-AP-ES/",
+          "sampleUrl": "https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/examples/ttl/1.0.0/E_DCAT-AP-ES_Catalog.ttl",
+          "shaclFiles": [
+            "data/shacl/dcat-ap-es/1.0.0/shacl_catalog_shape.ttl",
+            "data/shacl/dcat-ap-es/1.0.0/shacl_common_shapes.ttl",
+            "data/shacl/dcat-ap-es/1.0.0/shacl_dataservice_shape.ttl",
+            "data/shacl/dcat-ap-es/1.0.0/shacl_dataset_shape.ttl",
+            "data/shacl/dcat-ap-es/1.0.0/shacl_distribution_shape.ttl",
+            "data/shacl/dcat-ap-es/1.0.0/shacl_imports.ttl",
+            "data/shacl/dcat-ap-es/1.0.0/shacl_mdr_imports.ttl",
+            "data/shacl/dcat-ap-es/1.0.0/shacl_mdr-vocabularies.shape.ttl"
+          ],
+          "dimensions": {
+            "findability": { "maxScore": 100 },
+            "accessibility": { "maxScore": 100 },
+            "interoperability": { "maxScore": 110 },
+            "reusability": { "maxScore": 75 },
+            "contextuality": { "maxScore": 20 }
+          }
+        }
+      },
+      "defaultVersion": "1.0.0"
     },
     "nti_risp": {
-      "name": "NTI-RISP",
-      "maxScore": 310,
-      "shaclFiles": [
-        "/data/shacl/nti-risp/2013/nti-risp_catalog_shape.ttl",
-        "/data/shacl/nti-risp/2013/nti-risp_common_shapes.ttl",
-        "/data/shacl/nti-risp/2013/nti-risp_dataset_shape.ttl",
-        "/data/shacl/nti-risp/2013/nti-risp_distribution_shape.ttl",
-        "/data/shacl/nti-risp/2013/nti-risp_shacl_imports.ttl",
-        "/data/shacl/nti-risp/2013/nti-risp_shacl_mdr_imports.ttl",
-        "/data/shacl/nti-risp/2013/nti-risp_vocabularies.shape.ttl"
-      ],
-      "dimensions": {
-        "findability": { "maxScore": 100 },
-        "accessibility": { "maxScore": 50 },
-        "interoperability": { "maxScore": 105 },
-        "reusability": { "maxScore": 40 },
-        "contextuality": { "maxScore": 15 }
-      }
+      "versions": {
+        "2013": {
+          "name": "NTI-RISP 2013",
+          "maxScore": 310,
+          "icon": "img/icons/esp.svg",
+          "url": "https://www.boe.es/eli/es/res/2013/02/19/(4)",
+          "sampleUrl": "https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/examples/ttl/1.0.0/E_DCAT-AP-ES_Catalog.ttl",
+          "shaclFiles": [
+            "data/shacl/nti-risp/2013/nti-risp_catalog_shape.ttl",
+            "data/shacl/nti-risp/2013/nti-risp_common_shapes.ttl",
+            "data/shacl/nti-risp/2013/nti-risp_dataset_shape.ttl",
+            "data/shacl/nti-risp/2013/nti-risp_distribution_shape.ttl",
+            "data/shacl/nti-risp/2013/nti-risp_shacl_imports.ttl",
+            "data/shacl/nti-risp/2013/nti-risp_shacl_mdr_imports.ttl",
+            "data/shacl/nti-risp/2013/nti-risp_vocabularies.shape.ttl"
+          ],
+          "dimensions": {
+            "findability": { "maxScore": 100 },
+            "accessibility": { "maxScore": 50 },
+            "interoperability": { "maxScore": 105 },
+            "reusability": { "maxScore": 40 },
+            "contextuality": { "maxScore": 15 }
+          }
+        }
+      },
+      "defaultVersion": "2013"
     }
   },
   "metricsByProfile": {

@@ -5,14 +5,44 @@ import { SHACLReport, SHACLViolation, SHACLSeverity } from '../types';
 interface SHACLReportViewerProps {
   report: SHACLReport;
   onExportReport?: () => void;
+  onExportCSV?: () => void;
 }
 
 const SHACLReportViewer: React.FC<SHACLReportViewerProps> = ({ 
   report, 
-  onExportReport 
+  onExportReport,
+  onExportCSV
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selectedSeverity, setSelectedSeverity] = useState<SHACLSeverity | 'all'>('all');
+  const [activeTab, setActiveTab] = useState<'compliance' | 'validation'>('compliance');
+
+  /**
+   * Filter SHACL messages by current language
+   */
+  const filterMessagesByLanguage = (messages: string[]): string[] => {
+    const currentLanguage = i18n.language;
+    const filteredMessages: string[] = [];
+    
+    for (const message of messages) {
+      // Check if message contains language tag like @es or @en
+      const langTagMatch = message.match(/@([a-z]{2})$/);
+      
+      if (langTagMatch) {
+        const messageLang = langTagMatch[1];
+        if (messageLang === currentLanguage) {
+          // Remove language tag from message
+          filteredMessages.push(message.replace(/@[a-z]{2}$/, '').trim());
+        }
+      } else {
+        // If no language tag, include message (assume it's default/fallback)
+        filteredMessages.push(message);
+      }
+    }
+    
+    // If no messages match current language, return all messages (fallback)
+    return filteredMessages.length > 0 ? filteredMessages : messages;
+  };
 
   const getComplianceColor = (conforms: boolean) => {
     return conforms ? 'text-success' : 'text-danger';
@@ -85,6 +115,33 @@ const SHACLReportViewer: React.FC<SHACLReportViewerProps> = ({
     return component;
   };
 
+  const isURL = (text: string) => {
+    try {
+      new URL(text);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const renderClickableText = (text: string, className = '') => {
+    if (isURL(text)) {
+      return (
+        <a 
+          href={text} 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className={`${className} text-decoration-none`}
+          title={t('shacl.open_link')}
+        >
+          {text}
+          <i className="bi bi-box-arrow-up-right ms-1" style={{ fontSize: '0.75em' }}></i>
+        </a>
+      );
+    }
+    return <span className={className}>{text}</span>;
+  };
+
   const renderViolationCard = (violation: SHACLViolation, index: number) => (
     <div key={index} className="card mb-2">
       <div className="card-body p-3">
@@ -106,7 +163,7 @@ const SHACLReportViewer: React.FC<SHACLReportViewerProps> = ({
             </div>
             
             <div className="mb-2">
-              {violation.message.map((msg, msgIndex) => (
+              {filterMessagesByLanguage(violation.message).map((msg, msgIndex) => (
                 <p key={msgIndex} className="mb-1 text-muted">
                   {msg}
                 </p>
@@ -116,21 +173,35 @@ const SHACLReportViewer: React.FC<SHACLReportViewerProps> = ({
             {violation.focusNode && (
               <div className="mb-1">
                 <strong>{t('shacl.focus_node')}:</strong>{' '}
-                <code className="text-primary small">{violation.focusNode}</code>
+                {renderClickableText(violation.focusNode, 'text-primary small')}
               </div>
             )}
             
             {violation.value && (
               <div className="mb-1">
                 <strong>{t('shacl.value')}:</strong>{' '}
-                <code className="text-success small">{violation.value}</code>
+                {renderClickableText(violation.value, 'text-success small')}
               </div>
             )}
             
             {violation.sourceShape && (
-              <div>
+              <div className="mb-1">
                 <strong>{t('shacl.source_shape')}:</strong>{' '}
                 <code className="text-info small">{formatPath(violation.sourceShape)}</code>
+              </div>
+            )}
+            
+            {violation.foafPage && (
+              <div className="mt-2">
+                <a 
+                  href={violation.foafPage} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="btn btn-outline-info btn-sm"
+                >
+                  <i className="bi bi-info-circle me-1"></i>
+                  {t('shacl.more_info')}
+                </a>
               </div>
             )}
           </div>
@@ -140,127 +211,199 @@ const SHACLReportViewer: React.FC<SHACLReportViewerProps> = ({
   );
 
   const filteredViolations = getFilteredViolations();
+  const totalIssues = report.violations.length + report.warnings.length + report.infos.length;
 
   return (
     <div className="shacl-report-viewer">
-      {/* Compliance Summary */}
-      <div className="card mb-4">
+      <div className="card">
         <div className="card-header">
-          <h5 className="card-title mb-0">
-            <i className="bi bi-shield-check me-2"></i>
-            {t('shacl.compliance_report')}
-          </h5>
-        </div>
-        <div className="card-body">
-          <div className="row">
-            <div className="col-md-6">
-              <div className="text-center">
-                <i className={`${getComplianceIcon(report.conforms)} ${getComplianceColor(report.conforms)} display-1`}></i>
-                <h4 className={`mt-2 ${getComplianceColor(report.conforms)}`}>
-                  {report.conforms ? t('shacl.conforms') : t('shacl.does_not_conform')}
-                </h4>
-                <p className="text-muted">
-                  {t('shacl.profile')}: <strong>{t(`profiles.${report.profile}`)}</strong>
-                </p>
-              </div>
-            </div>
-            <div className="col-md-6">
-              <div className="row text-center">
-                <div className="col-4">
-                  <div className="border rounded p-2">
-                    <div className="h5 text-danger mb-1">{report.violations.length}</div>
-                    <small className="text-muted">{t('shacl.violations')}</small>
-                  </div>
-                </div>
-                <div className="col-4">
-                  <div className="border rounded p-2">
-                    <div className="h5 text-warning mb-1">{report.warnings.length}</div>
-                    <small className="text-muted">{t('shacl.warnings')}</small>
-                  </div>
-                </div>
-                <div className="col-4">
-                  <div className="border rounded p-2">
-                    <div className="h5 text-info mb-1">{report.infos.length}</div>
-                    <small className="text-muted">{t('shacl.infos')}</small>
-                  </div>
-                </div>
-              </div>
+          <div className="d-flex justify-content-between align-items-center">
+            <h5 className="card-title mb-0">
+              <i className="bi bi-shield-check me-2"></i>
+              {t('shacl.compliance_report')}
+            </h5>
+            <div className="d-flex gap-2">
+              {onExportReport && (
+                <button 
+                  className="btn btn-outline-primary btn-sm"
+                  onClick={onExportReport}
+                >
+                  <i className="bi bi-download me-1"></i>
+                  {t('shacl.export_report')}
+                </button>
+              )}
+              {onExportCSV && (
+                <button 
+                  className="btn btn-outline-success btn-sm"
+                  onClick={onExportCSV}
+                >
+                  <i className="bi bi-filetype-csv me-1"></i>
+                  {t('shacl.export_csv')}
+                </button>
+              )}
             </div>
           </div>
           
-          {onExportReport && (
-            <div className="row mt-3">
-              <div className="col text-center">
-                <button 
-                  className="btn btn-outline-primary"
-                  onClick={onExportReport}
-                >
-                  <i className="bi bi-download me-2"></i>
-                  {t('shacl.export_report')}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Results Filter and List */}
-      {filteredViolations.length > 0 && (
-        <div className="card">
-          <div className="card-header">
-            <div className="d-flex justify-content-between align-items-center">
-              <h5 className="card-title mb-0">
-                <i className="bi bi-list-ul me-2"></i>
+          {/* Tabs Navigation */}
+          <ul className="nav nav-tabs card-header-tabs mt-3" id="shaclTabs" role="tablist">
+            <li className="nav-item" role="presentation">
+              <button
+                className={`nav-link ${activeTab === 'compliance' ? 'active' : ''}`}
+                onClick={() => setActiveTab('compliance')}
+                type="button"
+                role="tab"
+                aria-controls="compliance-tab"
+                aria-selected={activeTab === 'compliance'}
+              >
+                <i className="bi bi-pie-chart me-1"></i>
+                {t('shacl.compliance_report')}
+              </button>
+            </li>
+            <li className="nav-item" role="presentation">
+              <button
+                className={`nav-link ${activeTab === 'validation' ? 'active' : ''} position-relative`}
+                onClick={() => setActiveTab('validation')}
+                type="button"
+                role="tab"
+                aria-controls="validation-tab"
+                aria-selected={activeTab === 'validation'}
+              >
+                <i className="bi bi-list-ul me-1"></i>
                 {t('shacl.validation_results')}
-              </h5>
-              <div className="d-flex align-items-center">
-                <label htmlFor="severityFilter" className="form-label mb-0 me-2">
-                  {t('shacl.filter_by_severity')}:
-                </label>
-                <select
-                  id="severityFilter"
-                  className="form-select form-select-sm"
-                  style={{ width: 'auto' }}
-                  value={selectedSeverity}
-                  onChange={(e) => setSelectedSeverity(e.target.value as SHACLSeverity | 'all')}
-                >
-                  <option value="all">{t('shacl.all')} ({report.violations.length + report.warnings.length + report.infos.length})</option>
-                  <option value="Violation">{t('shacl.violations')} ({report.violations.length})</option>
-                  <option value="Warning">{t('shacl.warnings')} ({report.warnings.length})</option>
-                  <option value="Info">{t('shacl.infos')} ({report.infos.length})</option>
-                </select>
+                {totalIssues > 0 && (
+                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {totalIssues}
+                  </span>
+                )}
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <div className="card-body">
+          <div className="tab-content" id="shaclTabContent">
+            {/* Compliance Report Tab */}
+            {activeTab === 'compliance' && (
+              <div className="tab-pane fade show active" id="compliance-tab" role="tabpanel">
+                <div className="row">
+                  <div className="col-md-6">
+                    <div className="text-center">
+                      <i className={`${getComplianceIcon(report.conforms)} ${getComplianceColor(report.conforms)} display-1`}></i>
+                      <h4 className={`mt-2 ${getComplianceColor(report.conforms)}`}>
+                        {report.conforms ? t('shacl.conforms') : t('shacl.does_not_conform')}
+                      </h4>
+                      <p className="text-muted">
+                        {t('shacl.profile')}: <strong>{t(`profiles.${report.profile}`)}</strong>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="row text-center">
+                      <div className="col-4">
+                        <div className="border rounded p-3">
+                          <div className="h4 text-danger mb-1">{report.violations.length}</div>
+                          <small className="text-muted">{t('shacl.violations')}</small>
+                        </div>
+                      </div>
+                      <div className="col-4">
+                        <div className="border rounded p-3">
+                          <div className="h4 text-warning mb-1">{report.warnings.length}</div>
+                          <small className="text-muted">{t('shacl.warnings')}</small>
+                        </div>
+                      </div>
+                      <div className="col-4">
+                        <div className="border rounded p-3">
+                          <div className="h4 text-info mb-1">{report.infos.length}</div>
+                          <small className="text-muted">{t('shacl.infos')}</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Perfect compliance message */}
+                {report.conforms && (
+                  <div className="row mt-4">
+                    <div className="col">
+                      <div className="alert alert-success text-center" role="alert">
+                        <i className="bi bi-check-circle-fill display-1"></i>
+                        <h4 className="mt-3">{t('shacl.perfect_compliance')}</h4>
+                        <p className="mb-0">
+                          {t('shacl.no_violations_found')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          </div>
-          <div className="card-body">
-            {filteredViolations.length === 0 ? (
-              <div className="text-center text-muted py-4">
-                <i className="bi bi-check-circle display-1"></i>
-                <p className="mt-2">{t('shacl.no_results_for_filter')}</p>
-              </div>
-            ) : (
-              <div className="violation-list">
-                {filteredViolations.map((violation, index) => 
-                  renderViolationCard(violation, index)
+            )}
+
+            {/* SHACL Validation Tab */}
+            {activeTab === 'validation' && (
+              <div className="tab-pane fade show active" id="validation-tab" role="tabpanel">
+                {totalIssues > 0 ? (
+                  <>
+                    {/* Filter Controls */}
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <h6 className="mb-0">
+                        {t('shacl.showing_results', { count: filteredViolations.length, total: totalIssues })}
+                      </h6>
+                      <div className="d-flex align-items-center">
+                        <label htmlFor="severityFilter" className="form-label mb-0 me-2">
+                          {t('shacl.filter_by_severity')}:
+                        </label>
+                        <select
+                          id="severityFilter"
+                          className="form-select form-select-sm"
+                          style={{ width: 'auto' }}
+                          value={selectedSeverity}
+                          onChange={(e) => setSelectedSeverity(e.target.value as SHACLSeverity | 'all')}
+                        >
+                          <option value="all">{t('shacl.all')} ({totalIssues})</option>
+                          <option value="Violation">{t('shacl.violations')} ({report.violations.length})</option>
+                          <option value="Warning">{t('shacl.warnings')} ({report.warnings.length})</option>
+                          <option value="Info">{t('shacl.infos')} ({report.infos.length})</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Scrollable Violation List */}
+                    <div 
+                      className="violation-list" 
+                      style={{ 
+                        maxHeight: '600px', 
+                        overflowY: 'auto',
+                        border: '1px solid #dee2e6',
+                        borderRadius: '0.375rem',
+                        padding: '1rem'
+                      }}
+                    >
+                      {filteredViolations.length === 0 ? (
+                        <div className="text-center text-muted py-4">
+                          <i className="bi bi-funnel display-1"></i>
+                          <p className="mt-2">{t('shacl.no_results_for_filter')}</p>
+                        </div>
+                      ) : (
+                        filteredViolations.map((violation, index) => 
+                          renderViolationCard(violation, index)
+                        )
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center text-muted py-5">
+                    <i className="bi bi-check-circle-fill text-success display-1"></i>
+                    <h4 className="mt-3 text-success">{t('shacl.perfect_compliance')}</h4>
+                    <p className="text-muted">
+                      {t('shacl.no_violations_found')}
+                    </p>
+                  </div>
                 )}
               </div>
             )}
           </div>
         </div>
-      )}
-
-      {/* No violations message */}
-      {report.conforms && (
-        <div className="card">
-          <div className="card-body text-center py-5">
-            <i className="bi bi-check-circle-fill text-success display-1"></i>
-            <h4 className="mt-3 text-success">{t('shacl.perfect_compliance')}</h4>
-            <p className="text-muted">
-              {t('shacl.no_violations_found')}
-            </p>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

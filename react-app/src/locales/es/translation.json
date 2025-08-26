@@ -1,7 +1,7 @@
 {
   "common": {
     "title": "Evaluación de Calidad de Metadatos",
-    "subtitle": "Evalúa la calidad de metadatos RDF basada en principios FAIR+C",
+    "subtitle": "Evaluar la calidad de los metadatos RDF en función de los principios FAIR+C",
     "loading": "Cargando...",
     "validate": "Validar",
     "validating": "Validando...",
@@ -12,9 +12,33 @@
     "download": "Descargar",
     "export": "Exportar",
     "clear": "Limpiar",
-    "reset": "Reiniciar",
+    "reset": "Restablecer",
     "points": "puntos",
-    "github_repository": "Repositorio GitHub"
+    "github_repository": "Repositorio de GitHub"
+  },
+  "shacl": {
+    "compliance_report": "Reporte de conformidad SHACL",
+    "conforms": "Conforme",
+    "does_not_conform": "No conforme",
+    "profile": "Perfil",
+    "violations": "Violaciones",
+    "warnings": "Advertencias",
+    "infos": "Información",
+    "validation_results": "Resultados de validación",
+    "filter_by_severity": "Filtrar por severidad",
+    "all": "Todos",
+    "no_results_for_filter": "No hay resultados para el filtro seleccionado",
+    "perfect_compliance": "¡Conformidad perfecta!",
+    "no_violations_found": "No se encontraron violaciones en los metadatos",
+    "focus_node": "Nodo de enfoque",
+    "value": "Valor",
+    "source_shape": "Forma de origen",
+    "no_path": "No se especificó ruta",
+    "export_report": "Exportar Reporte SHACL",
+    "export_csv": "Exportar CSV",
+    "open_link": "Abrir enlace en nueva pestaña",
+    "showing_results": "Mostrando {{count}} de {{total}} resultados",
+    "more_info": "Más información"
   },
   "navigation": {
     "home": "Inicio",
@@ -23,35 +47,35 @@
     "about": "Acerca de"
   },
   "theme": {
-    "light": "Modo Claro",
-    "dark": "Modo Oscuro",
-    "toggle": "Cambiar Tema"
+    "light": "Modo claro",
+    "dark": "Modo oscuro",
+    "toggle": "Cambiar tema"
   },
   "language": {
     "english": "English",
     "spanish": "Español",
-    "select": "Seleccionar Idioma"
+    "select": "Seleccionar idioma"
   },
   "sidebar": {
-    "expand": "Expandir Barra Lateral",
-    "collapse": "Contraer Barra Lateral",
+    "expand": "Expandir barra lateral",
+    "collapse": "Contraer barra lateral",
     "about_mqa": "Acerca de MQA",
     "mqa_description": "Esta herramienta evalúa la calidad de metadatos basada en la metodología de Evaluación de Calidad de Metadatos (MQA) del Portal Europeo de Datos usando ",
-    "learn_more": "Saber Más",
+    "learn_more": "Saber más",
     "fairc_principles": "Principios FAIR+C",
-    "rating_scale": "Escala de Calificación",
+    "rating_scale": "Escala de Cclificación",
     "rating": "Calificación",
     "points": "Puntos",
-    "max_points": "Puntos Máximos",
-    "quick_links": "Enlaces Rápidos",
+    "max_points": "Puntos máximos",
+    "quick_links": "Enlaces rápidos",
     "mqa_methodology": "Metodología MQA",
     "fair_principles": "Principios FAIR",
     "github_repository": "Repositorio GitHub",
-    "current_validation": "Validación Actual",
-    "total_score": "Puntuación Total",
+    "current_validation": "Validación actual",
+    "total_score": "Puntuación total",
     "triples": "Tripletas",
-    "datasets": "Conjuntos de Datos",
-    "data_services": "Servicios de Datos",
+    "datasets": "Conjuntos de datos",
+    "data_services": "Servicios de datos",
     "distributions": "Distribuciones",
     "datasets_help": "Número de conjuntos de datos (dcat:Dataset) encontrados en los metadatos RDF",
     "data_services_help": "Número de servicios de datos (dcat:DataService) encontrados en los metadatos RDF",
@@ -64,9 +88,10 @@
     "poor": "Deficiente"
   },
   "form": {
-    "profile": "Perfil de Validación",
+    "profile": "Perfil de validación",
+    "version": "Versión",
     "profile_select": "Selecciona un perfil de validación",
-    "input_method": "Método de Entrada",
+    "input_method": "Método de entrada",
     "url_tab": "URL",
     "text_tab": "Texto Directo",
     "url_placeholder": "Introduce URL RDF (ej. https://ejemplo.org/dataset.rdf)",
@@ -78,12 +103,12 @@
     "validation_sample": "Probar con datos de ejemplo",
     "validation_url": "Introduce una URL que apunte a contenido RDF",
     "validation_format": "Formato RDF",
-    "validation_autodetect": "Detección Automática"
+    "validation_autodetect": "Detección automática"
   },
   "profiles": {
-    "dcat_ap": "DCAT-AP 2.1.1",
-    "dcat_ap_es": "DCAT-AP-ES 1.0.0",
-    "nti_risp": "NTI-RISP (2013)",
+    "dcat_ap": "DCAT-AP",
+    "dcat_ap_es": "DCAT-AP-ES",
+    "nti_risp": "NTI-RISP",
     "dcat_ap_desc": "Perfil de aplicación DCAT para portales de datos en Europa",
     "dcat_ap_es_desc": "Perfil de aplicación DCAT-AP en España",
     "nti_risp_desc": "Modelo de metadatos de la Norma Técnica de Interoperabilidad (2013)"

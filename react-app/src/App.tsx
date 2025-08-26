@@ -11,21 +11,21 @@ import ThemeToggle from './components/ThemeToggle';
 import MQAInfoSidebar from './components/MQAInfoSidebar';
 import RDFService from './services/RDFService';
 import { MQAService } from './services/MQAService';
-import { ValidationResult, ExtendedValidationResult, ValidationProfile, ValidationInput } from './types';
+import { ValidationResult, ExtendedValidationResult, ValidationProfile, ValidationInput, ProfileSelection } from './types';
 
 function App() {
   const { t } = useTranslation();
   const [isValidating, setIsValidating] = useState(false);
   const [result, setResult] = useState<ExtendedValidationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedProfile, setSelectedProfile] = useState<ValidationProfile>('dcat_ap');
+  const [selectedProfile, setSelectedProfile] = useState<ValidationProfile>('dcat_ap_es');
   const [sidebarVisible, setSidebarVisible] = useState(true);
 
-  const handleValidation = async (input: ValidationInput, profile: ValidationProfile) => {
+  const handleValidation = async (input: ValidationInput, profileSelection: ProfileSelection) => {
     setIsValidating(true);
     setError(null);
     setResult(null);
-    setSelectedProfile(profile);
+    setSelectedProfile(profileSelection.profile);
 
     try {
       // Get content based on input source
@@ -45,7 +45,7 @@ function App() {
       // Calculate quality with MQA + SHACL
       console.log('📊 Calculating quality metrics with SHACL validation');
       const mqaService = MQAService.getInstance();
-      const { quality: qualityResult, shaclReport } = await mqaService.calculateQualityWithSHACL(normalizedContent, profile);
+      const { quality: qualityResult, shaclReport } = await mqaService.calculateQualityWithSHACL(normalizedContent, profileSelection);
       
       // Get stats
       console.log('📈 Parsing RDF statistics');
@@ -53,7 +53,7 @@ function App() {
       
       const validationResult: ExtendedValidationResult = {
         quality: qualityResult,
-        profile,
+        profile: profileSelection.profile,
         stats,
         content: normalizedContent,
         timestamp: new Date().toISOString(),

@@ -4,18 +4,29 @@ export type RDFFormat = 'turtle' | 'rdfxml' | 'jsonld' | 'ntriples' | 'auto';
 // Validation profile types  
 export type ValidationProfile = 'dcat_ap' | 'dcat_ap_es' | 'nti_risp';
 
+// Profile Version type
+export interface ProfileVersion {
+  name: string;
+  maxScore: number;
+  icon?: string;
+  url?: string;
+  sampleUrl?: string;
+  shaclFiles: string[];
+  dimensions: {
+    [dimension: string]: {
+      maxScore: number;
+    };
+  };
+}
+
 // MQA Configuration types
 export interface MQAConfig {
   profiles: {
     [key in ValidationProfile]: {
-      name: string;
-      maxScore: number;
-      shaclFiles: string[];
-      dimensions: {
-        [dimension: string]: {
-          maxScore: number;
-        };
+      versions: {
+        [version: string]: ProfileVersion;
       };
+      defaultVersion: string;
     };
   };
   metricsByProfile: {
@@ -35,6 +46,12 @@ export interface MQAMetricConfig {
   id: string;
   weight: number;
   property: string;
+}
+
+// Profile Selection with Version
+export interface ProfileSelection {
+  profile: ValidationProfile;
+  version: string;
 }
 
 // Quality metrics types
@@ -139,6 +156,7 @@ export interface SHACLViolation {
   sourceConstraintComponent: string;
   sourceShape: string;
   resultSeverity?: string;
+  foafPage?: string; // URL with additional information about the rule
 }
 
 export type SHACLSeverity = 'Violation' | 'Warning' | 'Info';

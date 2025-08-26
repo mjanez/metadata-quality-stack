@@ -1,8 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Tooltip } from 'react-tooltip';
-import { ValidationProfile } from '../types';
-import mqaConfig from '../config/mqa-config.json';
+import { ValidationProfile, MQAConfig } from '../types';
+import mqaConfigData from '../config/mqa-config.json';
 
 interface MQAInfoSidebarProps {
   selectedProfile?: ValidationProfile;
@@ -18,37 +18,51 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
   onToggle
 }) => {
   const { t } = useTranslation();
+  const mqaConfig = mqaConfigData as MQAConfig;
 
-    const getProfileInfo = (profile: ValidationProfile) => {
+  const getProfileInfo = (profile: ValidationProfile) => {
     const configProfile = mqaConfig.profiles[profile];
+    const defaultVersion = configProfile?.defaultVersion;
+    const versionData = defaultVersion ? configProfile?.versions?.[defaultVersion] : null;
     
-    const profileData = {
-      'dcat_ap_es': {
-        name: configProfile?.name || 'DCAT-AP-ES',
+    if (!versionData) {
+      console.warn(`No version data found for profile ${profile} version ${defaultVersion}`);
+      return {
+        name: profile,
         style: 'text-primary',
-        icon: 'img/icons/esp.svg', // Spain flag SVG
-        description: t('profiles.dcat_ap_es_desc'),
-        maxPoints: configProfile?.maxScore || 405,
+        icon: 'img/icons/esp.svg',
+        description: t(`profiles.${profile}_desc`),
+        maxPoints: 405,
+        url: '#'
+      };
+    }
+
+    // Default values by profile
+    const defaults = {
+      'dcat_ap_es': {
+        icon: 'img/icons/esp.svg',
         url: 'https://datosgobes.github.io/DCAT-AP-ES/'
       },
       'dcat_ap': {
-        name: configProfile?.name || 'DCAT-AP',
-        style: 'text-primary',
-        icon: 'img/icons/eur.svg', // EU flag SVG
-        description: t('profiles.dcat_ap_desc'),
-        maxPoints: configProfile?.maxScore || 405,
+        icon: 'img/icons/eur.svg',
         url: 'https://semiceu.github.io/DCAT-AP/'
       },
       'nti_risp': {
-        name: configProfile?.name || 'NTI-RISP',
-        style: 'text-primary',
-        icon: 'img/icons/esp.svg', // Spain flag SVG
-        description: t('profiles.nti_risp_desc'),
-        maxPoints: configProfile?.maxScore || 310,
+        icon: 'img/icons/esp.svg',
         url: 'https://www.boe.es/eli/es/res/2013/02/19/(4)'
       }
     };
-    return profileData[profile] || profileData['dcat_ap_es'];
+
+    const profileDefaults = defaults[profile] || defaults['dcat_ap_es'];
+
+    return {
+      name: versionData.name,
+      style: 'text-primary',
+      icon: versionData.icon || profileDefaults.icon,
+      description: t(`profiles.${profile}_desc`),
+      maxPoints: versionData.maxScore,
+      url: versionData.url || profileDefaults.url
+    };
   };
 
   const profileInfo = getProfileInfo(selectedProfile);

@@ -322,6 +322,20 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
                   console.error('Error exporting SHACL report:', error);
                 }
               }}
+              onExportCSV={async () => {
+                try {
+                  const { default: SHACLValidationService } = await import('../services/SHACLValidationService');
+                  const csvContent = await SHACLValidationService.exportReportAsCSV(result.shaclReport!);
+                  const blob = new Blob([csvContent], { type: 'text/csv' });
+                  const link = document.createElement('a');
+                  link.href = URL.createObjectURL(blob);
+                  link.download = `shacl-report-${result.shaclReport!.profile}-${new Date().toISOString().split('T')[0]}.csv`;
+                  link.click();
+                  URL.revokeObjectURL(link.href);
+                } catch (error) {
+                  console.error('Error exporting SHACL CSV report:', error);
+                }
+              }}
             />
           </div>
         </div>
@@ -391,7 +405,16 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
                 </button>
               </div>
             </div>
-            <div className="accordion accordion-flush" id="metricsAccordion">
+            <div 
+              className="accordion accordion-flush" 
+              id="metricsAccordion"
+              style={{ 
+                maxHeight: '600px', 
+                overflowY: 'auto',
+                borderTop: '1px solid #dee2e6',
+                borderBottom: '1px solid #dee2e6'
+              }}
+            >
               {Object.entries(quality.byCategory).map(([category, scores]) => {
                 const categoryMetrics = getMetricsByCategory(category);
                 if (categoryMetrics.length === 0) return null;
