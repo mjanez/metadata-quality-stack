@@ -60,14 +60,14 @@
           "url": "https://datosgobes.github.io/DCAT-AP-ES/",
           "sampleUrl": "https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/examples/ttl/1.0.0/E_DCAT-AP-ES_Catalog.ttl",
           "shaclFiles": [
-            "data/shacl/dcat-ap-es/1.0.0/shacl_catalog_shape.ttl",
-            "data/shacl/dcat-ap-es/1.0.0/shacl_common_shapes.ttl",
-            "data/shacl/dcat-ap-es/1.0.0/shacl_dataservice_shape.ttl",
-            "data/shacl/dcat-ap-es/1.0.0/shacl_dataset_shape.ttl",
-            "data/shacl/dcat-ap-es/1.0.0/shacl_distribution_shape.ttl",
             "data/shacl/dcat-ap-es/1.0.0/shacl_imports.ttl",
             "data/shacl/dcat-ap-es/1.0.0/shacl_mdr_imports.ttl",
-            "data/shacl/dcat-ap-es/1.0.0/shacl_mdr-vocabularies.shape.ttl"
+            "data/shacl/dcat-ap-es/1.0.0/shacl_mdr-vocabularies.shape.ttl",
+            "data/shacl/dcat-ap-es/1.0.0/shacl_common_shapes.ttl",
+            "data/shacl/dcat-ap-es/1.0.0/shacl_catalog_shape.ttl",
+            "data/shacl/dcat-ap-es/1.0.0/shacl_dataservice_shape.ttl",
+            "data/shacl/dcat-ap-es/1.0.0/shacl_dataset_shape.ttl",
+            "data/shacl/dcat-ap-es/1.0.0/shacl_distribution_shape.ttl"
           ],
           "dimensions": {
             "findability": { "maxScore": 100 },
