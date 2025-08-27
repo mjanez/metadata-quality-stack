@@ -36,7 +36,7 @@ export class PrefixService {
       const prefixesContent = await response.text();
       this.parsePrefixes(prefixesContent);
       this.loaded = true;
-      console.log('📋 Loaded prefixes:', this.prefixes);
+      console.debug('📋 Loaded prefixes:', this.prefixes);
     } catch (error) {
       console.error('❌ Error loading prefixes:', error);
       // Set default prefixes if loading fails

@@ -44,7 +44,7 @@ export class RDFService {
    */
   public static async convertRdfXmlToTurtle(rdfXmlContent: string, baseIRI: string = 'http://example.org/'): Promise<string> {
     try {
-      console.log('🔄 Converting RDF/XML to Turtle...');
+      console.debug('🔄 Converting RDF/XML to Turtle...');
       
       const parser = new RdfXmlParser({ baseIRI });
       const store = new N3Store();
@@ -81,7 +81,7 @@ export class RDFService {
               if (error) {
                 reject(error);
               } else {
-                console.log('✅ RDF/XML successfully converted to Turtle');
+                console.debug('✅ RDF/XML successfully converted to Turtle');
                 resolve(result);
               }
             });
@@ -105,7 +105,7 @@ export class RDFService {
    */
   public static async fetchFromUrl(url: string): Promise<string> {
     try {
-      console.log(`🌐 Fetching content from URL: ${url}`);
+      console.debug(`🌐 Fetching content from URL: ${url}`);
       const response = await fetch(url);
       
       if (!response.ok) {

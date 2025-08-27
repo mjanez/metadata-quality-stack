@@ -28,7 +28,7 @@ export class MQAService {
         return this.vocabularies.get(name)!;
       }
 
-      console.log(`📚 Loading vocabulary: ${name}`);
+      console.debug(`📚 Loading vocabulary: ${name}`);
       const basePath = process.env.NODE_ENV === 'production' 
         ? '/metadata-quality-stack/data/'
         : '/data/';
@@ -306,7 +306,7 @@ export class MQAService {
         ? profileSelection 
         : profileSelection.profile;
         
-      console.log(`🔍 Starting MQA+SHACL evaluation for profile: ${profile}`);
+      console.debug(`🔍 Starting MQA+SHACL evaluation for profile: ${profile}`);
 
       // Run standard MQA evaluation
       const quality = await this.calculateQuality(content, profile);
@@ -341,7 +341,7 @@ export class MQAService {
         }
       }
 
-      console.log(`✅ MQA+SHACL evaluation completed. SHACL conforms: ${shaclReport.conforms}`);
+      console.debug(`✅ MQA+SHACL evaluation completed. SHACL conforms: ${shaclReport.conforms}`);
 
       return { quality, shaclReport };
 
@@ -356,11 +356,11 @@ export class MQAService {
    */
   public async calculateQuality(content: string, profile: ValidationProfile): Promise<QualityResult> {
     try {
-      console.log(`🔍 Starting MQA evaluation for profile: ${profile}`);
+      console.debug(`🔍 Starting MQA evaluation for profile: ${profile}`);
       
       // Parse RDF content
       const store = await this.parseRDF(content);
-      console.log(`📊 Parsed RDF store with ${store.size} triples`);
+      console.debug(`📊 Parsed RDF store with ${store.size} triples`);
 
       // Get profile configuration
       const profileConfig = this.config.profiles[profile];
@@ -375,7 +375,7 @@ export class MQAService {
       const byCategory: any = {};
 
       for (const [category, metrics] of Object.entries(metricsConfig)) {
-        console.log(`📋 Evaluating ${metrics.length} metrics for category: ${category}`);
+        console.debug(`📋 Evaluating ${metrics.length} metrics for category: ${category}`);
         
         const categoryMetrics: QualityMetric[] = [];
         

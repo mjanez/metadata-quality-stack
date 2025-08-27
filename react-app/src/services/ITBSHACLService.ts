@@ -34,7 +34,7 @@ export class ITBSHACLService {
     profile: ValidationProfile
   ): Promise<SHACLValidationResult> {
     try {
-      console.log(`🔍 Running ITB SHACL validation for profile: ${profile}`);
+      console.debug(`🔍 Running ITB SHACL validation for profile: ${profile}`);
       
       // Get SHACL files URLs for the profile
       const shaclUrls = this.getSHACLFilesForProfile(profile);
@@ -43,7 +43,7 @@ export class ITBSHACLService {
         throw new Error(`No SHACL files configured for profile: ${profile}`);
       }
 
-      console.log(`📋 Using ${shaclUrls.length} SHACL files for validation:`, shaclUrls);
+      console.debug(`📋 Using ${shaclUrls.length} SHACL files for validation:`, shaclUrls);
 
       // Prepare external rules (SHACL shapes)
       const externalRules: ITBRuleSet[] = shaclUrls.map(url => ({
@@ -61,7 +61,7 @@ export class ITBSHACLService {
         externalRules
       };
 
-      console.log(`🌐 Sending validation request to ITB API...`);
+      console.debug(`🌐 Sending validation request to ITB API...`);
       
       // Make API call to ITB
       const response = await fetch(`${this.ITB_BASE_URL}/${this.DOMAIN}/api/validate`, {
@@ -79,7 +79,7 @@ export class ITBSHACLService {
 
       // ITB returns the validation report directly as text (not JSON)
       const reportText = await response.text();
-      console.log(`📊 Received validation report from ITB (${reportText.length} characters)`);
+      console.debug(`📊 Received validation report from ITB (${reportText.length} characters)`);
 
       // Parse the SHACL validation report
       return this.parseSHACLReport(reportText);
@@ -112,7 +112,7 @@ export class ITBSHACLService {
 
     // Get SHACL files from configuration
     const shaclFiles = versionConfig.shaclFiles || [];
-    console.log(`📋 Found ${shaclFiles.length} SHACL files in config for profile ${profile} (v${defaultVersion}):`, shaclFiles);
+    console.debug(`📋 Found ${shaclFiles.length} SHACL files in config for profile ${profile} (v${defaultVersion}):`, shaclFiles);
     
     if (shaclFiles.length === 0) {
       console.warn(`⚠️ No SHACL files configured for profile: ${profile}, version: ${defaultVersion}`);
@@ -130,7 +130,7 @@ export class ITBSHACLService {
       }
     });
 
-    console.log(`📋 Using ${processedUrls.length} SHACL files for ITB validation:`, processedUrls);
+    console.debug(`📋 Using ${processedUrls.length} SHACL files for ITB validation:`, processedUrls);
     return processedUrls;
   }
 
@@ -138,7 +138,7 @@ export class ITBSHACLService {
    * Parse SHACL validation report from ITB (Turtle format)
    */
   private static parseSHACLReport(reportTurtle: string): SHACLValidationResult {
-    console.log('📋 Parsing ITB SHACL validation report...');
+    console.debug('📋 Parsing ITB SHACL validation report...');
     
     try {
       const results: SHACLViolation[] = [];
@@ -152,11 +152,11 @@ export class ITBSHACLService {
       const resultBlockPattern = /sh:result\s*\[\s*([^\]]+(?:\[[^\]]*\][^\]]*)*)\s*\]/g;
       let match;
       
-      console.log(`� Searching for sh:result blocks in report...`);
+      console.debug(`🔍 Searching for sh:result blocks in report...`);
       
       while ((match = resultBlockPattern.exec(reportTurtle)) !== null) {
         const resultBlock = match[1];
-        console.log(`📋 Processing sh:result block: ${resultBlock.substring(0, 100)}...`);
+        console.debug(`📋 Processing sh:result block: ${resultBlock.substring(0, 100)}...`);
         
         try {
           const violation: SHACLViolation = {
@@ -172,13 +172,13 @@ export class ITBSHACLService {
           };
           
           results.push(violation);
-          console.log(`✅ Parsed violation: ${violation.severity} on ${violation.focusNode} path ${violation.path}`);
+          console.debug(`✅ Parsed violation: ${violation.severity} on ${violation.focusNode} path ${violation.path}`);
         } catch (blockError) {
           console.error(`❌ Error parsing individual sh:result block:`, blockError);
         }
       }
 
-      console.log(`✅ ITB SHACL validation completed: ${results.length} violations found, conforms: ${conforms}`);
+      console.debug(`✅ ITB SHACL validation completed: ${results.length} violations found, conforms: ${conforms}`);
 
       return {
         conforms,
