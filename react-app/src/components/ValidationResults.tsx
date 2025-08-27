@@ -303,44 +303,6 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
         </div>
       </div>
 
-      {/* SHACL Compliance Report */}
-      {result.shaclReport && (
-        <div className="row mb-4">
-          <div className="col">
-            <SHACLReportViewer 
-              report={result.shaclReport} 
-              onExportReport={async () => {
-                try {
-                  const reportTurtle = await RDFService.exportSHACLReport(result.shaclReport!);
-                  const blob = new Blob([reportTurtle], { type: 'text/turtle' });
-                  const link = document.createElement('a');
-                  link.href = URL.createObjectURL(blob);
-                  link.download = `shacl-report-${result.shaclReport!.profile}-${new Date().toISOString().split('T')[0]}.ttl`;
-                  link.click();
-                  URL.revokeObjectURL(link.href);
-                } catch (error) {
-                  console.error('Error exporting SHACL report:', error);
-                }
-              }}
-              onExportCSV={async () => {
-                try {
-                  const { default: SHACLValidationService } = await import('../services/SHACLValidationService');
-                  const csvContent = await SHACLValidationService.exportReportAsCSV(result.shaclReport!);
-                  const blob = new Blob([csvContent], { type: 'text/csv' });
-                  const link = document.createElement('a');
-                  link.href = URL.createObjectURL(blob);
-                  link.download = `shacl-report-${result.shaclReport!.profile}-${new Date().toISOString().split('T')[0]}.csv`;
-                  link.click();
-                  URL.revokeObjectURL(link.href);
-                } catch (error) {
-                  console.error('Error exporting SHACL CSV report:', error);
-                }
-              }}
-            />
-          </div>
-        </div>
-      )}
-
       {/* Category Breakdown */}
       <div className="row mb-4">
         <div className="col">
@@ -383,6 +345,44 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
           </div>
         </div>
       </div>
+
+      {/* SHACL Compliance Report */}
+      {result.shaclReport && (
+        <div className="row mb-4">
+          <div className="col">
+            <SHACLReportViewer 
+              report={result.shaclReport} 
+              onExportReport={async () => {
+                try {
+                  const reportTurtle = await RDFService.exportSHACLReport(result.shaclReport!);
+                  const blob = new Blob([reportTurtle], { type: 'text/turtle' });
+                  const link = document.createElement('a');
+                  link.href = URL.createObjectURL(blob);
+                  link.download = `shacl-report-${result.shaclReport!.profile}-${new Date().toISOString().split('T')[0]}.ttl`;
+                  link.click();
+                  URL.revokeObjectURL(link.href);
+                } catch (error) {
+                  console.error('Error exporting SHACL report:', error);
+                }
+              }}
+              onExportCSV={async () => {
+                try {
+                  const { default: SHACLValidationService } = await import('../services/SHACLValidationService');
+                  const csvContent = await SHACLValidationService.exportReportAsCSV(result.shaclReport!);
+                  const blob = new Blob([csvContent], { type: 'text/csv' });
+                  const link = document.createElement('a');
+                  link.href = URL.createObjectURL(blob);
+                  link.download = `shacl-report-${result.shaclReport!.profile}-${new Date().toISOString().split('T')[0]}.csv`;
+                  link.click();
+                  URL.revokeObjectURL(link.href);
+                } catch (error) {
+                  console.error('Error exporting SHACL CSV report:', error);
+                }
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Detailed Metrics by Dimension - Accordion */}
       <div className="row mb-4">
