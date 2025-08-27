@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SHACLReport, SHACLViolation, SHACLSeverity } from '../types';
+import { PrefixService } from '../services/PrefixService';
+import { SHACLMessageService, LocalizedMessage } from '../services/SHACLMessageService';
 
 interface SHACLReportViewerProps {
   report: SHACLReport;
@@ -16,32 +18,38 @@ const SHACLReportViewer: React.FC<SHACLReportViewerProps> = ({
   const { t, i18n } = useTranslation();
   const [selectedSeverity, setSelectedSeverity] = useState<SHACLSeverity | 'all'>('all');
   const [activeTab, setActiveTab] = useState<'compliance' | 'validation'>('compliance');
+  const [prefixService] = useState(() => PrefixService.getInstance());
+  const [prefixesLoaded, setPrefixesLoaded] = useState(false);
+
+  // Load prefixes on component mount
+  useEffect(() => {
+    const loadPrefixes = async () => {
+      if (!prefixService.isLoaded()) {
+        await prefixService.loadPrefixes();
+        setPrefixesLoaded(true);
+      } else {
+        setPrefixesLoaded(true);
+      }
+    };
+    
+    loadPrefixes();
+  }, [prefixService]);
 
   /**
-   * Filter SHACL messages by current language
+   * Filter SHACL messages by current language using the new service
    */
-  const filterMessagesByLanguage = (messages: string[]): string[] => {
+  const filterMessagesByLanguage = (messages: string[]): LocalizedMessage[] => {
     const currentLanguage = i18n.language;
-    const filteredMessages: string[] = [];
+    const allMessages: LocalizedMessage[] = [];
     
+    // Parse all messages to extract language information
     for (const message of messages) {
-      // Check if message contains language tag like @es or @en
-      const langTagMatch = message.match(/@([a-z]{2})$/);
-      
-      if (langTagMatch) {
-        const messageLang = langTagMatch[1];
-        if (messageLang === currentLanguage) {
-          // Remove language tag from message
-          filteredMessages.push(message.replace(/@[a-z]{2}$/, '').trim());
-        }
-      } else {
-        // If no language tag, include message (assume it's default/fallback)
-        filteredMessages.push(message);
-      }
+      const parsed = SHACLMessageService.parseMessages(message);
+      allMessages.push(...parsed);
     }
     
-    // If no messages match current language, return all messages (fallback)
-    return filteredMessages.length > 0 ? filteredMessages : messages;
+    // Filter by current language
+    return SHACLMessageService.filterMessagesByLanguage(allMessages, currentLanguage);
   };
 
   const getComplianceColor = (conforms: boolean) => {
@@ -92,7 +100,13 @@ const SHACLReportViewer: React.FC<SHACLReportViewerProps> = ({
   const formatPath = (path?: string) => {
     if (!path) return t('shacl.no_path');
     
-    // Extract local name from URI
+    // Use PrefixService to contract URI to prefixed form
+    if (prefixesLoaded) {
+      const contractedPath = prefixService.contractURI(path);
+      return contractedPath;
+    }
+    
+    // Fallback to old behavior if prefixes not loaded
     const lastSlash = path.lastIndexOf('/');
     const lastHash = path.lastIndexOf('#');
     const separator = Math.max(lastSlash, lastHash);
@@ -142,6 +156,44 @@ const SHACLReportViewer: React.FC<SHACLReportViewerProps> = ({
     return <span className={className}>{text}</span>;
   };
 
+  /**
+   * Render message text with clickable URLs
+   */
+  const renderMessageWithURLs = (message: LocalizedMessage) => {
+    const processed = SHACLMessageService.processURLsInText(message.text);
+    
+    if (!processed.hasUrls) {
+      return <span>{message.text}</span>;
+    }
+    
+    // Split text by URL markers and render each part
+    const parts = processed.text.split(/(<URL:[^>]+>)/);
+    
+    return (
+      <span>
+        {parts.map((part, index) => {
+          if (part.startsWith('<URL:') && part.endsWith('>')) {
+            const url = part.slice(5, -1); // Remove <URL: and >
+            return (
+              <a 
+                key={index}
+                href={url} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-decoration-none"
+                title={t('shacl.open_link')}
+              >
+                {url}
+                <i className="bi bi-box-arrow-up-right ms-1" style={{ fontSize: '0.75em' }}></i>
+              </a>
+            );
+          }
+          return <span key={index}>{part}</span>;
+        })}
+      </span>
+    );
+  };
+
   const renderViolationCard = (violation: SHACLViolation, index: number) => (
     <div key={index} className="card mb-2">
       <div className="card-body p-3">
@@ -165,7 +217,14 @@ const SHACLReportViewer: React.FC<SHACLReportViewerProps> = ({
             <div className="mb-2">
               {filterMessagesByLanguage(violation.message).map((msg, msgIndex) => (
                 <p key={msgIndex} className="mb-1 text-muted">
-                  {msg}
+                  {renderMessageWithURLs(msg)}
+                  {msg.language && (
+                    <span className="ms-2">
+                      <i className={`fi fi-${msg.language === 'es' ? 'es' : 'us'} fis`} 
+                         title={msg.language === 'es' ? 'Español' : 'English'}
+                         style={{ fontSize: '0.8em' }}></i>
+                    </span>
+                  )}
                 </p>
               ))}
             </div>

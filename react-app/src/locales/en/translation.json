@@ -38,7 +38,8 @@
     "export_csv": "Export CSV",
     "open_link": "Open link in new tab",
     "showing_results": "Showing {{count}} of {{total}} results",
-    "more_info": "More information"
+    "more_info": "More information",
+    "issues": "issues"
   },
   "navigation": {
     "home": "Home",

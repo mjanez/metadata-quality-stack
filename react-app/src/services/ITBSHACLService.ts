@@ -5,6 +5,7 @@ import {
   SHACLSeverity,
   MQAConfig
 } from '../types';
+import { SHACLMessageService, LocalizedMessage } from './SHACLMessageService';
 import mqaConfigData from '../config/mqa-config.json';
 
 interface ITBValidationRequest {
@@ -162,7 +163,7 @@ export class ITBSHACLService {
             focusNode: this.extractValueFromBlock(resultBlock, 'sh:focusNode') || '',
             path: this.extractValueFromBlock(resultBlock, 'sh:resultPath') || '',
             value: this.extractValueFromBlock(resultBlock, 'sh:value') || '',
-            message: [this.extractMessageFromBlock(resultBlock) || 'Validation constraint violated'],
+            message: this.extractMessagesFromBlock(resultBlock),
             severity: this.mapSeverity(this.extractValueFromBlock(resultBlock, 'sh:resultSeverity')),
             sourceConstraintComponent: this.extractValueFromBlock(resultBlock, 'sh:sourceConstraintComponent') || '',
             sourceShape: this.extractValueFromBlock(resultBlock, 'sh:sourceShape') || '[]',
@@ -219,13 +220,44 @@ export class ITBSHACLService {
   }
 
   /**
-   * Extract message from block, handling quoted strings with language tags
+   * Extract message from block, handling multiple messages with language tags
    */
   private static extractMessageFromBlock(block: string): string | null {
-    // Pattern for messages: sh:resultMessage "The dataset should..."@en
-    const messagePattern = /sh:resultMessage\s+"([^"]+)"(?:@[a-z]{2})?/i;
-    const match = block.match(messagePattern);
-    return match ? match[1] : null;
+    // Pattern for messages with language tags: sh:resultMessage "The dataset should..."@en, "El dataset debe..."@es
+    const multiMessagePattern = /sh:resultMessage\s+((?:"[^"]*"(?:@[a-z]{2})?\s*,?\s*)+)/i;
+    const multiMatch = block.match(multiMessagePattern);
+    
+    if (multiMatch) {
+      // Return the full message string with all languages
+      return multiMatch[1].trim();
+    }
+    
+    // Fallback to single message pattern
+    const singleMessagePattern = /sh:resultMessage\s+"([^"]+)"(?:@[a-z]{2})?/i;
+    const singleMatch = block.match(singleMessagePattern);
+    return singleMatch ? singleMatch[1] : null;
+  }
+
+  /**
+   * Extract multiple localized messages from a block
+   */
+  private static extractMessagesFromBlock(block: string): string[] {
+    const messages: string[] = [];
+    
+    // First try to get the full message block
+    const fullMessage = this.extractMessageFromBlock(block);
+    if (!fullMessage) {
+      return ['Validation constraint violated'];
+    }
+    
+    // Parse with SHACLMessageService to handle language tags
+    const parsedMessages = SHACLMessageService.parseMessages(fullMessage);
+    
+    // Convert back to strings with language tags for compatibility
+    return parsedMessages.map(msg => {
+      const languageTag = msg.language ? `@${msg.language}` : '';
+      return `"${msg.text}"${languageTag}`;
+    });
   }
 
   /**

@@ -202,23 +202,147 @@ export class SHACLValidationService {
   }
 
   /**
+   * Extract value from shacl-engine RDF Term or complex object
+   */
+  private static extractTermValue(term: any): string {
+    if (!term) return '';
+    
+    // If it's already a string
+    if (typeof term === 'string') return term;
+    
+    // If it's an array, take the first element
+    if (Array.isArray(term)) {
+      return term.length > 0 ? this.extractTermValue(term[0]) : '';
+    }
+    
+    // If it's a termType object (NamedNode, Literal, BlankNode)
+    if (term.termType && term.value) {
+      return term.value;
+    }
+    
+    // If it has a .value property
+    if (term.value !== undefined) {
+      return typeof term.value === 'string' ? term.value : String(term.value);
+    }
+    
+    // Try other common RDF term properties
+    if (term.uri !== undefined) {
+      return typeof term.uri === 'string' ? term.uri : String(term.uri);
+    }
+    
+    if (term.id !== undefined) {
+      return typeof term.id === 'string' ? term.id : String(term.id);
+    }
+    
+    if (term.iri !== undefined) {
+      return typeof term.iri === 'string' ? term.iri : String(term.iri);
+    }
+    
+    // If it's an object with a toString method that doesn't return [object Object]
+    if (typeof term === 'object' && term.toString) {
+      const stringValue = term.toString();
+      if (stringValue !== '[object Object]') {
+        return stringValue;
+      }
+    }
+    
+    // Last resort: check if it's a function (some RDF libraries use functions)
+    if (typeof term === 'function') {
+      try {
+        const result = term();
+        if (typeof result === 'string') {
+          return result;
+        }
+      } catch (e) {
+        // Ignore function call errors
+      }
+    }
+    
+    // Fallback to empty string rather than [object Object]
+    console.warn('⚠️ Could not extract term value from:', term);
+    return '';
+  }
+
+  /**
+   * Extract path from shacl-engine path array based on the actual shacl-engine structure
+   */
+  private static extractPath(path: any): string {
+    if (!path) return '';
+    
+    // If it's already a string
+    if (typeof path === 'string') return path;
+    
+    // If it's not an array, try to extract value directly
+    if (!Array.isArray(path)) {
+      return this.extractTermValue(path);
+    }
+    
+    // Process array of Step objects
+    const pathParts: string[] = [];
+    
+    for (const step of path) {
+      if (!step) continue;
+      
+      // Each step should have predicates array
+      if (step.predicates && Array.isArray(step.predicates)) {
+        const predicateValues = step.predicates.map((pred: any) => this.extractTermValue(pred)).filter(Boolean);
+        
+        if (predicateValues.length === 1) {
+          pathParts.push(predicateValues[0]);
+        } else if (predicateValues.length > 1) {
+          // Multiple predicates means alternative path
+          pathParts.push(`(${predicateValues.join(' | ')})`);
+        }
+      } else {
+        // Fallback: try to extract value from step directly
+        const stepValue = this.extractTermValue(step);
+        if (stepValue) pathParts.push(stepValue);
+      }
+    }
+    
+    return pathParts.length > 0 ? pathParts.join('/') : '';
+  }
+
+  /**
    * Parse SHACL validation result from shacl-engine
    */
   private static parseSHACLResult(validationReport: any, shaclShapes?: any): SHACLValidationResult {
     const results: SHACLViolation[] = [];
 
+    console.log('📋 Parsing SHACL validation report:', {
+      hasResults: !!validationReport.results,
+      resultsCount: validationReport.results?.length || 0,
+      conforms: validationReport.conforms
+    });
+
     // shacl-engine returns results in validationReport.results
     if (validationReport.results) {
       for (const result of validationReport.results) {
+        // Debug logging to understand shacl-engine result structure
+        console.log('🔍 SHACL result structure:', {
+          resultKeys: Object.keys(result),
+          hasSourceConstraintComponent: !!result.sourceConstraintComponent,
+          hasSourceShape: !!result.sourceShape,
+          hasConstraint: !!result.constraint,
+          hasShape: !!result.shape,
+          hasValidator: !!result.validator,
+          hasValidation: !!result.validation,
+          constraintType: result.constraint ? typeof result.constraint : 'undefined',
+          shapeType: result.shape ? typeof result.shape : 'undefined',
+          validatorType: result.validator ? typeof result.validator : 'undefined',
+          validationType: result.validation ? typeof result.validation : 'undefined',
+          fullResult: result
+        });
+
         const violation: SHACLViolation = {
-          focusNode: result.focusNode?.value || result.focusNode?.toString() || '',
-          path: result.path?.value || result.path?.toString(),
-          value: result.value?.value || result.value?.toString(),
+          focusNode: this.extractTermValue(result.focusNode),
+          path: this.extractPath(result.path),
+          value: this.extractTermValue(result.value),
           message: this.extractMessages(result),
           severity: this.mapSeverityFromSHACLEngine(result.severity),
-          sourceConstraintComponent: result.sourceConstraintComponent?.value || result.sourceConstraintComponent?.toString() || '',
-          sourceShape: result.sourceShape?.value || result.sourceShape?.toString() || '',
-          resultSeverity: result.resultSeverity?.value || result.resultSeverity?.toString(),
+          sourceConstraintComponent: this.extractSourceConstraintComponent(result),
+          sourceShape: this.extractSourceShape(result),
+          resultSeverity: this.extractTermValue(result.resultSeverity),
           foafPage: this.extractFoafPage(result, shaclShapes)
         };
 
@@ -238,14 +362,105 @@ export class SHACLValidationService {
    * Extract messages from SHACL result
    */
   private static extractMessages(result: any): string[] {
+    const messages: string[] = [];
+    
     if (result.message) {
       if (Array.isArray(result.message)) {
-        return result.message.map((m: any) => m.value || m.toString());
+        // Handle array of messages
+        for (const msg of result.message) {
+          const extractedValue = this.extractTermValue(msg);
+          if (extractedValue) {
+            // Check if it's a language-tagged literal
+            if (msg && msg.language) {
+              messages.push(`"${extractedValue}"@${msg.language}`);
+            } else {
+              messages.push(`"${extractedValue}"`);
+            }
+          }
+        }
       } else {
-        return [result.message.value || result.message.toString()];
+        // Handle single message
+        const extractedValue = this.extractTermValue(result.message);
+        if (extractedValue) {
+          // Check if it's a language-tagged literal
+          if (result.message && result.message.language) {
+            messages.push(`"${extractedValue}"@${result.message.language}`);
+          } else {
+            messages.push(`"${extractedValue}"`);
+          }
+        }
       }
     }
-    return ['Validation constraint violated'];
+    
+    // If no messages found, provide a default
+    if (messages.length === 0) {
+      messages.push('"Validation constraint violated"');
+    }
+    
+    return messages;
+  }
+
+  /**
+   * Extract source constraint component from SHACL result
+   */
+  private static extractSourceConstraintComponent(result: any): string {
+    // Based on shacl-engine result structure, check for constraintComponent.value
+    if (result.constraintComponent && result.constraintComponent.value) {
+      const componentURI = result.constraintComponent.value;
+      // Convert full URI to short form: http://www.w3.org/ns/shacl#MinCountConstraintComponent -> sh:MinCountConstraintComponent
+      if (componentURI.includes('#')) {
+        const componentName = componentURI.split('#')[1];
+        return `sh:${componentName}`;
+      }
+      return componentURI;
+    }
+    
+    // Fallback to existing logic
+    if (result.sourceConstraintComponent) {
+      return this.extractTermValue(result.sourceConstraintComponent);
+    }
+    
+    // Default fallback
+    return 'sh:ConstraintComponent';
+  }
+
+  /**
+   * Extract source shape from SHACL result
+   */
+  private static extractSourceShape(result: any): string {
+    // Try to get source shape from direct property
+    if (result.sourceShape) {
+      return this.extractTermValue(result.sourceShape);
+    }
+    
+    // For shacl-engine, the shape structure is complex but we can try to extract some identifier
+    if (result.shape && result.shape.ptr && result.shape.ptr.ptrs && result.shape.ptr.ptrs.length > 0) {
+      const shapePtr = result.shape.ptr.ptrs[0];
+      
+      // Try to get a meaningful identifier from the shape
+      if (shapePtr._term && shapePtr._term.value) {
+        return shapePtr._term.value;
+      }
+      
+      // If we have edges, try to find a shape-related URI
+      if (shapePtr.edges && shapePtr.edges.length > 0) {
+        for (const edge of shapePtr.edges) {
+          if (edge.subject && edge.subject.value) {
+            const subjectValue = edge.subject.value;
+            // Look for URIs that seem to be shape definitions
+            if (subjectValue.includes('Shape') || 
+                subjectValue.includes('Restriction') || 
+                subjectValue.includes('datosgobes.github.io/DCAT-AP-ES/')) {
+              return subjectValue;
+            }
+          }
+        }
+      }
+    }
+    
+    // Generate a simple blank node ID rather than a complex urn
+    const timestamp = Date.now();
+    return `_:shape${timestamp % 10000}`;  // Shorter, cleaner ID
   }
 
   /**
@@ -333,13 +548,13 @@ export class SHACLValidationService {
       const dataCount = Array.from(data).length;
       console.log(`📊 Loaded ${dataCount} RDF data quads for validation`);
 
-      // Create validator with basic configuration (avoiding SPARQL validations that may cause issues)
-      console.log(`🔧 Creating SHACL validator with basic configuration...`);
+      // Create validator with SPARQL support
+      console.log(`🔧 Creating SHACL validator with SPARQL support...`);
       const validator = new Validator(shapes, {
         factory: rdfDataModel,
         debug: false,
-        details: true
-        // Note: Avoiding sparqlValidations to prevent regex compatibility issues
+        details: true,
+        validations: sparqlValidations // Add SPARQL validations support
       });
 
       // Run validation
@@ -480,10 +695,19 @@ export class SHACLValidationService {
       turtle += `
 ${resultId} a sh:ValidationResult ;
     sh:resultSeverity sh:Violation ;
-    sh:focusNode <${violation.focusNode || 'unknown'}> ;
-    sh:resultMessage "${violation.message.join(', ').replace(/"/g, '\\"')}" ;
-    sh:sourceConstraintComponent <${violation.sourceConstraintComponent}> ;
-    sh:sourceShape <${violation.sourceShape}> `;
+    sh:focusNode <${violation.focusNode || 'unknown'}> ;`;
+
+      // Handle multiple messages with language tags as separate properties
+      if (violation.message.length > 0) {
+        violation.message.forEach((msg) => {
+          turtle += `
+    sh:resultMessage ${msg} ;`;
+        });
+      }
+
+      turtle += `
+    sh:sourceConstraintComponent ${violation.sourceConstraintComponent} ;
+    sh:sourceShape ${violation.sourceShape} `;
       
       if (violation.path) {
         turtle += `;
@@ -504,11 +728,20 @@ ${resultId} a sh:ValidationResult ;
       turtle += `
 ${resultId} a sh:ValidationResult ;
     sh:resultSeverity sh:Warning ;
-    sh:focusNode <${warning.focusNode || 'unknown'}> ;
-    sh:resultMessage "${warning.message.join(', ').replace(/"/g, '\\"')}" ;
-    sh:sourceConstraintComponent <${warning.sourceConstraintComponent}> ;
-    sh:sourceShape <${warning.sourceShape}> `;
-      
+    sh:focusNode <${warning.focusNode || 'unknown'}> ;`;
+
+      // Handle multiple messages with language tags as separate properties
+      if (warning.message.length > 0) {
+        warning.message.forEach((msg) => {
+          turtle += `
+    sh:resultMessage ${msg} ;`;
+        });
+      }
+
+      turtle += `
+    sh:sourceConstraintComponent ${warning.sourceConstraintComponent} ;
+    sh:sourceShape ${warning.sourceShape} `;
+
       if (warning.path) {
         turtle += `;
     sh:resultPath <${warning.path}> `;
@@ -523,8 +756,17 @@ ${resultId} a sh:ValidationResult ;
       turtle += `
 ${resultId} a sh:ValidationResult ;
     sh:resultSeverity sh:Info ;
-    sh:focusNode <${info.focusNode || 'unknown'}> ;
-    sh:resultMessage "${info.message.join(', ').replace(/"/g, '\\"')}" ;
+    sh:focusNode <${info.focusNode || 'unknown'}> ;`;
+
+      // Handle multiple messages with language tags as separate properties
+      if (info.message.length > 0) {
+        info.message.forEach((msg) => {
+          turtle += `
+    sh:resultMessage ${msg} ;`;
+        });
+      }
+
+      turtle += `
     sh:sourceConstraintComponent <${info.sourceConstraintComponent}> ;
     sh:sourceShape <${info.sourceShape}> `;
       
