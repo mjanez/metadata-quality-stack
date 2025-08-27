@@ -302,39 +302,6 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
               </div>
             </div>
 
-            {/* FAIR+C Principles */}
-            <div className="card mb-3">
-              <div className="card-header py-2">
-                <h6 className="card-title mb-0">
-                  <i className="bi bi-list-check me-2"></i>
-                  {t('sidebar.fairc_principles')}
-                </h6>
-              </div>
-              <div className="card-body py-2">
-                <div className="list-group list-group-flush">
-                  {[
-                    { key: 'findability', icon: 'bi-search', letter: 'F' },
-                    { key: 'accessibility', icon: 'bi-unlock', letter: 'A' },
-                    { key: 'interoperability', icon: 'bi-link-45deg', letter: 'I' },
-                    { key: 'reusability', icon: 'bi-recycle', letter: 'R' },
-                    { key: 'contextuality', icon: 'bi-clipboard-data', letter: 'C' }
-                  ].map(({ key, icon, letter }) => (
-                    <div key={key} className="list-group-item border-0 px-0 py-1">
-                      <div className="d-flex align-items-center">
-                        <span className="badge bg-secondary rounded-circle me-2" style={{ width: '24px', height: '24px', fontSize: '12px' }}>
-                          {letter}
-                        </span>
-                        <i className={`${icon} me-2`}></i>
-                        <small className="flex-grow-1">
-                          <strong>{t(`dimensions.${key}`)}</strong>
-                        </small>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
             {/* Rating Scale */}
             <div className="card mb-3">
               <div className="card-header py-2">
@@ -371,6 +338,39 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
                 <small className="text-muted mt-2 d-block">
                   {t('sidebar.max_points')}: {profileInfo.maxPoints}
                 </small>
+              </div>
+            </div>
+
+            {/* FAIR+C Principles */}
+            <div className="card mb-3">
+              <div className="card-header py-2">
+                <h6 className="card-title mb-0">
+                  <i className="bi bi-list-check me-2"></i>
+                  {t('sidebar.fairc_principles')}
+                </h6>
+              </div>
+              <div className="card-body py-2">
+                <div className="list-group list-group-flush">
+                  {[
+                    { key: 'findability', icon: 'bi-search', letter: 'F' },
+                    { key: 'accessibility', icon: 'bi-unlock', letter: 'A' },
+                    { key: 'interoperability', icon: 'bi-link-45deg', letter: 'I' },
+                    { key: 'reusability', icon: 'bi-recycle', letter: 'R' },
+                    { key: 'contextuality', icon: 'bi-clipboard-data', letter: 'C' }
+                  ].map(({ key, icon, letter }) => (
+                    <div key={key} className="list-group-item border-0 px-0 py-1">
+                      <div className="d-flex align-items-center">
+                        <span className="badge bg-secondary rounded-circle me-2" style={{ width: '24px', height: '24px', fontSize: '12px' }}>
+                          {letter}
+                        </span>
+                        <i className={`${icon} me-2`}></i>
+                        <small className="flex-grow-1">
+                          <strong>{t(`dimensions.${key}`)}</strong>
+                        </small>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
