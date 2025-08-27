@@ -810,12 +810,6 @@ ${resultId} a sh:ValidationResult ;
     const csvRows = [];
     
     // Add metadata header
-    csvRows.push('# SHACL Validation Report');
-    csvRows.push(`# Profile: ${report.profile}`);
-    csvRows.push(`# Timestamp: ${timestamp}`);
-    csvRows.push(`# Conforms: ${report.conforms ? 'Yes' : 'No'}`);
-    csvRows.push(`# Total Issues: ${allIssues.length}`);
-    csvRows.push('# Results:'); // Empty line before data
     csvRows.push(headers.join(','));
     
     for (const issue of allIssues) {
