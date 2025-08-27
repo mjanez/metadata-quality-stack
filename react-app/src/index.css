@@ -40,6 +40,7 @@ code {
   max-width: 250px !important; /* Maximum width for long text */
   word-wrap: break-word !important; /* Break long words */
   opacity: 1 !important; /* Ensure full opacity */
+  pointer-events: none !important; /* Prevent tooltip from interfering with clicks */
 }
 
 /* Tooltip arrow styles */
@@ -50,10 +51,22 @@ code {
 /* Ensure tooltip container has proper positioning */
 [data-tooltip-id] {
   position: relative !important;
+  cursor: help !important; /* Show help cursor on hover */
 }
 
 /* Custom tooltip class for additional styling */
 .custom-tooltip {
   z-index: 10000 !important;
   position: fixed !important;
+}
+
+/* Help icon positioning improvements */
+.position-relative .position-absolute[data-tooltip-id] {
+  cursor: help;
+  transition: opacity 0.2s ease;
+  opacity: 0.7;
+}
+
+.position-relative .position-absolute[data-tooltip-id]:hover {
+  opacity: 1;
 }
