@@ -17,7 +17,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message }) => {
       <div className="mt-3">
         <p className="text-muted">{defaultMessage}</p>
         <small className="text-muted">
-          Parsing content, validating syntax, and calculating quality metrics
+          <i>{t('common.validating_spin')}</i>
         </small>
       </div>
     </div>

@@ -5,6 +5,7 @@
     "loading": "Loading...",
     "validate": "Validate",
     "validating": "Validating...",
+    "validating_spin": "Parsing content, validating using SHACL, and calculating quality metrics... Please wait.",
     "error": "Error",
     "warning": "Warning",
     "success": "Success",
