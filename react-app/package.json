@@ -63,6 +63,7 @@
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",
+    "@types/d3-dispatch": "^3.0.5",
     "@types/n3": "^1.26.0",
     "cross-env": "^10.0.0",
     "gh-pages": "^6.3.0"

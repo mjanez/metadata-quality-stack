@@ -11,6 +11,7 @@ import ThemeToggle from './components/ThemeToggle';
 import MQAInfoSidebar from './components/MQAInfoSidebar';
 import RDFService from './services/RDFService';
 import { MQAService } from './services/MQAService';
+import { SHACLValidationService } from './services/SHACLValidationService';
 import { ValidationResult, ExtendedValidationResult, ValidationProfile, ValidationInput, ProfileSelection } from './types';
 
 function App() {
@@ -28,6 +29,10 @@ function App() {
     setSelectedProfile(profileSelection.profile);
 
     try {
+      // Clear SHACL cache to ensure fresh loading of local files
+      console.log('🗑️ Clearing SHACL cache for fresh validation');
+      SHACLValidationService.clearCache();
+      
       // Get content based on input source
       let content: string;
       if (input.source === 'url' && input.url) {

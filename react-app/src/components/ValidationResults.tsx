@@ -188,6 +188,22 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
 
   return (
     <div className="validation-results">
+      <style>{`
+        .btn-group .btn:not(:last-child) {
+          border-right: 1px solid var(--bs-border-color) !important;
+        }
+        .btn-group .btn {
+          border-radius: 0;
+        }
+        .btn-group .btn:first-child {
+          border-top-left-radius: 0.375rem;
+          border-bottom-left-radius: 0.375rem;
+        }
+        .btn-group .btn:last-child {
+          border-top-right-radius: 0.375rem;
+          border-bottom-right-radius: 0.375rem;
+        }
+      `}</style>
       {/* Overall Score */}
       <div className="row mb-4">
         <div className="col">
@@ -390,7 +406,7 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
           <div className="card">
             <div className="card-header d-flex justify-content-between align-items-center">
               <h5 className="card-title mb-0">{t('results.metrics_by_dimension')}</h5>
-              <div className="btn-group btn-group-sm">
+              <div className="btn-group btn-group-sm" role="group" aria-label="Accordion controls">
                 <button 
                   className="btn btn-outline-primary"
                   onClick={expandAll}

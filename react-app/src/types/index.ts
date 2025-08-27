@@ -157,6 +157,7 @@ export interface SHACLViolation {
   sourceShape: string;
   resultSeverity?: string;
   foafPage?: string; // URL with additional information about the rule
+  entityContext?: string; // Entity type (e.g., dcat:Dataset, dcat:Distribution) that the constraint applies to
 }
 
 export type SHACLSeverity = 'Violation' | 'Warning' | 'Info';
