@@ -38,7 +38,7 @@
     "deploy-gh": "cp package.json.gh-pages-backup package.json && npm run build && gh-pages -d build && git checkout package.json",
     "start": "react-scripts start",
     "start-local": "set BROWSER=none && set PORT=3000 && react-scripts start",
-    "build": "react-scripts build",
+    "build": "cross-env PUBLIC_URL=/metadata-quality-stack react-scripts build",
     "build-local": "npm run build && npx serve -s build -l 8000",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -64,6 +64,7 @@
   "devDependencies": {
     "@types/d3": "^7.4.3",
     "@types/n3": "^1.26.0",
+    "cross-env": "^10.0.0",
     "gh-pages": "^6.3.0"
   }
 }
