@@ -208,14 +208,14 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
                       <div className="col-4">
                         <div className="card border-0" style={{ backgroundColor: 'var(--bs-secondary-bg)' }}>
                           <div className="card-body py-2">
-                            <div className="d-flex align-items-center justify-content-center mb-1">
+                            <div className="d-flex align-items-center justify-content-center mb-1 position-relative">
                               <i className="bi bi-database text-primary me-1"></i>
                               <button 
                                 type="button" 
-                                className="btn btn-link p-0 text-decoration-none"
+                                className="btn btn-link p-0 text-decoration-none position-absolute"
                                 data-tooltip-id="datasets-help"
                                 data-tooltip-content={t('sidebar.datasets_help')}
-                                style={{ border: 'none', background: 'none' }}
+                                style={{ border: 'none', background: 'none', top: '0px', right: '2px' }}
                               >
                                 <i className="bi bi-question-circle-fill text-muted small"></i>
                               </button>
@@ -231,14 +231,14 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
                       <div className="col-4">
                         <div className="card border-0" style={{ backgroundColor: 'var(--bs-secondary-bg)' }}>
                           <div className="card-body py-2">
-                            <div className="d-flex align-items-center justify-content-center mb-1">
+                            <div className="d-flex align-items-center justify-content-center mb-1 position-relative">
                               <i className="bi bi-cloud-arrow-up text-warning me-1"></i>
                               <button 
                                 type="button" 
-                                className="btn btn-link p-0 text-decoration-none"
+                                className="btn btn-link p-0 text-decoration-none position-absolute"
                                 data-tooltip-id="data-services-help"
                                 data-tooltip-content={t('sidebar.data_services_help')}
-                                style={{ border: 'none', background: 'none' }}
+                                style={{ border: 'none', background: 'none', top: '0px', right: '2px' }}
                               >
                                 <i className="bi bi-question-circle-fill text-muted small"></i>
                               </button>
@@ -254,14 +254,14 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
                       <div className="col-4">
                         <div className="card border-0" style={{ backgroundColor: 'var(--bs-secondary-bg)' }}>
                           <div className="card-body py-2">
-                            <div className="d-flex align-items-center justify-content-center mb-1">
+                            <div className="d-flex align-items-center justify-content-center mb-1 position-relative">
                               <i className="bi bi-folder-symlink text-success me-1"></i>
                               <button 
                                 type="button" 
-                                className="btn btn-link p-0 text-decoration-none"
+                                className="btn btn-link p-0 text-decoration-none position-absolute"
                                 data-tooltip-id="distributions-help"
                                 data-tooltip-content={t('sidebar.distributions_help')}
-                                style={{ border: 'none', background: 'none' }}
+                                style={{ border: 'none', background: 'none', top: '0px', right: '2px' }}
                               >
                                 <i className="bi bi-question-circle-fill text-muted small"></i>
                               </button>
