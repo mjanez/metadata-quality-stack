@@ -385,13 +385,22 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
               <div className="card-body py-2">
                 <div className="d-grid gap-2">
                   <a 
-                    href="https://data.europa.eu/mqa/methodology?locale=en"
+                    href="https://data.europa.eu/mqa/methodology"
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="btn btn-outline-info btn-sm"
                   >
                     <i className="bi bi-journal-text me-1"></i>
                     {t('sidebar.mqa_methodology')}
+                  </a>
+                  <a 
+                    href="https://www.w3.org/TR/shacl/"
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="btn btn-outline-secondary btn-sm"
+                  >
+                    <i className="bi bi-book me-1"></i>
+                    {t('sidebar.shacl_docs')}
                   </a>
                   <a 
                     href="https://www.go-fair.org/fair-principles/"
@@ -406,7 +415,7 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
                     href="https://github.com/mjanez/metadata-quality-stack"
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="btn btn-outline-dark btn-sm"
+                    className="btn btn-outline-secondary btn-sm"
                   >
                     <i className="bi bi-github me-1"></i>
                     {t('sidebar.github_repository')}
