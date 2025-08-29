@@ -20,7 +20,7 @@
   "shacl": {
     "compliance_report": "Reporte de conformidad SHACL",
     "conforms": "Conforme",
-    "does_not_conform": "No conforme",
+    "non_conforms": "No conforme",
     "profile": "Perfil",
     "violations": "Violaciones",
     "warnings": "Advertencias",
@@ -80,7 +80,7 @@
     "mqa_description": "Esta herramienta evalúa la calidad de metadatos basada en la metodología de Evaluación de Calidad de Metadatos (MQA) del Portal Europeo de Datos usando ",
     "learn_more": "Saber más",
     "fairc_principles": "Principios FAIR+C",
-    "rating_scale": "Escala de Cclificación",
+    "rating_scale": "Escala",
     "rating": "Calificación",
     "points": "Puntos",
     "max_points": "Puntos máximos",

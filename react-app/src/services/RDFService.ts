@@ -243,8 +243,12 @@ export class RDFService {
   /**
    * Export SHACL report as Turtle
    */
-  public static async exportSHACLReport(shaclReport: SHACLReport): Promise<string> {
-    return await SHACLValidationService.exportReportAsTurtle(shaclReport);
+  public static async exportSHACLReport(
+    shaclReport: SHACLReport, 
+    profileSelection?: ProfileSelection,
+    profileVersion?: string
+  ): Promise<string> {
+    return await SHACLValidationService.exportReportAsTurtle(shaclReport, profileSelection, profileVersion);
   }
 }
 

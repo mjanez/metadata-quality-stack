@@ -641,7 +641,7 @@ const SHACLReportViewer: React.FC<SHACLReportViewerProps> = ({
                     <div className="text-center">
                       <i className={`${getComplianceIcon(report.conforms)} ${getComplianceColor(report.conforms)} display-1`}></i>
                       <h4 className={`mt-2 ${getComplianceColor(report.conforms)}`}>
-                        {report.conforms ? t('shacl.conforms') : t('shacl.does_not_conform')}
+                        {report.conforms ? t('shacl.conforms') : t('shacl.non_conforms')}
                       </h4>
                       <p className="text-muted">
                         {t('shacl.profile')}: {renderProfileName()}

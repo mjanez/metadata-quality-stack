@@ -40,6 +40,14 @@ export interface MQAConfig {
       es: string;
     };
   };
+  app_info?: {
+    name: string;
+    version: string;
+    repository: string;
+    url: string;
+    see_also?: string;
+    description: string;
+  };
 }
 
 export interface MQAMetricConfig {

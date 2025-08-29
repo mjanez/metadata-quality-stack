@@ -1,25 +1,51 @@
 import { 
   ValidationProfile, 
-  SHACLValidationResult, 
-  SHACLViolation, 
-  SHACLSeverity,
+  SHACLViolation,
+  SHACLReport,
   MQAConfig
 } from '../types';
-import { SHACLMessageService, LocalizedMessage } from './SHACLMessageService';
 import mqaConfigData from '../config/mqa-config.json';
 
+// ITB API Interfaces - Based on real API documentation
 interface ITBValidationRequest {
   contentToValidate: string;
-  contentSyntax: string;
-  embeddingMethod?: 'STRING' | 'URL' | 'BASE64';
-  reportSyntax: string;
+  contentSyntax: 'text/turtle' | 'application/rdf+xml' | 'application/ld+json' | 'application/n-triples';
+  embeddingMethod: 'STRING' | 'URL' | 'BASE64';
+  reportSyntax?: 'application/json' | 'text/turtle' | 'application/rdf+xml';
   externalRules: ITBRuleSet[];
+  validationType?: string;
+  locale?: string;
 }
 
 interface ITBRuleSet {
   ruleSet: string;
-  embeddingMethod: 'URL' | 'STRING';
-  ruleSyntax: string;
+  embeddingMethod: 'STRING' | 'URL' | 'BASE64';
+  ruleSyntax: 'text/turtle' | 'application/rdf+xml' | 'application/ld+json';
+}
+// ITB API Interfaces - Based on actual API response format
+interface ITBValidationResponse {
+  date: string;
+  result: 'SUCCESS' | 'FAILURE';
+  overview: {
+    profileID: string;
+  };
+  counters: {
+    nrOfAssertions: number;
+    nrOfErrors: number;
+    nrOfWarnings: number;
+  };
+  context: any;
+  reports: {
+    error?: ITBSimpleAssertion[];
+    warning?: ITBSimpleAssertion[];
+    info?: ITBSimpleAssertion[];
+  };
+  name: string;
+}
+
+interface ITBSimpleAssertion {
+  description: string;
+  location: string;
 }
 
 export class ITBSHACLService {
@@ -27,14 +53,15 @@ export class ITBSHACLService {
   private static readonly DOMAIN = 'any'; // Using 'any' domain for custom shapes
 
   /**
-   * Validate RDF content using ITB SHACL Validator API
+   * Validate RDF content using ITB SHACL Validator REST API
    */
   static async validateRDF(
     rdfContent: string, 
-    profile: ValidationProfile
-  ): Promise<SHACLValidationResult> {
+    profile: ValidationProfile,
+    locale: string = 'es'
+  ): Promise<SHACLReport> {
     try {
-      console.debug(`🔍 Running ITB SHACL validation for profile: ${profile}`);
+      console.debug(`🔍 Running ITB SHACL validation for profile: ${profile} with locale: ${locale}`);
       
       // Get SHACL files URLs for the profile
       const shaclUrls = this.getSHACLFilesForProfile(profile);
@@ -45,25 +72,27 @@ export class ITBSHACLService {
 
       console.debug(`📋 Using ${shaclUrls.length} SHACL files for validation:`, shaclUrls);
 
-      // Prepare external rules (SHACL shapes)
+      // Prepare external rules (SHACL shapes) according to API documentation
       const externalRules: ITBRuleSet[] = shaclUrls.map(url => ({
         ruleSet: url,
-        embeddingMethod: 'URL' as const,
+        embeddingMethod: 'URL',
         ruleSyntax: 'text/turtle'
       }));
 
-      // Prepare validation request
+      // Prepare validation request according to API documentation
       const request: ITBValidationRequest = {
         contentToValidate: rdfContent,
         contentSyntax: 'text/turtle',
         embeddingMethod: 'STRING',
-        reportSyntax: 'text/turtle', // Request Turtle format for easier parsing
-        externalRules
+        reportSyntax: 'application/json', // Request JSON format for easier parsing
+        externalRules,
+        validationType: 'any', // Changed from 'any' to 'complete' for full validation
+        locale: locale // Use the provided locale parameter
       };
 
-      console.debug(`🌐 Sending validation request to ITB API...`);
+      console.debug(`🌐 Sending validation request to ITB REST API...`);
       
-      // Make API call to ITB
+      // Make API call to ITB using the correct REST endpoint
       const response = await fetch(`${this.ITB_BASE_URL}/${this.DOMAIN}/api/validate`, {
         method: 'POST',
         headers: {
@@ -77,12 +106,16 @@ export class ITBSHACLService {
         throw new Error(`ITB API error: ${response.status} ${response.statusText}`);
       }
 
-      // ITB returns the validation report directly as text (not JSON)
-      const reportText = await response.text();
-      console.debug(`📊 Received validation report from ITB (${reportText.length} characters)`);
+      // ITB returns JSON response when reportSyntax is 'application/json'
+      const validationResponse: ITBValidationResponse = await response.json();
+      console.debug(`📊 Received validation response from ITB:`, {
+        result: validationResponse.result,
+        errorsCount: validationResponse.counters?.nrOfErrors || 0,
+        warningsCount: validationResponse.counters?.nrOfWarnings || 0
+      });
 
-      // Parse the SHACL validation report
-      return this.parseSHACLReport(reportText);
+      // Parse the ITB validation response 
+      return this.parseITBValidationResponse(validationResponse, profile);
 
     } catch (error) {
       console.error('❌ Error in ITB SHACL validation:', error);
@@ -130,167 +163,441 @@ export class ITBSHACLService {
       }
     });
 
-    console.debug(`📋 Using ${processedUrls.length} SHACL files for ITB validation:`, processedUrls);
     return processedUrls;
   }
 
   /**
-   * Parse SHACL validation report from ITB (Turtle format)
+   * Parse ITB validation response (JSON format) to our internal SHACLReport format
    */
-  private static parseSHACLReport(reportTurtle: string): SHACLValidationResult {
-    console.debug('📋 Parsing ITB SHACL validation report...');
+  private static parseITBValidationResponse(response: ITBValidationResponse, profile: ValidationProfile): SHACLReport {
+    console.debug('📋 Parsing ITB validation response...');
     
     try {
-      const results: SHACLViolation[] = [];
+      const violations: SHACLViolation[] = [];
+      const warnings: SHACLViolation[] = [];
+      const infos: SHACLViolation[] = [];
       
-      // Check conformance
-      const conformsMatch = reportTurtle.match(/sh:conforms\s+(true|false)/);
-      const conforms = conformsMatch ? conformsMatch[1] === 'true' : true;
+      // Check conformance from result value
+      const conforms = response.result === 'SUCCESS';
       
-      // Parse each sh:result block
-      // The pattern matches: sh:result [ ... ]
-      const resultBlockPattern = /sh:result\s*\[\s*([^\]]+(?:\[[^\]]*\][^\]]*)*)\s*\]/g;
-      let match;
+      // Parse the response based on actual ITB structure
+      // The response directly contains the reports
       
-      console.debug(`🔍 Searching for sh:result blocks in report...`);
-      
-      while ((match = resultBlockPattern.exec(reportTurtle)) !== null) {
-        const resultBlock = match[1];
-        console.debug(`📋 Processing sh:result block: ${resultBlock.substring(0, 100)}...`);
+      // Process errors
+      if (response?.reports?.error) {
+        console.debug(`🔍 Processing ${response.reports.error.length} error assertions...`);
         
-        try {
-          const violation: SHACLViolation = {
-            focusNode: this.extractValueFromBlock(resultBlock, 'sh:focusNode') || '',
-            path: this.extractValueFromBlock(resultBlock, 'sh:resultPath') || '',
-            value: this.extractValueFromBlock(resultBlock, 'sh:value') || '',
-            message: this.extractMessagesFromBlock(resultBlock),
-            severity: this.mapSeverity(this.extractValueFromBlock(resultBlock, 'sh:resultSeverity')),
-            sourceConstraintComponent: this.extractValueFromBlock(resultBlock, 'sh:sourceConstraintComponent') || '',
-            sourceShape: this.extractValueFromBlock(resultBlock, 'sh:sourceShape') || '[]',
-            resultSeverity: this.extractValueFromBlock(resultBlock, 'sh:resultSeverity') || '',
-            foafPage: ''
-          };
-          
-          results.push(violation);
-          console.debug(`✅ Parsed violation: ${violation.severity} on ${violation.focusNode} path ${violation.path}`);
-        } catch (blockError) {
-          console.error(`❌ Error parsing individual sh:result block:`, blockError);
+        for (const errorAssertion of response.reports.error) {
+          try {
+            const violation = this.parseITBSimpleAssertion(errorAssertion);
+            violation.severity = 'Violation';
+            violations.push(violation);
+            
+            console.debug(`✅ Parsed Violation: ${violation.focusNode} - ${violation.message[0]?.substring(0, 100)}...`);
+          } catch (assertionError) {
+            console.error(`❌ Error parsing individual error assertion:`, assertionError);
+          }
         }
       }
 
-      console.debug(`✅ ITB SHACL validation completed: ${results.length} violations found, conforms: ${conforms}`);
+      // Process warnings
+      if (response?.reports?.warning) {
+        console.debug(`🔍 Processing ${response.reports.warning.length} warning assertions...`);
+        
+        for (const warningAssertion of response.reports.warning) {
+          try {
+            const warning = this.parseITBSimpleAssertion(warningAssertion);
+            warning.severity = 'Warning';
+            warnings.push(warning);
+            
+            console.debug(`✅ Parsed Warning: ${warning.focusNode} - ${warning.message[0]?.substring(0, 100)}...`);
+          } catch (assertionError) {
+            console.error(`❌ Error parsing individual warning assertion:`, assertionError);
+          }
+        }
+      }
+
+      // Process info (if present)
+      if (response?.reports?.info) {
+        console.debug(`🔍 Processing ${response.reports.info.length} info assertions...`);
+        
+        for (const infoAssertion of response.reports.info) {
+          try {
+            const info = this.parseITBSimpleAssertion(infoAssertion);
+            info.severity = 'Info';
+            infos.push(info);
+            
+            console.debug(`✅ Parsed Info: ${info.focusNode} - ${info.message[0]?.substring(0, 100)}...`);
+          } catch (assertionError) {
+            console.error(`❌ Error parsing individual info assertion:`, assertionError);
+          }
+        }
+      }
+
+      console.debug(`✅ ITB SHACL validation completed: ${violations.length} violations, ${warnings.length} warnings, ${infos.length} infos, conforms: ${conforms}`);
 
       return {
+        profile,
         conforms,
-        results,
-        text: reportTurtle,
-        graph: undefined
+        totalViolations: violations.length,
+        violations,
+        warnings,
+        infos,
+        timestamp: new Date().toISOString()
       };
 
     } catch (error) {
-      console.error('❌ Error parsing ITB SHACL report:', error);
+      console.error('❌ Error parsing ITB validation response:', error);
       throw error;
     }
   }
 
   /**
-   * Extract value from a result block using improved regex
+   * Parse individual ITB simple assertion to our SHACLViolation format
    */
-  private static extractValueFromBlock(block: string, property: string): string | null {
-    // Handle both full URIs and prefixed names
-    const patterns = [
-      // Pattern for URIs: sh:focusNode <http://example.org/resource>
-      new RegExp(`${property}\\s+<([^>]+)>`, 'i'),
-      // Pattern for prefixed names: sh:resultPath foaf:page
-      new RegExp(`${property}\\s+([a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+)`, 'i'),
-      // Pattern for simple values: sh:resultSeverity sh:Warning
-      new RegExp(`${property}\\s+(sh:[a-zA-Z0-9_-]+)`, 'i'),
-      // Pattern for bare values: sh:sourceShape []
-      new RegExp(`${property}\\s+([^;\\s]+)`, 'i')
-    ];
+  private static parseITBSimpleAssertion(assertion: ITBSimpleAssertion): SHACLViolation {
+    // Extract focus node and path from location string
+    // Location format: "[Focus node] - [URL] - [Result path] - [property]"
+    const { focusNode, path } = this.parseITBLocation(assertion.location);
+    
+    return {
+      focusNode: focusNode || '',
+      path: path || '',
+      value: '',
+      message: [assertion.description || 'Validation constraint violated'],
+      severity: 'Violation', // Will be updated by calling method
+      sourceConstraintComponent: this.inferConstraintComponent(assertion.description),
+      sourceShape: 'ITB:ValidationShape',
+      resultSeverity: '',
+      foafPage: this.generateDocumentationUrl(assertion.description, path),
+      entityContext: this.inferEntityContext(focusNode, path)
+    };
+  }
 
-    for (const pattern of patterns) {
-      const match = block.match(pattern);
-      if (match) {
-        return match[1].trim();
+  /**
+   * Parse ITB location string to extract focus node and path
+   * Format: "[Focus node] - [URL] - [Result path] - [property]"
+   */
+  private static parseITBLocation(location: string): { focusNode: string | null; path: string | null } {
+    try {
+      // Split by " - " to get parts
+      const parts = location.split(' - ');
+      
+      let focusNode: string | null = null;
+      let path: string | null = null;
+      
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i].trim();
+        
+        // Look for focus node (usually after "[Focus node]" or "[Nodo de enfoque]")
+        if ((part.includes('Focus node') || part.includes('Nodo de enfoque')) && i + 1 < parts.length) {
+          const nextPart = parts[i + 1].trim();
+          // Remove brackets and extract URL-like content
+          if (nextPart.startsWith('[') && nextPart.endsWith(']')) {
+            focusNode = nextPart.slice(1, -1);
+          } else if (nextPart.includes('http')) {
+            focusNode = nextPart;
+          }
+        }
+        
+        // Look for path (usually after "[Result path]" or "[Trayectoria de resultados]") 
+        if ((part.includes('Result path') || part.includes('Trayectoria') || part.includes('resultados')) && i + 1 < parts.length) {
+          const pathPart = parts[i + 1].trim();
+          if (pathPart.startsWith('[') && pathPart.endsWith(']')) {
+            path = pathPart.slice(1, -1);
+          } else {
+            path = pathPart;
+          }
+        }
+      }
+      
+      return { focusNode, path };
+    } catch (error) {
+      console.debug('Error parsing ITB location:', error);
+      return { focusNode: null, path: null };
+    }
+  }
+
+  /**
+   * Infer constraint component from error description
+   */
+  private static inferConstraintComponent(description: string): string {
+    if (!description) return 'sh:ConstraintComponent';
+    
+    const descLower = description.toLowerCase();
+    
+    if (descLower.includes('menos de') || descLower.includes('less than') || descLower.includes('mínimo')) {
+      return 'sh:MinCountConstraintComponent';
+    } else if (descLower.includes('más de') || descLower.includes('more than') || descLower.includes('máximo')) {
+      return 'sh:MaxCountConstraintComponent';
+    } else if (descLower.includes('tipo de dato') || descLower.includes('datatype')) {
+      return 'sh:DatatypeConstraintComponent';
+    } else if (descLower.includes('formato') || descLower.includes('pattern') || descLower.includes('patrón')) {
+      return 'sh:PatternConstraintComponent';
+    } else if (descLower.includes('debe contener') || descLower.includes('should contain') || descLower.includes('required')) {
+      return 'sh:MinCountConstraintComponent';
+    } else if (descLower.includes('debería contener') || descLower.includes('should contain')) {
+      return 'sh:RecommendationConstraintComponent';
+    } else if (descLower.includes('shape') || descLower.includes('forma')) {
+      return 'sh:NodeShapeConstraintComponent';
+    }
+    
+    return 'sh:ConstraintComponent';
+  }
+
+  /**
+   * Infer entity context from focus node and path
+   */
+  private static inferEntityContext(focusNode: string | null, path: string | null): string {
+    if (focusNode) {
+      const focusLower = focusNode.toLowerCase();
+      if (focusLower.includes('catalog') || focusLower.includes('catalogo')) {
+        return 'dcat:Catalog';
+      } else if (focusLower.includes('dataset') || focusLower.includes('datos')) {
+        return 'dcat:Dataset';
+      } else if (focusLower.includes('distribution') || focusLower.includes('distribucion')) {
+        return 'dcat:Distribution';
+      } else if (focusLower.includes('dataservice') || focusLower.includes('servicio')) {
+        return 'dcat:DataService';
       }
     }
     
-    return null;
-  }
-
-  /**
-   * Extract message from block, handling multiple messages with language tags
-   */
-  private static extractMessageFromBlock(block: string): string | null {
-    // Pattern for messages with language tags: sh:resultMessage "The dataset should..."@en, "El dataset debe..."@es
-    const multiMessagePattern = /sh:resultMessage\s+((?:"[^"]*"(?:@[a-z]{2})?\s*,?\s*)+)/i;
-    const multiMatch = block.match(multiMessagePattern);
-    
-    if (multiMatch) {
-      // Return the full message string with all languages
-      return multiMatch[1].trim();
+    if (path) {
+      const pathLower = path.toLowerCase();
+      if (pathLower.includes('keyword') || pathLower.includes('theme')) {
+        return 'dcat:Dataset';
+      } else if (pathLower.includes('accessurl') || pathLower.includes('downloadurl')) {
+        return 'dcat:Distribution';
+      } else if (pathLower.includes('publisher') || pathLower.includes('contactpoint')) {
+        return 'foaf:Organization';
+      }
     }
     
-    // Fallback to single message pattern
-    const singleMessagePattern = /sh:resultMessage\s+"([^"]+)"(?:@[a-z]{2})?/i;
-    const singleMatch = block.match(singleMessagePattern);
-    return singleMatch ? singleMatch[1] : null;
+    return 'Unknown Entity';
   }
 
   /**
-   * Extract multiple localized messages from a block
+   * Generate documentation URL based on description and path
    */
-  private static extractMessagesFromBlock(block: string): string[] {
-    const messages: string[] = [];
-    
-    // First try to get the full message block
-    const fullMessage = this.extractMessageFromBlock(block);
-    if (!fullMessage) {
-      return ['Validation constraint violated'];
+  private static generateDocumentationUrl(description: string, path: string | null): string | undefined {
+    // For DCAT-AP-ES errors, try to generate URLs to the specification
+    if (description.includes('DCAT-AP-ES') || description.includes('datosgobes.github.io')) {
+      return 'https://datosgobes.github.io/DCAT-AP-ES/';
     }
     
-    // Parse with SHACLMessageService to handle language tags
-    const parsedMessages = SHACLMessageService.parseMessages(fullMessage);
+    if (path) {
+      const pathLower = path.toLowerCase();
+      if (pathLower.includes('dcat') || pathLower.includes('dcterms')) {
+        return 'https://datosgobes.github.io/DCAT-AP-ES/';
+      }
+    }
     
-    // Convert back to strings with language tags for compatibility
-    return parsedMessages.map(msg => {
-      const languageTag = msg.language ? `@${msg.language}` : '';
-      return `"${msg.text}"${languageTag}`;
-    });
-  }
-
-  /**
-   * Map SHACL severity from ITB to our internal format
-   */
-  private static mapSeverity(severity: string | null): SHACLSeverity {
-    if (!severity) return 'Violation';
-    
-    if (severity.includes('Violation')) return 'Violation';
-    if (severity.includes('Warning')) return 'Warning';
-    if (severity.includes('Info')) return 'Info';
-    
-    return 'Violation'; // Default
+    return undefined;
   }
 
   /**
    * Calculate compliance score from SHACL results
+   * Binary scoring: conforme = 100%, no conforme = 0%
    */
-  static calculateComplianceScore(result: SHACLValidationResult): number {
-    if (result.conforms) {
-      return 100;
+  static calculateComplianceScore(report: SHACLReport, locale: string = 'en'): number {
+    console.log(`📊 Calculating compliance score - Conforms: ${report.conforms}, Violations: ${report.totalViolations}`);
+    
+    // Binary compliance scoring:
+    // Si el perfil no es conforme con la validacion SHACL, entonces la metrica de compliance es 0
+    // La validacion es binaria
+    if (report.conforms && report.totalViolations === 0) {
+      console.log(`✅ SHACL: CONFORME - Compliance score: 100%`);
+      return 100; // Full compliance
+    } else {
+      console.log(`❌ SHACL: NO CONFORME - Compliance score: 0%`);
+      return 0; // No compliance if any violations exist
+    }
+  }
+
+  /**
+   * Export SHACL report as Turtle (enhanced version)
+   */
+  public static async exportReportAsTurtle(report: SHACLReport): Promise<string> {
+    const timestamp = new Date().toISOString();
+    
+    let turtle = `@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# SHACL Validation Report for ${report.profile}
+# Generated by shacl-engine and mjanez/metadata-quality-stack
+
+<urn:shacl:report:${report.profile}:${Date.now()}> a sh:ValidationReport ;
+    sh:conforms ${report.conforms} ;
+    dct:created "${timestamp}"^^xsd:dateTime ;
+    dct:description "Este archivo contiene el informe de validación SHACL para el perfil ${report.profile}. Se han detectado ${report.totalViolations} violaciones."@es ;
+    dct:description "This file contains the SHACL validation report for profile ${report.profile}. A total of ${report.totalViolations} violations were found."@en ;
+    dct:title "Informe de Validación SHACL para el perfil ${report.profile}"@es ;
+    dct:title "SHACL Validation Report for profile ${report.profile}"@en ;
+    dct:format <http://publications.europa.eu/resource/authority/file-type/RDF_TURTLE> ;
+    dct:subject <urn:dataset:${report.profile}> ;
+    foaf:homepage <https://github.com/mjanez/metadata-quality-stack> ;
+    rdfs:seeAlso <https://github.com/mjanez/metadata-quality-stack/blob/feature/main/react-app/README.md> ;
+    rdfs:comment "Validation report generated by MQA SHACL validation" .
+
+`;
+
+    // Add violation results
+    report.violations.forEach((violation, index) => {
+      const resultId = `urn:shacl:result:violation:${index}`;
+      turtle += `
+${resultId} a sh:ValidationResult ;
+    sh:resultSeverity sh:Violation ;
+    sh:focusNode <${violation.focusNode || 'unknown'}> ;`;
+
+      // Handle multiple messages with language tags as separate properties
+      if (violation.message.length > 0) {
+        violation.message.forEach((msg) => {
+          turtle += `
+    sh:resultMessage ${msg} ;`;
+        });
+      }
+
+      turtle += `
+    sh:sourceConstraintComponent ${violation.sourceConstraintComponent} ;
+    sh:sourceShape ${violation.sourceShape} `;
+      
+      if (violation.path) {
+        turtle += `;
+    sh:resultPath <${violation.path}> `;
+      }
+      
+      if (violation.value) {
+        turtle += `;
+    sh:value "${violation.value.replace(/"/g, '\\"')}" `;
+      }
+      
+      turtle += ' .\n';
+    });
+
+    // Add warning results
+    report.warnings.forEach((warning, index) => {
+      const resultId = `urn:shacl:result:warning:${index}`;
+      turtle += `
+${resultId} a sh:ValidationResult ;
+    sh:resultSeverity sh:Warning ;
+    sh:focusNode <${warning.focusNode || 'unknown'}> ;`;
+
+      // Handle multiple messages with language tags as separate properties
+      if (warning.message.length > 0) {
+        warning.message.forEach((msg) => {
+          turtle += `
+    sh:resultMessage ${msg} ;`;
+        });
+      }
+
+      turtle += `
+    sh:sourceConstraintComponent ${warning.sourceConstraintComponent} ;
+    sh:sourceShape ${warning.sourceShape} `;
+
+      if (warning.path) {
+        turtle += `;
+    sh:resultPath <${warning.path}> `;
+      }
+      
+      turtle += ' .\n';
+    });
+
+    // Add info results
+    report.infos.forEach((info, index) => {
+      const resultId = `urn:shacl:result:info:${index}`;
+      turtle += `
+${resultId} a sh:ValidationResult ;
+    sh:resultSeverity sh:Info ;
+    sh:focusNode <${info.focusNode || 'unknown'}> ;`;
+
+      // Handle multiple messages with language tags as separate properties
+      if (info.message.length > 0) {
+        info.message.forEach((msg) => {
+          turtle += `
+    sh:resultMessage ${msg} ;`;
+        });
+      }
+
+      turtle += `
+    sh:sourceConstraintComponent <${info.sourceConstraintComponent}> ;
+    sh:sourceShape <${info.sourceShape}> `;
+      
+      if (info.path) {
+        turtle += `;
+    sh:resultPath <${info.path}> `;
+      }
+      
+      turtle += ' .\n';
+    });
+
+    return turtle;
+  }
+
+  /**
+   * Export SHACL report as CSV for non-RDF users
+   */
+  public static async exportReportAsCSV(report: SHACLReport): Promise<string> {
+    const timestamp = new Date().toISOString();
+    
+    // CSV headers
+    const headers = [
+      'Severity',
+      'Focus Node',
+      'Path',
+      'Value',
+      'Message',
+      'Source Shape',
+      'Constraint Component',
+      'Additional Info URL'
+    ];
+    
+    // Combine all violations, warnings, and infos
+    const allIssues = [
+      ...report.violations,
+      ...report.warnings,
+      ...report.infos
+    ];
+    
+    // Convert to CSV rows
+    const csvRows = [];
+    
+    // Add metadata header
+    csvRows.push(headers.join(','));
+    
+    for (const issue of allIssues) {
+      const row = [
+        issue.severity,
+        this.escapeCsvValue(issue.focusNode || ''),
+        this.escapeCsvValue(issue.path || ''),
+        this.escapeCsvValue(issue.value || ''),
+        this.escapeCsvValue(issue.message.join('; ')),
+        this.escapeCsvValue(issue.sourceShape || ''),
+        this.escapeCsvValue(issue.sourceConstraintComponent || ''),
+        this.escapeCsvValue(issue.foafPage || '')
+      ];
+      
+      csvRows.push(row.join(','));
     }
     
-    // Simple scoring: each violation reduces score
-    const violations = result.results.filter(r => r.severity === 'Violation').length;
-    const warnings = result.results.filter(r => r.severity === 'Warning').length;
-    
-    // Violations are more serious than warnings
-    const totalIssues = violations + (warnings * 0.5);
-    
-    // Simple formula - can be adjusted
-    const score = Math.max(0, 100 - (totalIssues * 10));
-    
-    return Math.round(score);
+    return csvRows.join('\n');
   }
+
+    /**
+   * Escape CSV values (handle commas, quotes, newlines)
+   */
+  private static escapeCsvValue(value: string): string {
+    if (!value) return '';
+    
+    // If value contains comma, quote, or newline, wrap in quotes and escape existing quotes
+    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+      return `"${value.replace(/"/g, '""')}"`;
+    }
+    
+    return value;
+  }
+
 }

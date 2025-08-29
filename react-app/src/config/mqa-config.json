@@ -3,7 +3,7 @@
     "dcat_ap": {
       "versions": {
         "2.1.1": {
-          "name": "DCAT-AP v2.1.1",
+          "name": "DCAT-AP 2.1.1",
           "maxScore": 405,
           "icon": "img/icons/eur.svg",
           "url": "https://semiceu.github.io/DCAT-AP/",
@@ -26,7 +26,7 @@
           }
         },
         "3.0.0": {
-          "name": "DCAT-AP v3.0.0",
+          "name": "DCAT-AP 3.0.0",
           "maxScore": 405,
           "icon": "img/icons/eur.svg",
           "url": "https://semiceu.github.io/DCAT-AP/",
@@ -48,7 +48,7 @@
     "dcat_ap_es": {
       "versions": {
         "1.0.0": {
-          "name": "DCAT-AP-ES v1.0.0", 
+          "name": "DCAT-AP-ES 1.0.0", 
           "maxScore": 405,
           "icon": "img/icons/esp.svg",
           "url": "https://datosgobes.github.io/DCAT-AP-ES/",
@@ -80,7 +80,7 @@
           "name": "NTI-RISP 2013",
           "maxScore": 310,
           "icon": "img/icons/esp.svg",
-          "url": "https://www.boe.es/eli/es/res/2013/02/19/(4)",
+          "url": "https://datosgobes.github.io/NTI-RISP/",
           "sampleUrl": "https://raw.githubusercontent.com/datosgobes/NTI-RISP/refs/heads/main/examples/rdf/E_NTI-RISP_Catalog.rdf",
           "shaclFiles": [
             "https://raw.githubusercontent.com/datosgobes/NTI-RISP/refs/heads/main/shacl/1.0.0/nti-risp_catalog_shape.ttl",
@@ -315,5 +315,13 @@
       "en": "Format Vocabulary (NTI-RISP)",
       "es": "Vocabulario de formato (NTI-RISP)"
     }
+  },
+  "app_info": {
+    "name": "Metadata Quality APP",
+    "version": "1.0.0",
+    "repository": "https://github.com/mjanez/metadata-quality-stack",
+    "url": "https://mjanez.github.io/metadata-quality-stack/",
+    "see_also": "https://github.com/mjanez/metadata-quality-stack/blob/feature/main/react-app/README.md",
+    "description": "Metadata Quality Stack is a comprehensive toolkit for analysing metadata quality. It implements the European Data Portal's MQA methodology, uses shacl-engine for SHACL validation and rdfxml-streaming-parser for efficient streaming RDF parsing and metric processing, and is built with React."
   }
 }
