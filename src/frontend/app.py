@@ -14,7 +14,7 @@ import os
 from src.frontend.dashboard import display_dashboard
 from src.frontend.visualizations import create_hierarchical_dimension_chart, create_radar_chart
 from src.frontend.i18n import _, set_language, LANGUAGES, DEFAULT_LANGUAGE, get_markdown, get_metric_label
-from src.frontend.config import METRIC_LABELS, PROFILES, FORMAT_MIME_TYPES
+from src.frontend.config import METRIC_LABELS, PROFILES, FORMAT_MIME_TYPES, MAX_SCORES, DIMENSION_MAX_SCORES
 
 # API endpoint (use environment variable or fallback to localhost)
 API_BASE_URL = os.environ.get("API_BASE_URL", "http://api:80")
@@ -69,7 +69,7 @@ def display_validation_tool():
             # Call the API to validate the URL
             response = requests.post(
                 f"{API_BASE_URL}/validate",
-                params={"url": url},
+                params={"url": url, "model": st.session_state.selected_profile},
                 timeout=60,
             )
             
@@ -101,7 +101,11 @@ def display_validation_tool():
             # Call the API to validate the direct input
             response = requests.post(
                 f"{API_BASE_URL}/validate-content",
-                json={"content": input_text, "content_type": mime_type},
+                json={
+                    "content": input_text, 
+                    "content_type": mime_type, 
+                    "model": st.session_state.selected_profile  # Añadir el modelo seleccionado
+                },
                 timeout=60,
             )
             
@@ -153,7 +157,9 @@ def display_validation_tool():
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            st.metric(_("Total Score"), f"{report['totalScore']}/405")
+            # Obtener el máximo puntaje para el perfil seleccionado
+            max_score = MAX_SCORES.get(st.session_state.selected_profile, 405)
+            st.metric(_("Total Score"), f"{report['totalScore']}/{max_score}")
         
         with col2:
             st.metric(_("Rating"), _(report['rating']))
@@ -352,7 +358,8 @@ def display_validation_tool():
             fig.update_layout(
                 xaxis_title=_("Assessment Date"),
                 yaxis_title=_("Total Score"),
-                yaxis_range=[0, 405],
+                # Calcular el máximo considerando los diferentes perfiles que podría haber en el historial
+                yaxis_range=[0, max(MAX_SCORES.values())],
             )
             
             st.plotly_chart(fig, use_container_width=True)
@@ -393,16 +400,24 @@ def display_validation_tool():
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    st.metric("Total Score", f"{h['totalScore']}/405")
+                    # Obtener el máximo puntaje para el modelo usado en este informe histórico
+                    model = h.get('model', 'dcat_ap_es')
+                    max_score = MAX_SCORES.get(model, 405)
+                    st.metric("Total Score", f"{h['totalScore']}/{max_score}")
                     st.metric("Rating", h['rating'])
                 
                 with col2:
                     st.write(_("Dimension Scores:"))
-                    st.write(f"- {_('Findability')}: {h['dimensions']['findability']}/100")
-                    st.write(f"- {_('Accessibility')}: {h['dimensions']['accessibility']}/100")
-                    st.write(f"- {_('Interoperability')}: {h['dimensions']['interoperability']}/110")
-                    st.write(f"- {_('Reusability')}: {h['dimensions']['reusability']}/75")
-                    st.write(f"- {_('Contextuality')}: {h['dimensions']['contextuality']}/20")
+                    # Obtener los valores máximos de dimensiones para el modelo del informe
+                    model = h.get('model', 'dcat_ap_es')
+                    dim_max_scores = DIMENSION_MAX_SCORES.get(model, DIMENSION_MAX_SCORES['dcat_ap_es'])
+                    
+                    # Mostrar cada dimensión con su valor máximo correspondiente
+                    st.write(f"- {_('Findability')}: {h['dimensions']['findability']}/{dim_max_scores['findability']}")
+                    st.write(f"- {_('Accessibility')}: {h['dimensions']['accessibility']}/{dim_max_scores['accessibility']}")
+                    st.write(f"- {_('Interoperability')}: {h['dimensions']['interoperability']}/{dim_max_scores['interoperability']}")
+                    st.write(f"- {_('Reusability')}: {h['dimensions']['reusability']}/{dim_max_scores['reusability']}")
+                    st.write(f"- {_('Contextuality')}: {h['dimensions']['contextuality']}/{dim_max_scores['contextuality']}")
                 
                 if i < len(history) - 1:  # Don't add a divider after the last item
                     st.divider()
@@ -421,14 +436,22 @@ with st.sidebar:
     st.header(_("About"))
     st.markdown(get_markdown("about_text"))
 
+    # Add GitHub link
+    st.markdown("[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/mjanez/metadata-quality-stack)")
+
     # Add Profile selector
     st.header(_("Compliance"))
-    current_lang = st.selectbox(
+    selected_profile = st.selectbox(
         _("Select profile"),
         options=list(PROFILES.keys()),
         format_func=lambda x: PROFILES[x],
-        index=list(PROFILES.keys()).index('dcat_ap_es')
+        index=list(PROFILES.keys()).index('dcat_ap_es'),
+        key="profile_selector"
     )
+    
+    # Almacenar el perfil seleccionado en el session state
+    if 'selected_profile' not in st.session_state or st.session_state.selected_profile != selected_profile:
+        st.session_state.selected_profile = selected_profile
     
     # Add language selector
     st.header(_("Language"))
@@ -446,7 +469,7 @@ with st.sidebar:
         st.rerun() 
     
     st.header(_("Rating"))
-    st.markdown(get_markdown("rating_table"))
+    st.markdown(get_markdown("rating_table", profile=st.session_state.selected_profile))
     
     # Navigation
     st.header(_("Navigation"))
