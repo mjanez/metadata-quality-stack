@@ -1,6 +1,6 @@
 {
   "name": "metadata-quality-app",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "homepage": "https://mjanez.github.io/metadata-quality-stack/",
   "private": true,
   "dependencies": {
