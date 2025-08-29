@@ -282,3 +282,15 @@ msgstr "Adecuado para evaluar conjuntos de datos/servicios de datos individuales
 
 msgid "Detailed metrics for each dimension showing count, percentage, and points"
 msgstr "Métricas detalladas para cada dimensión que muestran recuento, porcentaje y puntos"
+
+msgid "Excellent"
+msgstr "Excelente"
+
+msgid "Good"
+msgstr "Buena"
+
+msgid "Sufficient"
+msgstr "Suficiente"
+
+msgid "Bad"
+msgstr "Mala"

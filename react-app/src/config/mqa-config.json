@@ -1,0 +1,327 @@
+{
+  "profiles": {
+    "dcat_ap": {
+      "versions": {
+        "2.1.1": {
+          "name": "DCAT-AP 2.1.1",
+          "maxScore": 405,
+          "icon": "img/icons/eur.svg",
+          "url": "https://semiceu.github.io/DCAT-AP/",
+          "sampleUrl": "https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/examples/ttl/1.0.0/E_DCAT-AP-ES_Catalog.ttl",
+          "shaclFiles": [
+            "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_deprecateduris.ttl",
+            "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_imports.ttl",
+            "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_mdr-vocabularies.shape.ttl",
+            "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_mdr_imports.ttl",
+            "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_range.ttl",
+            "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_shapes.ttl",
+            "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_shapes_recommended.ttl"
+          ],
+          "dimensions": {
+            "findability": { "maxScore": 100 },
+            "accessibility": { "maxScore": 100 },
+            "interoperability": { "maxScore": 110 },
+            "reusability": { "maxScore": 75 },
+            "contextuality": { "maxScore": 20 }
+          }
+        },
+        "3.0.0": {
+          "name": "DCAT-AP 3.0.0",
+          "maxScore": 405,
+          "icon": "img/icons/eur.svg",
+          "url": "https://semiceu.github.io/DCAT-AP/",
+          "sampleUrl": "https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/examples/ttl/1.0.0/E_DCAT-AP-ES_Catalog.ttl",
+          "shaclFiles": [
+            "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/3.0.0/shacl/dcat-ap-SHACL.ttl"
+          ],
+          "dimensions": {
+            "findability": { "maxScore": 100 },
+            "accessibility": { "maxScore": 100 },
+            "interoperability": { "maxScore": 110 },
+            "reusability": { "maxScore": 75 },
+            "contextuality": { "maxScore": 20 }
+          }
+        }
+      },
+      "defaultVersion": "2.1.1"
+    },
+    "dcat_ap_es": {
+      "versions": {
+        "1.0.0": {
+          "name": "DCAT-AP-ES 1.0.0", 
+          "maxScore": 405,
+          "icon": "img/icons/esp.svg",
+          "url": "https://datosgobes.github.io/DCAT-AP-ES/",
+          "sampleUrl": "https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/examples/ttl/1.0.0/E_DCAT-AP-ES_Catalog.ttl",
+          "shaclFiles": [
+            "https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/1.0.0/shacl_imports.ttl",
+            "https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/1.0.0/shacl_mdr_imports.ttl",
+            "https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/1.0.0/shacl_mdr-vocabularies.shape.ttl",
+            "https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/1.0.0/shacl_common_shapes.ttl",
+            "https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/1.0.0/shacl_catalog_shape.ttl",
+            "https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/1.0.0/shacl_dataservice_shape.ttl",
+            "https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/1.0.0/shacl_dataset_shape.ttl",
+            "https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/1.0.0/shacl_distribution_shape.ttl"
+          ],
+          "dimensions": {
+            "findability": { "maxScore": 100 },
+            "accessibility": { "maxScore": 100 },
+            "interoperability": { "maxScore": 110 },
+            "reusability": { "maxScore": 75 },
+            "contextuality": { "maxScore": 20 }
+          }
+        }
+      },
+      "defaultVersion": "1.0.0"
+    },
+    "nti_risp": {
+      "versions": {
+        "2013": {
+          "name": "NTI-RISP 2013",
+          "maxScore": 310,
+          "icon": "img/icons/esp.svg",
+          "url": "https://datosgobes.github.io/NTI-RISP/",
+          "sampleUrl": "https://raw.githubusercontent.com/datosgobes/NTI-RISP/refs/heads/main/examples/rdf/E_NTI-RISP_Catalog.rdf",
+          "shaclFiles": [
+            "https://raw.githubusercontent.com/datosgobes/NTI-RISP/refs/heads/main/shacl/1.0.0/nti-risp_catalog_shape.ttl",
+            "https://raw.githubusercontent.com/datosgobes/NTI-RISP/refs/heads/main/shacl/1.0.0/nti-risp_common_shapes.ttl",
+            "https://raw.githubusercontent.com/datosgobes/NTI-RISP/refs/heads/main/shacl/1.0.0/nti-risp_dataset_shape.ttl",
+            "https://raw.githubusercontent.com/datosgobes/NTI-RISP/refs/heads/main/shacl/1.0.0/nti-risp_distribution_shape.ttl",
+            "https://raw.githubusercontent.com/datosgobes/NTI-RISP/refs/heads/main/shacl/1.0.0/nti-risp_shacl_imports.ttl",
+            "https://raw.githubusercontent.com/datosgobes/NTI-RISP/refs/heads/main/shacl/1.0.0/nti-risp_shacl_mdr_imports.ttl",
+            "https://raw.githubusercontent.com/datosgobes/NTI-RISP/refs/heads/main/shacl/1.0.0/nti-risp_vocabularies.shape.ttl"
+          ],
+          "dimensions": {
+            "findability": { "maxScore": 100 },
+            "accessibility": { "maxScore": 50 },
+            "interoperability": { "maxScore": 105 },
+            "reusability": { "maxScore": 40 },
+            "contextuality": { "maxScore": 15 }
+          }
+        }
+      },
+      "defaultVersion": "2013"
+    }
+  },
+  "metricsByProfile": {
+    "dcat_ap": {
+      "findability": [
+        { "id": "dcat_keyword", "weight": 30, "property": "dcat:keyword" },
+        { "id": "dcat_theme", "weight": 30, "property": "dcat:theme" },
+        { "id": "dct_spatial", "weight": 20, "property": "dcterms:spatial" },
+        { "id": "dct_temporal", "weight": 20, "property": "dcterms:temporal" }
+      ],
+      "accessibility": [
+        { "id": "dcat_accessURL_status", "weight": 50, "property": "dcat:accessURL" },
+        { "id": "dcat_downloadURL", "weight": 20, "property": "dcat:downloadURL" },
+        { "id": "dcat_downloadURL_status", "weight": 30, "property": "dcat:downloadURL" }
+      ],
+      "interoperability": [
+        { "id": "dct_format", "weight": 20, "property": "dcterms:format" },
+        { "id": "dcat_mediaType", "weight": 10, "property": "dcat:mediaType" },
+        { "id": "dct_format_vocabulary", "weight": 5, "property": "dcterms:format" },
+        { "id": "dct_mediaType_vocabulary", "weight": 5, "property": "dcat:mediaType" },
+        { "id": "dct_format_nonproprietary", "weight": 20, "property": "dcterms:format" },
+        { "id": "dct_format_machinereadable", "weight": 20, "property": "dcterms:format" },
+        { "id": "dcat_ap_compliance", "weight": 30, "property": "rdf:type" }
+      ],
+      "reusability": [
+        { "id": "dct_license", "weight": 20, "property": "dcterms:license" },
+        { "id": "dct_license_vocabulary", "weight": 10, "property": "dcterms:license" },
+        { "id": "dct_accessRights", "weight": 10, "property": "dcterms:accessRights" },
+        { "id": "dct_accessRights_vocabulary", "weight": 5, "property": "dcterms:accessRights" },
+        { "id": "dcat_contactPoint", "weight": 20, "property": "dcat:contactPoint" },
+        { "id": "dct_publisher", "weight": 10, "property": "dcterms:publisher" }
+      ],
+      "contextuality": [
+        { "id": "dcat_byteSize", "weight": 5, "property": "dcat:byteSize" },
+        { "id": "dct_issued", "weight": 5, "property": "dcterms:issued" },
+        { "id": "dct_modified", "weight": 5, "property": "dcterms:modified" },
+        { "id": "dct_rights", "weight": 5, "property": "dcterms:rights" }
+      ]
+    },
+    "dcat_ap_es": {
+      "findability": [
+        { "id": "dcat_keyword", "weight": 30, "property": "dcat:keyword" },
+        { "id": "dcat_theme", "weight": 30, "property": "dcat:theme" },
+        { "id": "dct_spatial", "weight": 20, "property": "dcterms:spatial" },
+        { "id": "dct_temporal", "weight": 20, "property": "dcterms:temporal" }
+      ],
+      "accessibility": [
+        { "id": "dcat_accessURL_status", "weight": 50, "property": "dcat:accessURL" },
+        { "id": "dcat_downloadURL", "weight": 20, "property": "dcat:downloadURL" },
+        { "id": "dcat_downloadURL_status", "weight": 30, "property": "dcat:downloadURL" }
+      ],
+      "interoperability": [
+        { "id": "dct_format", "weight": 20, "property": "dcterms:format" },
+        { "id": "dcat_mediaType", "weight": 10, "property": "dcat:mediaType" },
+        { "id": "dct_format_vocabulary", "weight": 5, "property": "dcterms:format" },
+        { "id": "dct_mediaType_vocabulary", "weight": 5, "property": "dcat:mediaType" },
+        { "id": "dct_format_nonproprietary", "weight": 20, "property": "dcterms:format" },
+        { "id": "dct_format_machinereadable", "weight": 20, "property": "dcterms:format" },
+        { "id": "dcat_ap_es_compliance", "weight": 30, "property": "rdf:type" }
+      ],
+      "reusability": [
+        { "id": "dct_license", "weight": 20, "property": "dcterms:license" },
+        { "id": "dct_license_vocabulary", "weight": 10, "property": "dcterms:license" },
+        { "id": "dct_accessRights", "weight": 10, "property": "dcterms:accessRights" },
+        { "id": "dct_accessRights_vocabulary", "weight": 5, "property": "dcterms:accessRights" },
+        { "id": "dcat_contactPoint", "weight": 20, "property": "dcat:contactPoint" },
+        { "id": "dct_publisher", "weight": 10, "property": "dcterms:publisher" }
+      ],
+      "contextuality": [
+        { "id": "dcat_byteSize", "weight": 5, "property": "dcat:byteSize" },
+        { "id": "dct_issued", "weight": 5, "property": "dcterms:issued" },
+        { "id": "dct_modified", "weight": 5, "property": "dcterms:modified" },
+        { "id": "dct_rights", "weight": 5, "property": "dcterms:rights" }
+      ]
+    },
+    "nti_risp": {
+      "findability": [
+        { "id": "dcat_keyword", "weight": 30, "property": "dcat:keyword" },
+        { "id": "dcat_theme", "weight": 30, "property": "dcat:theme" },
+        { "id": "dct_spatial", "weight": 20, "property": "dcterms:spatial" },
+        { "id": "dct_temporal", "weight": 20, "property": "dcterms:temporal" }
+      ],
+      "accessibility": [
+        { "id": "dcat_accessURL_status", "weight": 50, "property": "dcat:accessURL" }
+      ],
+      "interoperability": [
+        { "id": "dct_format", "weight": 20, "property": "dcterms:format" },
+        { "id": "dcat_mediaType", "weight": 10, "property": "dcat:mediaType" },
+        { "id": "dct_format_vocabulary_nti_risp", "weight": 5, "property": "dcterms:format" },
+        { "id": "dct_format_nonproprietary", "weight": 20, "property": "dcterms:format" },
+        { "id": "dct_format_machinereadable", "weight": 20, "property": "dcterms:format" },
+        { "id": "nti_risp_compliance", "weight": 30, "property": "rdf:type" }
+      ],
+      "reusability": [
+        { "id": "dct_license", "weight": 20, "property": "dcterms:license" },
+        { "id": "dct_license_vocabulary", "weight": 10, "property": "dcterms:license" },
+        { "id": "dct_publisher", "weight": 10, "property": "dcterms:publisher" }
+      ],
+      "contextuality": [
+        { "id": "dcat_byteSize", "weight": 5, "property": "dcat:byteSize" },
+        { "id": "dct_issued", "weight": 5, "property": "dcterms:issued" },
+        { "id": "dct_modified", "weight": 5, "property": "dcterms:modified" }
+      ]
+    }
+  },
+  "metricLabels": {
+    "dcat_keyword": {
+      "en": "Keywords",
+      "es": "Palabras clave"
+    },
+    "dcat_theme": {
+      "en": "Themes/Categories", 
+      "es": "Temas/Categorías"
+    },
+    "dct_spatial": {
+      "en": "Spatial Coverage",
+      "es": "Cobertura espacial"
+    },
+    "dct_temporal": {
+      "en": "Temporal Coverage",
+      "es": "Cobertura temporal"
+    },
+    "dcat_accessURL_status": {
+      "en": "Access URL Availability",
+      "es": "Disponibilidad de URL de acceso"
+    },
+    "dcat_downloadURL": {
+      "en": "Download URL",
+      "es": "URL de descarga"
+    },
+    "dcat_downloadURL_status": {
+      "en": "Download URL Availability", 
+      "es": "Disponibilidad de URL de descarga"
+    },
+    "dct_format": {
+      "en": "Format",
+      "es": "Formato"
+    },
+    "dcat_mediaType": {
+      "en": "Media Type",
+      "es": "Tipo de medio"
+    },
+    "dct_format_vocabulary": {
+      "en": "Format Vocabulary",
+      "es": "Vocabulario de formato"
+    },
+    "dct_mediaType_vocabulary": {
+      "en": "Media Type Vocabulary",
+      "es": "Vocabulario de tipo de medio"
+    },
+    "dct_format_nonproprietary": {
+      "en": "Non-proprietary Format",
+      "es": "Formato no propietario"
+    },
+    "dct_format_machinereadable": {
+      "en": "Machine-readable Format",
+      "es": "Formato legible por máquina"
+    },
+    "dcat_ap_compliance": {
+      "en": "DCAT-AP Compliance",
+      "es": "Conformidad con DCAT-AP"
+    },
+    "dcat_ap_es_compliance": {
+      "en": "DCAT-AP-ES Compliance",
+      "es": "Conformidad con DCAT-AP-ES"
+    },
+    "nti_risp_compliance": {
+      "en": "NTI-RISP Compliance",
+      "es": "Conformidad con NTI-RISP"
+    },
+    "dct_license": {
+      "en": "License",
+      "es": "Licencia"
+    },
+    "dct_license_vocabulary": {
+      "en": "License Vocabulary",
+      "es": "Vocabulario de licencia"
+    },
+    "dct_accessRights": {
+      "en": "Access Rights",
+      "es": "Derechos de acceso"
+    },
+    "dct_accessRights_vocabulary": {
+      "en": "Access Rights Vocabulary",
+      "es": "Vocabulario de derechos de acceso"
+    },
+    "dcat_contactPoint": {
+      "en": "Contact Point",
+      "es": "Punto de contacto"
+    },
+    "dct_publisher": {
+      "en": "Publisher",
+      "es": "Editor"
+    },
+    "dct_rights": {
+      "en": "Rights",
+      "es": "Derechos"
+    },
+    "dcat_byteSize": {
+      "en": "Byte Size",
+      "es": "Tamaño en bytes"
+    },
+    "dct_issued": {
+      "en": "Issued Date",
+      "es": "Fecha de emisión"
+    },
+    "dct_modified": {
+      "en": "Modified Date",
+      "es": "Fecha de modificación"
+    },
+    "dct_format_vocabulary_nti_risp": {
+      "en": "Format Vocabulary (NTI-RISP)",
+      "es": "Vocabulario de formato (NTI-RISP)"
+    }
+  },
+  "app_info": {
+    "name": "Metadata Quality APP",
+    "version": "1.0.0",
+    "repository": "https://github.com/mjanez/metadata-quality-stack",
+    "url": "https://mjanez.github.io/metadata-quality-stack/",
+    "see_also": "https://github.com/mjanez/metadata-quality-stack/blob/feature/main/react-app/README.md",
+    "description": "Metadata Quality Stack is a comprehensive toolkit for analysing metadata quality. It implements the European Data Portal's MQA methodology, uses shacl-engine for SHACL validation and rdfxml-streaming-parser for efficient streaming RDF parsing and metric processing, and is built with React."
+  }
+}

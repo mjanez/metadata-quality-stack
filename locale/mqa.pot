@@ -282,3 +282,15 @@ msgstr ""
 
 msgid "Detailed metrics for each dimension showing count, percentage, and points"
 msgstr ""
+
+msgid "Excellent"
+msgstr ""
+
+msgid "Good"
+msgstr ""
+
+msgid "Sufficient"
+msgstr ""
+
+msgid "Bad"
+msgstr ""

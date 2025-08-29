@@ -12,7 +12,8 @@ The assessment is based on FAIR+C principles:
 - **C**ontextuality
 """,
         "es": """
-Esta herramienta evalúa la calidad de los metadatos basándose en la metodología de Evaluación de Calidad de Metadatos ([MQA](https://data.europa.eu/mqa/methodology?locale=es)) del Portal de Datos Europeo.
+Esta herramienta evalúa la calidad de los metadatos basándose en la metodología de Evaluación de Calidad de Metadatos ([MQA](https://data.europa.eu/mqa/methodology?locale=es)) del portal oficial de datos europeos | data.europa.eu
+.
 
 La evaluación se basa en los principios FAIR+C:
 - **D**escubrimiento (*Findability*)
@@ -46,6 +47,68 @@ La evaluación se basa en los principios FAIR+C:
         "es": "[Más información sobre MQA](https://data.europa.eu/mqa/methodology?locale=es)"
     }
 }
+
+# Añadir esta estructura para las tablas de calificación por perfil
+RATING_TABLES = {
+    "dcat_ap": {
+        "en": """
+| Rating | Points |
+|--------|--------|
+| Excellent | 351-405 |
+| Good | 221-350 |
+| Sufficient | 121-220 |
+| Bad | 0-120 |
+""",
+        "es": """
+| Calificación | Puntos |
+|------------|--------|
+| Excelente | 351-405 |
+| Bueno | 221-350 |
+| Suficiente | 121-220 |
+| Malo | 0-120 |
+"""
+    },
+    "dcat_ap_es": {
+        "en": """
+| Rating | Points |
+|--------|--------|
+| Excellent | 351-405 |
+| Good | 221-350 |
+| Sufficient | 121-220 |
+| Bad | 0-120 |
+""",
+        "es": """
+| Calificación | Puntos |
+|------------|--------|
+| Excelente | 351-405 |
+| Bueno | 221-350 |
+| Suficiente | 121-220 |
+| Malo | 0-120 |
+"""
+    },
+    "nti_risp": {
+        "en": """
+| Rating | Points |
+|--------|--------|
+| Excellent | 269-310 |
+| Good | 169-260 |
+| Sufficient | 93-170 |
+| Bad | 0-90 |
+""",
+        "es": """
+| Calificación | Puntos |
+|------------|--------|
+| Excelente | 269-310 |
+| Bueno | 169-260 |
+| Suficiente | 93-170 |
+| Malo | 0-90 |
+"""
+    }
+}
+
+# Función para obtener la tabla de calificación según el perfil y el idioma
+def get_rating_table(profile, language):
+    return RATING_TABLES.get(profile, RATING_TABLES["dcat_ap_es"]).get(language, "en")
 
 METRIC_LABELS = {
     # Findability metrics
@@ -178,4 +241,35 @@ FORMAT_MIME_TYPES = {
     "Turtle (TTL)": "text/turtle",
     "JSON-LD": "application/ld+json",
     "N-Triples": "application/n-triples"
+}
+
+# Añadir esta constante junto con las otras definiciones
+MAX_SCORES = {
+    "dcat_ap": 405,
+    "dcat_ap_es": 405,
+    "nti_risp": 310
+}
+
+DIMENSION_MAX_SCORES = {
+    "dcat_ap": {
+        "findability": 100,
+        "accessibility": 100,
+        "interoperability": 110,
+        "reusability": 75,
+        "contextuality": 20
+    },
+    "dcat_ap_es": {
+        "findability": 100,
+        "accessibility": 100,
+        "interoperability": 110,
+        "reusability": 75,
+        "contextuality": 20
+    },
+    "nti_risp": {
+        "findability": 100,
+        "accessibility": 50,
+        "interoperability": 105,
+        "reusability": 40,
+        "contextuality": 15
+    }
 }
