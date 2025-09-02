@@ -120,10 +120,10 @@ const ValidationTabs: React.FC<ValidationTabsProps> = ({
               type="button"
               role="tab"
               title={getTabTitle(tab)}
-              style={{ maxWidth: '200px' }}
+              style={{ maxWidth: '300px' }}
             >
               {getTabIcon(tab)}
-              <span className="text-truncate me-2" style={{ maxWidth: '120px' }}>
+              <span className="text-truncate me-2" style={{ maxWidth: '200px' }}>
                 {tab.name}
               </span>
               {getTabBadge(tab)}
