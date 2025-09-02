@@ -200,7 +200,8 @@
     "json_ld_dqv": "JSON-LD (DQV)",
     "json_ld_dqv_title": "Descargar como JSON-LD con vocabulario DQV",
     "source_rdf": "RDF de origen",
-    "source_rdf_title": "Ver contenido RDF de origen"
+    "source_rdf_title": "Ver contenido RDF de origen",
+    "validate_another_dataset": "Validar otro conjunto de datos"
   },
   "quality_rating": {
     "excellent": "Excelente",

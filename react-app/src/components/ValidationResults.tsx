@@ -571,7 +571,7 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
                       onClick={onReset}
                     >
                       <i className="bi bi-arrow-left me-2"></i>
-                      Validate Another Dataset
+                      {t('validation_results.validate_another_dataset')}
                     </button>
                   </div>
                 </div>
