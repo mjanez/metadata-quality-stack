@@ -10,15 +10,16 @@ export function detectRDFFormat(content: string): RDFFormat {
 
   const trimmedContent = content.trim();
   
-  // Check for XML declaration or RDF/XML structure
+  // Check for XML declaration or RDF/XML structure FIRST (most specific)
   if (trimmedContent.startsWith('<?xml') || 
       trimmedContent.includes('<rdf:RDF') || 
       trimmedContent.includes('<RDF') ||
-      /<[a-zA-Z][^>]*xmlns[^>]*>/.test(trimmedContent)) {
+      /<[a-zA-Z][^>]*xmlns[^>]*rdf/.test(trimmedContent) ||
+      /<[a-zA-Z][^>]*xmlns[^>]*="[^"]*rdf[^"]*"/.test(trimmedContent)) {
     return 'rdfxml';
   }
   
-  // Check for JSON-LD structure
+  // Check for JSON-LD structure SECOND (also very specific)
   if ((trimmedContent.startsWith('{') && trimmedContent.endsWith('}')) ||
       (trimmedContent.startsWith('[') && trimmedContent.endsWith(']'))) {
     try {
@@ -33,38 +34,39 @@ export function detectRDFFormat(content: string): RDFFormat {
           return 'jsonld';
         }
       }
-      // If it's valid JSON but not JSON-LD, still might be JSON-LD without context
+      // If it's valid JSON but doesn't have JSON-LD keywords, assume it might still be JSON-LD
       return 'jsonld';
     } catch {
       // Not valid JSON, continue checking other formats
     }
   }
   
-  // Check for N-Triples (simple triple format)
-  const lines = trimmedContent.split('\n').map(line => line.trim()).filter(line => line);
-  if (lines.length > 0) {
-    const ntriplesPattern = /^<[^>]+>\s+<[^>]+>\s+(?:<[^>]+>|"[^"]*"(?:\^\^<[^>]+>)?|\w+)\s*\.?\s*$/;
-    const validNTriplesLines = lines.filter(line => 
-      line.startsWith('#') || // Comments
-      ntriplesPattern.test(line)
-    );
-    
-    // If most lines look like N-Triples, it's probably N-Triples
-    if (validNTriplesLines.length / lines.length > 0.8) {
-      return 'ntriples';
+  // Check for N-Triples FIRST (more specific pattern - absolute URIs)
+  // N-Triples starts with absolute URIs and doesn't use prefixes
+  if (trimmedContent.startsWith('<http') || trimmedContent.startsWith('<urn:')) {
+    const lines = trimmedContent.split('\n').map(line => line.trim()).filter(line => line && !line.startsWith('#'));
+    if (lines.length > 0) {
+      const ntriplesPattern = /^<[^>]+>\s+<[^>]+>\s+(?:<[^>]+>|"[^"]*"(?:\^\^<[^>]+>)?|[^\s]+)\s*\.\s*$/;
+      const validNTriplesLines = lines.filter(line => ntriplesPattern.test(line));
+      
+      // If most lines look like N-Triples, it's probably N-Triples
+      if (validNTriplesLines.length / lines.length > 0.7) {
+        return 'ntriples';
+      }
     }
   }
   
-  // Check for Turtle/TTL features
+  // Check for Turtle/TTL features (prefixes, shortened URIs)
   if (trimmedContent.includes('@prefix') || 
       trimmedContent.includes('@base') ||
       trimmedContent.includes('PREFIX') ||
       trimmedContent.includes('BASE') ||
-      /\w+:\w+/.test(trimmedContent)) { // Prefixed names
+      /^\w+:\s*</.test(trimmedContent) || // prefix: <uri>
+      /\w+:\w+\s/.test(trimmedContent)) { // prefixed names with space
     return 'turtle';
   }
   
-  // Default fallback
+  // Default fallback to turtle
   return 'turtle';
 }
 

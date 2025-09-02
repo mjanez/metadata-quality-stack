@@ -8,15 +8,15 @@
           "icon": "img/icons/eur.svg",
           "url": "https://semiceu.github.io/DCAT-AP/",
           "sampleUrl": "https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/examples/ttl/1.0.0/E_DCAT-AP-ES_Catalog.ttl",
-          "shaclFiles": [
-            "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_deprecateduris.ttl",
+            "shaclFiles": [
             "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_imports.ttl",
-            "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_mdr-vocabularies.shape.ttl",
             "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_mdr_imports.ttl",
-            "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_range.ttl",
+            "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_mdr-vocabularies.shape.ttl",
+            "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_deprecateduris.ttl",
             "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_shapes.ttl",
+            "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_range.ttl",
             "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_shapes_recommended.ttl"
-          ],
+            ],
           "dimensions": {
             "findability": { "maxScore": 100 },
             "accessibility": { "maxScore": 100 },
@@ -78,7 +78,7 @@
       "versions": {
         "2013": {
           "name": "NTI-RISP 2013",
-          "maxScore": 310,
+          "maxScore": 305,
           "icon": "img/icons/esp.svg",
           "url": "https://datosgobes.github.io/NTI-RISP/",
           "sampleUrl": "https://raw.githubusercontent.com/datosgobes/NTI-RISP/refs/heads/main/examples/rdf/E_NTI-RISP_Catalog.rdf",
@@ -94,7 +94,7 @@
           "dimensions": {
             "findability": { "maxScore": 100 },
             "accessibility": { "maxScore": 50 },
-            "interoperability": { "maxScore": 105 },
+            "interoperability": { "maxScore": 100 },
             "reusability": { "maxScore": 40 },
             "contextuality": { "maxScore": 15 }
           }
@@ -188,8 +188,8 @@
       ],
       "interoperability": [
         { "id": "dct_format", "weight": 20, "property": "dcterms:format" },
-        { "id": "dcat_mediaType", "weight": 10, "property": "dcat:mediaType" },
         { "id": "dct_format_vocabulary_nti_risp", "weight": 5, "property": "dcterms:format" },
+        { "id": "dct_mediaType_vocabulary_nti_risp", "weight": 5, "property": "dcterms:format" },
         { "id": "dct_format_nonproprietary", "weight": 20, "property": "dcterms:format" },
         { "id": "dct_format_machinereadable", "weight": 20, "property": "dcterms:format" },
         { "id": "nti_risp_compliance", "weight": 30, "property": "rdf:type" }
@@ -314,6 +314,10 @@
     "dct_format_vocabulary_nti_risp": {
       "en": "Format Vocabulary (NTI-RISP)",
       "es": "Vocabulario de formato (NTI-RISP)"
+    },
+    "dct_mediaType_vocabulary_nti_risp": {
+      "en": "Media Type Vocabulary (NTI-RISP)",
+      "es": "Vocabulario de tipo de medio (NTI-RISP)"
     }
   },
   "app_info": {

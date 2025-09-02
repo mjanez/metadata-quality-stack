@@ -39,16 +39,22 @@ function App() {
       if (input.source === 'url' && input.url) {
         console.log('🌐 Fetching content from URL:', input.url);
         content = await RDFService.fetchFromUrl(input.url);
-        // Auto-detect format from URL extension or content
-        originalFormat = 'auto';
+        // Auto-detect format from fetched content
+        originalFormat = await import('./utils/formatDetection').then(module => module.detectRDFFormat(content));
+        console.log(`🔍 Auto-detected format from URL content: ${originalFormat}`);
       } else {
         console.log('📝 Using direct text content');
         content = input.content;
         originalFormat = input.format || 'auto';
+        // Resolve 'auto' format if needed
+        if (originalFormat === 'auto') {
+          originalFormat = await import('./utils/formatDetection').then(module => module.detectRDFFormat(content));
+          console.log(`🔍 Auto-detected format from text content: ${originalFormat}`);
+        }
       }
       
       // Validate syntax of original content first
-      console.log('� Validating original content syntax');
+      console.log('🔍 Validating original content syntax');
       const mqaService = MQAService.getInstance();
       const syntaxValidation = await mqaService.validateRDF(content, originalFormat);
       
@@ -56,9 +62,19 @@ function App() {
         throw new Error(`RDF Syntax Error${syntaxValidation.lineNumber ? ` at line ${syntaxValidation.lineNumber}` : ''}: ${syntaxValidation.error}`);
       }
       
+      // Check if this is JSON-LD and provide helpful message
+      if (originalFormat === 'jsonld') {
+        throw new Error(
+          'JSON-LD format is detected but not fully supported for quality analysis yet. ' +
+          'Please convert your N-Triples to Turtle or RDF/XML format and then paste the converted content. Using tools like:' +
+          'https://www.easyrdf.org/converter' +
+          'https://json-ld.org/playground/'
+        );
+      }
+      
       // Normalize content to Turtle format for quality analysis
-      console.log('� Normalizing content to Turtle format');
-      const normalizedContent = await RDFService.normalizeToTurtle(content, false);
+      console.log('🔄 Normalizing content to Turtle format');
+      const normalizedContent = await RDFService.normalizeToTurtle(content, false, originalFormat);
       
       // Calculate quality with MQA + SHACL (using normalized content, skip syntax validation since we already did it)
       console.log('📊 Calculating quality metrics with SHACL validation');
@@ -190,7 +206,27 @@ function App() {
           {error && (
             <div className="alert alert-danger alert-dismissible fade show" role="alert">
               <i className="bi bi-exclamation-triangle-fill me-2"></i>
-              <strong>{t('common.error')}:</strong> {error}
+              <strong>{t('common.error')}:</strong>
+              <div className="mt-2">
+                {error.split(/\n|(?=https?:\/\/)/).map((part, index) => {
+                  if (part.match(/^https?:\/\/[^\s]+/)) {
+                    return (
+                      <div key={index}>
+                        <a 
+                          href={part.trim()} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-decoration-none"
+                        >
+                          <i className="bi bi-link-45deg me-1"></i>
+                          {part.trim()}
+                        </a>
+                      </div>
+                    );
+                  }
+                  return <span key={index}>{part}</span>;
+                })}
+              </div>
               <button 
                 type="button" 
                 className="btn-close" 

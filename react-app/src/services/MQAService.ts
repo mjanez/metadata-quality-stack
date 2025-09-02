@@ -10,6 +10,13 @@ export class MQAService {
   private config: MQAConfig;
   private vocabularies: Map<string, VocabularyItem[]> = new Map();
 
+  // RDF URI constants for better maintainability
+  private static readonly RDF_URIS = {
+    RDFS_LABEL: 'http://www.w3.org/2000/01/rdf-schema#label',
+    RDF_VALUE: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#value',
+    RDF_TYPE: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+  } as const;
+
   private constructor() {
     this.config = mqaConfig as unknown as MQAConfig;
   }
@@ -288,22 +295,140 @@ export class MQAService {
   /**
    * Check if property exists in store
    */
-  private hasProperty(store: N3Store, property: string): { found: boolean; values: string[] } {
+  private hasProperty(store: N3Store, property: string, profile?: ValidationProfile): { found: boolean; values: string[] } {
     const quads = store.getQuads();
     const matchingQuads = quads.filter(quad => quad.predicate.value === property);
-    const values = matchingQuads.map(quad => {
-      if (quad.object.termType === 'Literal') {
-        return quad.object.value;
-      } else if (quad.object.termType === 'NamedNode') {
-        return quad.object.value;
-      }
-      return quad.object.value;
+    const values: string[] = [];
+    
+    matchingQuads.forEach(quad => {
+      const extractedValues = this.extractValuesFromQuad(quad, store, property, profile);
+      values.push(...extractedValues);
     });
+
+    // Remove duplicates
+    const uniqueValues = values.filter((value, index) => values.indexOf(value) === index);
 
     return {
       found: matchingQuads.length > 0,
-      values: values
+      values: uniqueValues
     };
+  }
+
+  /**
+   * Extract values from a quad based on object type and profile
+   */
+  private extractValuesFromQuad(quad: any, store: N3Store, property: string, profile?: ValidationProfile): string[] {
+    const values: string[] = [];
+
+    switch (quad.object.termType) {
+      case 'Literal':
+        values.push(quad.object.value);
+        break;
+        
+      case 'NamedNode':
+        values.push(quad.object.value);
+        // Extract nested properties for specific profiles
+        if (profile === 'nti_risp') {
+          values.push(...this.extractProfileSpecificProperties(quad.object, store, profile));
+        }
+        break;
+        
+      case 'BlankNode':
+        const blankNodeValues = this.extractBlankNodeValues(quad.object, store, property, profile);
+        values.push(...blankNodeValues);
+        break;
+        
+      default:
+        values.push(quad.object.value);
+        break;
+    }
+
+    return values;
+  }
+
+  /**
+   * Extract values from BlankNode based on profile
+   */
+  private extractBlankNodeValues(blankNode: any, store: N3Store, property: string, profile?: ValidationProfile): string[] {
+    console.debug(`🔍 Found BlankNode for property ${property}: ${blankNode.value}`);
+    
+    if (profile === 'nti_risp') {
+      return this.extractNTIRISPBlankNodeValues(blankNode, store);
+    } else {
+      // For other profiles, return the BlankNode ID (existing behavior)
+      return [blankNode.value];
+    }
+  }
+
+  /**
+   * Extract nested properties for specific profiles
+   */
+  private extractProfileSpecificProperties(node: any, store: N3Store, profile?: ValidationProfile): string[] {
+    switch (profile) {
+      case 'nti_risp':
+        return this.extractNTIRISPProperties(node, store);
+      
+      // Future profiles can be added here
+      case 'dcat_ap':
+      case 'dcat_ap_es':
+      default:
+        return []; // No special extraction for other profiles
+    }
+  }
+
+  /**
+   * Extract properties for NTI-RISP profile (unified method)
+   */
+  private extractNTIRISPProperties(node: any, store: N3Store): string[] {
+    return this.extractRDFProperties(node, store, [
+      MQAService.RDF_URIS.RDFS_LABEL,
+      MQAService.RDF_URIS.RDF_VALUE
+    ], 'NTI-RISP');
+  }
+
+  /**
+   * Extract values from BlankNode for NTI-RISP profile
+   * Handles IMT (Internet Media Type) structures with rdfs:label and rdf:value
+   */
+  private extractNTIRISPBlankNodeValues(blankNode: any, store: N3Store): string[] {
+    return this.extractNTIRISPProperties(blankNode, store);
+  }
+
+  /**
+   * Generic method to extract RDF properties from a node
+   */
+  private extractRDFProperties(node: any, store: N3Store, propertyUris: string[], context: string = ''): string[] {
+    const values: string[] = [];
+    
+    propertyUris.forEach(propertyUri => {
+      const quads = store.getQuads().filter(q => 
+        q.subject.equals(node) && 
+        q.predicate.value === propertyUri
+      );
+      
+      quads.forEach(quad => {
+        if (quad.object.termType === 'Literal') {
+          values.push(quad.object.value);
+          const propertyName = this.getPropertyDisplayName(propertyUri);
+          console.debug(`🏷️ Found ${propertyName} from ${context}: ${quad.object.value}`);
+        }
+      });
+    });
+
+    return values;
+  }
+
+  /**
+   * Get display name for RDF property URI
+   */
+  private getPropertyDisplayName(propertyUri: string): string {
+    const propertyNames: { [key: string]: string } = {
+      [MQAService.RDF_URIS.RDFS_LABEL]: 'rdfs:label',
+      [MQAService.RDF_URIS.RDF_VALUE]: 'rdf:value',
+      [MQAService.RDF_URIS.RDF_TYPE]: 'rdf:type'
+    };
+    
+    return propertyNames[propertyUri] || propertyUri.split('#').pop() || propertyUri;
   }
 
   /**
@@ -333,13 +458,13 @@ export class MQAService {
     try {
       // Convert short property names to full URIs if needed
       const fullProperty = this.expandProperty(property);
-      const propertyCheck = this.hasProperty(store, fullProperty);
+      const propertyCheck = this.hasProperty(store, fullProperty, profile);
       found = propertyCheck.found;
       values = propertyCheck.values;
 
       if (found) {
         // Enhanced scoring based on metric type
-        score = await this.calculateMetricScore(id, values, weight);
+        score = await this.calculateMetricScore(id, values, weight, profile);
       }
     } catch (error) {
       console.warn(`Warning evaluating metric ${id}:`, error);
@@ -363,7 +488,7 @@ export class MQAService {
   /**
    * Calculate score for a specific metric based on its type and values
    */
-  private async calculateMetricScore(metricId: string, values: string[], maxWeight: number): Promise<number> {
+  private async calculateMetricScore(metricId: string, values: string[], maxWeight: number, profile?: ValidationProfile): Promise<number> {
     if (!values || values.length === 0) {
       return 0;
     }
@@ -378,6 +503,15 @@ export class MQAService {
 
       case 'dcat_mediaType':
         return await this.checkVocabularyMatch(values, 'media_types') ? maxWeight : 0;
+
+      // NTI-RISP specific vocabulary metrics
+      case 'dct_format_vocabulary_nti_risp':
+        console.debug(`🏷️ Evaluating NTI-RISP format vocabulary for values:`, values);
+        return await this.checkNTIRISPVocabularyMatch(values, 'file_types', profile) ? maxWeight : 0;
+        
+      case 'dct_mediaType_vocabulary_nti_risp':
+        console.debug(`📱 Evaluating NTI-RISP media type vocabulary for values:`, values);
+        return await this.checkNTIRISPVocabularyMatch(values, 'media_types', profile) ? maxWeight : 0;
 
       case 'dct_format_nonproprietary':
         return await this.checkVocabularyMatch(values, 'non_proprietary') ? maxWeight : 0;
@@ -435,7 +569,7 @@ export class MQAService {
   }
 
   /**
-   * Check if any value matches vocabulary entries
+   * Check if any value matches entries in the specified vocabulary
    */
   private async checkVocabularyMatch(values: string[], vocabularyName: string): Promise<boolean> {
     const vocabulary = await this.loadVocabulary(vocabularyName);
@@ -454,23 +588,107 @@ export class MQAService {
         // Compare with label (for human-readable matching)
         const labelMatch = item.label && this.normalizeValue(item.label) === this.normalizeValue(value);
         
-        if (uriMatch || valueMatch || labelMatch) {
+        // Special handling for media types: extract MIME type from IANA URIs
+        let mimeTypeMatch = false;
+        if (vocabularyName === 'media_types' && item.uri) {
+          const mimeTypeRegex = /http:\/\/www\.iana\.org\/assignments\/media-types\/(.+)/;
+          const match = item.uri.match(mimeTypeRegex);
+          if (match) {
+            const extractedMimeType = match[1];
+            mimeTypeMatch = this.normalizeValue(extractedMimeType) === this.normalizeValue(value);
+          }
+        }
+        
+        if (uriMatch || valueMatch || labelMatch || mimeTypeMatch) {
           console.debug(`✅ Found match for '${value}' in vocabulary '${vocabularyName}': ${item.uri || item.value} (${item.label})`);
           return true;
         }
         return false;
       });
+      
+      if (match) {
+        console.debug(`✅ Found match for value in vocabulary '${vocabularyName}'`);
+      } else {
+        console.debug(`❌ No match found for value in vocabulary '${vocabularyName}'`);
+      }
+      
       return match;
     });
     
-    if (!result) {
-      console.debug(`❌ No matches found for values: ${validValues.join(', ')} in vocabulary '${vocabularyName}'`);
-      // Debug: show first few vocabulary entries for troubleshooting
-      if (vocabulary.length > 0) {
-        console.debug(`📚 Sample vocabulary entries for '${vocabularyName}':`, vocabulary.slice(0, 3));
-      }
+    console.debug(`🎯 Vocabulary match result for '${vocabularyName}': ${result}`);
+    return result;
+  }
+
+  /**
+   * Check vocabulary match specifically for NTI-RISP metrics
+   * This method is optimized for IMT (Internet Media Type) structures with BlankNodes
+   */
+  private async checkNTIRISPVocabularyMatch(values: string[], vocabularyName: string, profile?: ValidationProfile): Promise<boolean> {
+    if (profile !== 'nti_risp') {
+      // Fall back to standard vocabulary matching for non-NTI-RISP profiles
+      return this.checkVocabularyMatch(values, vocabularyName);
     }
+
+    console.debug(`🏷️ NTI-RISP vocabulary check for '${vocabularyName}' with values:`, values);
     
+    const vocabulary = await this.loadVocabulary(vocabularyName);
+    
+    // Filter out empty or invalid values
+    const validValues = values.filter(value => value && typeof value === 'string' && value.trim().length > 0);
+    
+    console.debug(`🔍 Checking ${validValues.length} NTI-RISP values against vocabulary '${vocabularyName}' (${vocabulary.length} entries)`);
+    
+    const result = validValues.some(value => {
+      const match = vocabulary.some(item => {
+        // Compare with URI (primary field in JSONL files)
+        const uriMatch = item.uri && this.normalizeValue(item.uri) === this.normalizeValue(value);
+        // Compare with legacy value field (backwards compatibility)
+        const valueMatch = item.value && this.normalizeValue(item.value) === this.normalizeValue(value);
+        // Compare with label (for human-readable matching - important for NTI-RISP)
+        const labelMatch = item.label && this.normalizeValue(item.label) === this.normalizeValue(value);
+        
+        // Enhanced MIME type matching for NTI-RISP media types
+        let mimeTypeMatch = false;
+        if (vocabularyName === 'media_types' && item.uri) {
+          const mimeTypeRegex = /http:\/\/www\.iana\.org\/assignments\/media-types\/(.+)/;
+          const uriMatch = item.uri.match(mimeTypeRegex);
+          if (uriMatch) {
+            const extractedMimeType = uriMatch[1];
+            mimeTypeMatch = this.normalizeValue(extractedMimeType) === this.normalizeValue(value);
+          }
+        }
+        
+        // Enhanced file type matching for NTI-RISP file formats
+        let fileTypeMatch = false;
+        if (vocabularyName === 'file_types') {
+          // Check common format abbreviations (case insensitive)
+          const normalizedValue = this.normalizeValue(value);
+          const normalizedLabel = this.normalizeValue(item.label || '');
+          const normalizedUri = this.normalizeValue(item.uri || '');
+          
+          // Match common patterns like CSV, JSON, PDF, etc.
+          fileTypeMatch = normalizedLabel.includes(normalizedValue) || 
+                        normalizedValue.includes(normalizedLabel) ||
+                        normalizedUri.includes(normalizedValue);
+        }
+        
+        if (uriMatch || valueMatch || labelMatch || mimeTypeMatch || fileTypeMatch) {
+          console.debug(`✅ NTI-RISP match found for '${value}' in vocabulary '${vocabularyName}': ${item.uri || item.value} (${item.label})`);
+          return true;
+        }
+        return false;
+      });
+      
+      if (match) {
+        console.debug(`✅ NTI-RISP vocabulary match found for value '${value}' in vocabulary '${vocabularyName}'`);
+      } else {
+        console.debug(`❌ No NTI-RISP vocabulary match found for value '${value}' in vocabulary '${vocabularyName}'`);
+      }
+      
+      return match;
+    });
+    
+    console.debug(`🎯 NTI-RISP vocabulary match result for '${vocabularyName}': ${result}`);
     return result;
   }
 

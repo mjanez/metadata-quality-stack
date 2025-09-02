@@ -25,15 +25,15 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
   useEffect(() => {
     setSyntaxValidation(null);
     
-    // Auto-detect format when content changes (only if currently set to auto)
-    if (textContent.trim() && format === 'auto') {
+    // Auto-detect format when content changes
+    if (textContent.trim()) {
       const detectedFormat = detectRDFFormat(textContent);
-      if (detectedFormat !== 'auto') {
+      if (detectedFormat !== 'auto' && detectedFormat !== format) {
         setFormat(detectedFormat);
         console.debug(`🔍 Auto-detected RDF format: ${detectedFormat}`);
       }
     }
-  }, [textContent, format]);
+  }, [textContent]); // Removed format dependency to allow updates
 
   // Helper functions to handle the new configuration format
   const getProfileConfig = (selectedProfile: ValidationProfile) => {
@@ -87,7 +87,7 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
 
     const input: ValidationInput = {
       content: activeTab === 'url' ? '' : textContent, // No poner URL en content
-      format,
+      format: format === 'auto' ? detectRDFFormat(textContent) : format,
       source: activeTab,
       url: activeTab === 'url' ? url : undefined
     };
@@ -116,7 +116,8 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
     setSyntaxValidation(null);
 
     try {
-      const result = await MQAService.validateRDF(textContent, format);
+      const resolvedFormat = format === 'auto' ? detectRDFFormat(textContent) : format;
+      const result = await MQAService.validateRDF(textContent, resolvedFormat);
       setSyntaxValidation(result);
       
       if (result.valid) {
@@ -299,7 +300,7 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
                     ) : (
                       <>
                         <i className="bi bi-check-circle me-2"></i>
-                        {t('form.check_syntax')} ({getFormatDisplayName(format)})
+                        {t('form.check_syntax')} ({getFormatDisplayName(format === 'auto' ? detectRDFFormat(textContent) : format)})
                       </>
                     )}
                   </button>

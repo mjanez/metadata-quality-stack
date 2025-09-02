@@ -113,11 +113,96 @@ export class RDFService {
       }
       
       const content = await response.text();
-      console.log(`✅ Successfully fetched ${content.length} characters from URL`);
+      console.debug('✅ Content successfully fetched from URL');
       return content;
+      
     } catch (error) {
       console.error('❌ Failed to fetch from URL:', error);
       throw new Error(`Failed to fetch from URL: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Convert N-Triples to Turtle
+   */
+  public static async convertNTriplesToTurtle(ntriplesContent: string): Promise<string> {
+    try {
+      console.debug('🔄 Converting N-Triples to Turtle...');
+      
+      const parser = new N3Parser({ format: 'application/n-triples' });
+      const store = new N3Store();
+      
+      return new Promise((resolve, reject) => {
+        parser.parse(ntriplesContent, (error, quad, prefixes) => {
+          if (error) {
+            console.error('❌ N-Triples Parser error:', error);
+            reject(new Error(`N-Triples parsing failed: ${error.message}`));
+          } else if (quad) {
+            store.addQuad(quad);
+          } else {
+            // End of parsing
+            try {
+              const writer = new N3Writer({
+                prefixes: {
+                  rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+                  rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
+                  dcat: 'http://www.w3.org/ns/dcat#',
+                  dcterms: 'http://purl.org/dc/terms/',
+                  foaf: 'http://xmlns.com/foaf/0.1/',
+                  vcard: 'http://www.w3.org/2006/vcard/ns#',
+                  adms: 'http://www.w3.org/ns/adms#'
+                }
+              });
+
+              const quads = store.getQuads();
+              console.log(`✅ Parsed ${quads.length} quads from N-Triples`);
+              
+              writer.addQuads(quads);
+              writer.end((error, result) => {
+                if (error) {
+                  reject(error);
+                } else {
+                  console.debug('✅ N-Triples successfully converted to Turtle');
+                  resolve(result);
+                }
+              });
+            } catch (conversionError) {
+              reject(conversionError);
+            }
+          }
+        });
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to convert N-Triples to Turtle:', error);
+      throw new Error(`N-Triples conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Convert JSON-LD to Turtle using N3Parser
+   */
+  public static async convertJsonLdToTurtle(jsonldContent: string): Promise<string> {
+    try {
+      console.debug('🔄 Converting JSON-LD to Turtle...');
+      
+      // First validate that it's valid JSON
+      const parsed = JSON.parse(jsonldContent);
+      
+      // For now, JSON-LD conversion is complex without proper library
+      // We'll provide a basic error message and suggest using Turtle format
+      throw new Error(
+        'JSON-LD to Turtle conversion is not fully supported yet. ' +
+        'Please convert your JSON-LD to Turtle format using an external tool like: ' +
+        'https://www.easyrdf.org/converter or use Turtle format directly.'
+      );
+      
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        throw new Error(`Invalid JSON-LD format: ${error.message}`);
+      }
+      console.error('❌ JSON-LD conversion error:', error);
+      throw error;
     }
   }
 
@@ -189,19 +274,29 @@ export class RDFService {
   /**
    * Normalize RDF content to Turtle format
    */
-  public static async normalizeToTurtle(content: string, isUrl: boolean = false): Promise<string> {
+  public static async normalizeToTurtle(content: string, isUrl: boolean = false, originalFormat?: string): Promise<string> {
     if (isUrl) {
       content = await this.fetchFromUrl(content);
     }
 
-    const format = this.detectFormat(content);
+    // Use provided format or auto-detect, resolve 'auto' to actual format
+    let format = originalFormat || this.detectFormat(content);
+    if (format === 'auto') {
+      format = this.detectFormat(content);
+    }
+    
+    console.debug(`🔄 Normalizing ${format} to Turtle...`);
     
     if (format === 'rdfxml') {
       return await this.convertRdfXmlToTurtle(content);
     } else if (format === 'turtle') {
       return content;
+    } else if (format === 'ntriples') {
+      return await this.convertNTriplesToTurtle(content);
+    } else if (format === 'jsonld') {
+      return await this.convertJsonLdToTurtle(content);
     } else {
-      throw new Error(`Unsupported RDF format: ${format}`);
+      throw new Error(`Unsupported RDF format: ${format}. Supported formats: rdfxml, turtle, ntriples, jsonld`);
     }
   }
 
