@@ -209,5 +209,21 @@
     "good": "Bueno", 
     "sufficient": "Suficiente",
     "poor": "Deficiente"
+  },
+  "tabs": {
+    "new": "Nueva validación",
+    "validating": "Validando...",
+    "error": "Error",
+    "close": "Cerrar pestaña",
+    "maxTabsReached": "Máximo {{max}} pestañas alcanzado"
+  },
+  "time": {
+    "justNow": "ahora mismo",
+    "minutesAgo": "hace {{count}} minuto",
+    "minutesAgo_plural": "hace {{count}} minutos",
+    "hoursAgo": "hace {{count}} hora", 
+    "hoursAgo_plural": "hace {{count}} horas",
+    "daysAgo": "hace {{count}} día",
+    "daysAgo_plural": "hace {{count}} días"
   }
 }

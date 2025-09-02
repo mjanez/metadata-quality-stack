@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'; // Import Bootstrap JS
 import './App.css';
 import ValidationForm from './components/ValidationForm';
 import ValidationResults from './components/ValidationResults';
+import ValidationTabs from './components/ValidationTabs';
 import LoadingSpinner from './components/LoadingSpinner';
 import LanguageSelector from './components/LanguageSelector';
 import ThemeToggle from './components/ThemeToggle';
@@ -12,21 +13,119 @@ import MQAInfoSidebar from './components/MQAInfoSidebar';
 import RDFService from './services/RDFService';
 import { MQAService } from './services/MQAService';
 import { SHACLValidationService } from './services/SHACLValidationService';
-import { ValidationResult, ExtendedValidationResult, ValidationProfile, ValidationInput, ProfileSelection } from './types';
+import { ValidationResult, ExtendedValidationResult, ValidationProfile, ValidationInput, ProfileSelection, ValidationTab, TabState } from './types';
 
 function App() {
   const { t } = useTranslation();
-  const [isValidating, setIsValidating] = useState(false);
-  const [result, setResult] = useState<ExtendedValidationResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedProfile, setSelectedProfile] = useState<ValidationProfile>('dcat_ap_es');
+  
+  // Multi-tab state management
+  const [tabState, setTabState] = useState<TabState>({
+    tabs: [
+      {
+        id: 'tab-1',
+        name: t('tabs.new'),
+        createdAt: new Date(),
+        isValidating: false,
+        result: null,
+        error: null
+      }
+    ],
+    activeTabId: 'tab-1',
+    nextTabId: 2
+  });
+  
   const [sidebarVisible, setSidebarVisible] = useState(true);
+  const maxTabs = 5;
+
+  // Get active tab
+  const activeTab = tabState.tabs.find(tab => tab.id === tabState.activeTabId);
+  const selectedProfile = activeTab?.result?.profile || 'dcat_ap_es';
+
+  // Tab management functions
+  const createNewTab = useCallback((): string => {
+    const newTabId = `tab-${tabState.nextTabId}`;
+    const newTab: ValidationTab = {
+      id: newTabId,
+      name: t('tabs.new'),
+      createdAt: new Date(),
+      isValidating: false,
+      result: null,
+      error: null
+    };
+    
+    setTabState(prev => ({
+      tabs: [...prev.tabs, newTab],
+      activeTabId: newTabId,
+      nextTabId: prev.nextTabId + 1
+    }));
+    
+    return newTabId;
+  }, [tabState.nextTabId, t]);
+
+  const selectTab = useCallback((tabId: string) => {
+    setTabState(prev => ({
+      ...prev,
+      activeTabId: tabId
+    }));
+  }, []);
+
+  const closeTab = useCallback((tabId: string) => {
+    setTabState(prev => {
+      const remainingTabs = prev.tabs.filter(tab => tab.id !== tabId);
+      
+      // If there are no tabs left, create a new one
+      if (remainingTabs.length === 0) {
+        const newTabId = `tab-${prev.nextTabId}`;
+        const newTab: ValidationTab = {
+          id: newTabId,
+          name: t('tabs.new'),
+          createdAt: new Date(),
+          isValidating: false,
+          result: null,
+          error: null
+        };
+        return {
+          tabs: [newTab],
+          activeTabId: newTabId,
+          nextTabId: prev.nextTabId + 1
+        };
+      }
+      
+      // If we're closing the active tab, select another one
+      let newActiveTabId = prev.activeTabId;
+      if (prev.activeTabId === tabId) {
+        newActiveTabId = remainingTabs[remainingTabs.length - 1].id;
+      }
+      
+      return {
+        ...prev,
+        tabs: remainingTabs,
+        activeTabId: newActiveTabId
+      };
+    });
+  }, [t]);
+
+  const updateTabState = useCallback((tabId: string, updates: Partial<ValidationTab>) => {
+    setTabState(prev => ({
+      ...prev,
+      tabs: prev.tabs.map(tab => 
+        tab.id === tabId ? { ...tab, ...updates } : tab
+      )
+    }));
+  }, []);
 
   const handleValidation = async (input: ValidationInput, profileSelection: ProfileSelection) => {
-    setIsValidating(true);
-    setError(null);
-    setResult(null);
-    setSelectedProfile(profileSelection.profile);
+    if (!activeTab) return;
+    
+    // Update tab to validating state
+    updateTabState(activeTab.id, {
+      isValidating: true,
+      error: null,
+      result: null,
+      name: input.source === 'url' && input.url ? 
+        new URL(input.url).hostname : 
+        `${t('profiles.' + profileSelection.profile)} - ${new Date().toLocaleTimeString()}`
+    });
 
     try {
       // Clear SHACL cache to ensure fresh loading of local files
@@ -94,31 +193,14 @@ function App() {
       };
       
       console.log('✅ Validation completed successfully');
-      setResult(validationResult);
       
-      // Auto-switch to results tab after successful validation
-      setTimeout(() => {
-        const resultsTab = document.getElementById('results-tab');
-        const formTab = document.getElementById('form-tab');
-        const resultsPane = document.getElementById('results-pane');
-        const formPane = document.getElementById('form-pane');
-        
-        if (resultsTab && formTab && resultsPane && formPane) {
-          // Remove active class from form tab and pane
-          formTab.classList.remove('active');
-          formTab.setAttribute('aria-selected', 'false');
-          formPane.classList.remove('show', 'active');
-          
-          // Add active class to results tab and pane
-          resultsTab.classList.add('active');
-          resultsTab.setAttribute('aria-selected', 'true');
-          resultsPane.classList.add('show', 'active');
-          
-          console.log('🎯 Switched to results tab');
-        } else {
-          console.warn('⚠️ Could not find tab elements for auto-switch');
-        }
-      }, 300); // Increased delay to ensure DOM is fully updated
+      // Update tab with results
+      updateTabState(activeTab.id, {
+        isValidating: false,
+        result: validationResult,
+        error: null
+      });
+      
     } catch (err) {
       console.error('❌ Validation error:', err);
       
@@ -136,15 +218,21 @@ function App() {
         }
       }
       
-      setError(errorMessage);
-    } finally {
-      setIsValidating(false);
+      // Update tab with error
+      updateTabState(activeTab.id, {
+        isValidating: false,
+        error: errorMessage
+      });
     }
   };
 
   const handleReset = () => {
-    setResult(null);
-    setError(null);
+    if (!activeTab) return;
+    updateTabState(activeTab.id, {
+      result: null,
+      error: null,
+      name: t('tabs.new')
+    });
   };
 
   const toggleSidebar = () => {
@@ -156,7 +244,7 @@ function App() {
       {/* MQA Info Sidebar */}
       <MQAInfoSidebar
         selectedProfile={selectedProfile}
-        validationResult={result}
+        validationResult={activeTab?.result || null}
         isVisible={sidebarVisible}
         onToggle={toggleSidebar}
       />
@@ -203,12 +291,23 @@ function App() {
 
         {/* Main Content Area */}
         <div className="container-fluid p-4">
-          {error && (
+          {/* Validation Tabs */}
+          <ValidationTabs
+            tabs={tabState.tabs}
+            activeTabId={tabState.activeTabId}
+            onTabSelect={selectTab}
+            onTabClose={closeTab}
+            onNewTab={createNewTab}
+            maxTabs={maxTabs}
+          />
+
+          {/* Active Tab Error Display */}
+          {activeTab?.error && (
             <div className="alert alert-danger alert-dismissible fade show" role="alert">
               <i className="bi bi-exclamation-triangle-fill me-2"></i>
               <strong>{t('common.error')}:</strong>
               <div className="mt-2">
-                {error.split(/\n|(?=https?:\/\/)/).map((part, index) => {
+                {activeTab.error.split(/\n|(?=https?:\/\/)/).map((part: string, index: number) => {
                   if (part.match(/^https?:\/\/[^\s]+/)) {
                     return (
                       <div key={index}>
@@ -230,130 +329,138 @@ function App() {
               <button 
                 type="button" 
                 className="btn-close" 
-                onClick={() => setError(null)}
+                onClick={() => activeTab && updateTabState(activeTab.id, { error: null })}
                 aria-label="Close"
               ></button>
             </div>
           )}
 
-          {isValidating && (
+          {/* Active Tab Loading State */}
+          {activeTab?.isValidating && (
             <div className="text-center my-5">
               <LoadingSpinner message={t('form.validating')} />
             </div>
           )}
 
-          {!isValidating && !result && (
-            <div className="row justify-content-center">
-              <div className="col-lg-8">
-                <div className="card shadow-sm">
-                  <div className="card-header bg-primary text-white">
-                    <h4 className="card-title mb-0">
-                      <i className="bi bi-clipboard-check me-2"></i>
-                      {t('common.title')}
-                    </h4>
-                    <p className="card-text mb-0 mt-2 opacity-75">
-                      {t('common.subtitle')}
-                    </p>
-                  </div>
-                  <div className="card-body">
-                    <ValidationForm onValidate={handleValidation} isLoading={isValidating} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {!isValidating && result && (
-            <div className="row">
-              <div className="col">
-                {/* Navigation Tabs */}
-                <ul className="nav nav-tabs mb-4" id="resultTabs" role="tablist">
-                  <li className="nav-item" role="presentation">
-                    <button 
-                      className="nav-link active" 
-                      id="form-tab" 
-                      data-bs-toggle="tab" 
-                      data-bs-target="#form-pane" 
-                      type="button" 
-                      role="tab" 
-                      aria-controls="form-pane" 
-                      aria-selected="true"
-                    >
-                      <i className="bi bi-clipboard-check me-2"></i>
-                      {t('navigation.validation')}
-                    </button>
-                  </li>
-                  <li className="nav-item" role="presentation">
-                    <button 
-                      className="nav-link" 
-                      id="results-tab" 
-                      data-bs-toggle="tab" 
-                      data-bs-target="#results-pane" 
-                      type="button" 
-                      role="tab" 
-                      aria-controls="results-pane" 
-                      aria-selected="false"
-                    >
-                      <i className="bi bi-graph-up me-2"></i>
-                      {t('navigation.results')}
-                      <span className="badge bg-primary ms-2">
-                        {result.quality.percentage.toFixed(1)}%
-                      </span>
-                    </button>
-                  </li>
-                </ul>
-
-                {/* Tab Content */}
-                <div className="tab-content" id="resultTabContent">
-                  {/* Form Tab */}
-                  <div 
-                    className="tab-pane fade show active" 
-                    id="form-pane" 
-                    role="tabpanel" 
-                    aria-labelledby="form-tab"
-                  >
-                    <div className="row justify-content-center">
-                      <div className="col-lg-8">
-                        <div className="card shadow-sm">
-                          <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                            <div>
-                              <h4 className="card-title mb-0">
-                                <i className="bi bi-clipboard-check me-2"></i>
-                                {t('common.title')}
-                              </h4>
-                              <p className="card-text mb-0 mt-2 opacity-75">
-                                {t('common.subtitle')}
-                              </p>
-                            </div>
-                            <button 
-                              className="btn btn-light btn-sm"
-                              onClick={handleReset}
-                              title={t('common.reset')}
-                            >
-                              <i className="bi bi-arrow-clockwise me-1"></i>
-                              {t('common.reset')}
-                            </button>
-                          </div>
-                          <div className="card-body">
-                            <ValidationForm onValidate={handleValidation} isLoading={isValidating} />
-                          </div>
-                        </div>
+          {/* Active Tab Content */}
+          {activeTab && !activeTab.isValidating && (
+            <>
+              {/* No Results - Show Form */}
+              {!activeTab.result && (
+                <div className="row justify-content-center">
+                  <div className="col-lg-8">
+                    <div className="card shadow-sm">
+                      <div className="card-header bg-primary text-white">
+                        <h4 className="card-title mb-0">
+                          <i className="bi bi-clipboard-check me-2"></i>
+                          {t('common.title')}
+                        </h4>
+                        <p className="card-text mb-0 mt-2 opacity-75">
+                          {t('common.subtitle')}
+                        </p>
+                      </div>
+                      <div className="card-body">
+                        <ValidationForm onValidate={handleValidation} isLoading={activeTab.isValidating} />
                       </div>
                     </div>
                   </div>
+                </div>
+              )}
 
-                  {/* Results Tab */}
-                  <div 
-                    className="tab-pane fade" 
-                    id="results-pane" 
-                    role="tabpanel" 
-                    aria-labelledby="results-tab"
-                  >
-                    <ValidationResults result={result} onReset={handleReset} />
+              {/* Has Results - Show Tabs */}
+              {activeTab.result && (
+                <div className="row">
+                  <div className="col">
+                    {/* Navigation Tabs */}
+                    <ul className="nav nav-tabs mb-4" id="resultTabs" role="tablist">
+                      <li className="nav-item" role="presentation">
+                        <button 
+                          className="nav-link active" 
+                          id="form-tab" 
+                          data-bs-toggle="tab" 
+                          data-bs-target="#form-pane" 
+                          type="button" 
+                          role="tab" 
+                          aria-controls="form-pane" 
+                          aria-selected="true"
+                        >
+                          <i className="bi bi-clipboard-check me-2"></i>
+                          {t('navigation.validation')}
+                        </button>
+                      </li>
+                      <li className="nav-item" role="presentation">
+                        <button 
+                          className="nav-link" 
+                          id="results-tab" 
+                          data-bs-toggle="tab" 
+                          data-bs-target="#results-pane" 
+                          type="button" 
+                          role="tab" 
+                          aria-controls="results-pane" 
+                          aria-selected="false"
+                        >
+                          <i className="bi bi-graph-up me-2"></i>
+                          {t('navigation.results')}
+                          <span className="badge bg-primary ms-2">
+                            {activeTab.result.quality.percentage.toFixed(1)}%
+                          </span>
+                        </button>
+                      </li>
+                    </ul>
+
+                    {/* Tab Content */}
+                    <div className="tab-content" id="resultTabContent">
+                      {/* Form Tab */}
+                      <div 
+                        className="tab-pane fade show active" 
+                        id="form-pane" 
+                        role="tabpanel" 
+                        aria-labelledby="form-tab"
+                      >
+                        <div className="row justify-content-center">
+                          <div className="col-lg-8">
+                            <div className="card shadow-sm">
+                              <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                <div>
+                                  <h4 className="card-title mb-0">
+                                    <i className="bi bi-clipboard-check me-2"></i>
+                                    {t('common.title')}
+                                  </h4>
+                                  <p className="card-text mb-0 mt-2 opacity-75">
+                                    {t('common.subtitle')}
+                                  </p>
+                                </div>
+                                <button 
+                                  className="btn btn-light btn-sm"
+                                  onClick={handleReset}
+                                  title={t('common.reset')}
+                                >
+                                  <i className="bi bi-arrow-clockwise me-1"></i>
+                                  {t('common.reset')}
+                                </button>
+                              </div>
+                              <div className="card-body">
+                                <ValidationForm onValidate={handleValidation} isLoading={activeTab.isValidating} />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Results Tab */}
+                      <div 
+                        className="tab-pane fade" 
+                        id="results-pane" 
+                        role="tabpanel" 
+                        aria-labelledby="results-tab"
+                      >
+                        <ValidationResults result={activeTab.result} onReset={handleReset} />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              )}
+            </>
           )}
         </div>
       </div>

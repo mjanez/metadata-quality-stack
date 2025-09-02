@@ -378,7 +378,7 @@ export class SHACLValidationService {
     if (validationReport.results) {
       for (const result of validationReport.results) {
         // Debug logging to understand shacl-engine result structure
-        console.log('🔍 SHACL result structure:', {
+        console.debug('🔍 SHACL result structure:', {
           resultKeys: Object.keys(result),
           hasSourceConstraintComponent: !!result.sourceConstraintComponent,
           hasSourceShape: !!result.sourceShape,

@@ -4,6 +4,22 @@ export type RDFFormat = 'turtle' | 'rdfxml' | 'jsonld' | 'ntriples' | 'auto';
 // Validation profile types  
 export type ValidationProfile = 'dcat_ap' | 'dcat_ap_es' | 'nti_risp';
 
+// Tab system types
+export interface ValidationTab {
+  id: string;
+  name: string;
+  result: ExtendedValidationResult | null;
+  isValidating: boolean;
+  error: string | null;
+  createdAt: Date;
+}
+
+export interface TabState {
+  tabs: ValidationTab[];
+  activeTabId: string | null;
+  nextTabId: number;
+}
+
 // Profile Version type
 export interface ProfileVersion {
   name: string;

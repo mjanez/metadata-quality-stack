@@ -209,5 +209,21 @@
     "good": "Good", 
     "sufficient": "Sufficient",
     "poor": "Poor"
+  },
+  "tabs": {
+    "new": "New validation",
+    "validating": "Validating...",
+    "error": "Error",
+    "close": "Close tab",
+    "maxTabsReached": "Maximum {{max}} tabs reached"
+  },
+  "time": {
+    "justNow": "just now",
+    "minutesAgo": "{{count}} minute ago",
+    "minutesAgo_plural": "{{count}} minutes ago",
+    "hoursAgo": "{{count}} hour ago", 
+    "hoursAgo_plural": "{{count}} hours ago",
+    "daysAgo": "{{count}} day ago",
+    "daysAgo_plural": "{{count}} days ago"
   }
 }
