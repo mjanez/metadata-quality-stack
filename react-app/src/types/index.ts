@@ -129,8 +129,9 @@ export interface ValidationInput {
 
 // Vocabulary types
 export interface VocabularyItem {
-  value: string;
-  label?: string;
+  uri: string;      // Primary URI identifier (from JSONL files)
+  value?: string;   // Legacy support
+  label?: string;   // Human-readable label
   category?: string;
 }
 

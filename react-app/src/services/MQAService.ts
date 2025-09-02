@@ -98,6 +98,7 @@ export class MQAService {
    * Check if value is in vocabulary (deprecated, use checkVocabularyMatch instead)
    */
   private async isInVocabulary(value: string, vocabularyName: string): Promise<boolean> {
+    console.warn(`⚠️ isInVocabulary is deprecated. Use checkVocabularyMatch instead.`);
     return this.checkVocabularyMatch([value], vocabularyName);
   }
 
@@ -158,14 +159,19 @@ export class MQAService {
     switch (metricId) {
       // Format-related metrics
       case 'dct_format_vocabulary':
+        return await this.checkVocabularyMatch(values, 'file_types') ? maxWeight : 0;
+        
       case 'dct_mediaType_vocabulary':
-        const vocabName = metricId.includes('format') ? 'file_types' : 'media_types';
-        return await this.checkVocabularyMatch(values, vocabName) ? maxWeight : 0;
+        return await this.checkVocabularyMatch(values, 'media_types') ? maxWeight : 0;
+
+      case 'dcat_mediaType':
+        return await this.checkVocabularyMatch(values, 'media_types') ? maxWeight : 0;
 
       case 'dct_format_nonproprietary':
         return await this.checkVocabularyMatch(values, 'non_proprietary') ? maxWeight : 0;
 
       case 'dct_format_machinereadable':
+        console.debug(`📋 Checking machine-readable formats for values:`, values);
         return await this.checkVocabularyMatch(values, 'machine_readable') ? maxWeight : 0;
 
       // License-related metrics
@@ -225,12 +231,35 @@ export class MQAService {
     // Filter out empty or invalid values
     const validValues = values.filter(value => value && typeof value === 'string' && value.trim().length > 0);
     
-    return validValues.some(value => 
-      vocabulary.some(item => 
-        (item.value && this.normalizeValue(item.value) === this.normalizeValue(value)) ||
-        (item.label && this.normalizeValue(item.label) === this.normalizeValue(value))
-      )
-    );
+    console.debug(`🔍 Checking ${validValues.length} values against vocabulary '${vocabularyName}' (${vocabulary.length} entries)`);
+    
+    const result = validValues.some(value => {
+      const match = vocabulary.some(item => {
+        // Compare with URI (primary field in JSONL files)
+        const uriMatch = item.uri && this.normalizeValue(item.uri) === this.normalizeValue(value);
+        // Compare with legacy value field (backwards compatibility)
+        const valueMatch = item.value && this.normalizeValue(item.value) === this.normalizeValue(value);
+        // Compare with label (for human-readable matching)
+        const labelMatch = item.label && this.normalizeValue(item.label) === this.normalizeValue(value);
+        
+        if (uriMatch || valueMatch || labelMatch) {
+          console.debug(`✅ Found match for '${value}' in vocabulary '${vocabularyName}': ${item.uri || item.value} (${item.label})`);
+          return true;
+        }
+        return false;
+      });
+      return match;
+    });
+    
+    if (!result) {
+      console.debug(`❌ No matches found for values: ${validValues.join(', ')} in vocabulary '${vocabularyName}'`);
+      // Debug: show first few vocabulary entries for troubleshooting
+      if (vocabulary.length > 0) {
+        console.debug(`📚 Sample vocabulary entries for '${vocabularyName}':`, vocabulary.slice(0, 3));
+      }
+    }
+    
+    return result;
   }
 
   /**
