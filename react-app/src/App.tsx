@@ -201,6 +201,30 @@ function App() {
         error: null
       });
       
+      // Auto-switch to results tab after successful validation
+      setTimeout(() => {
+        const resultsTab = document.getElementById('results-tab');
+        const formTab = document.getElementById('form-tab');
+        const resultsPane = document.getElementById('results-pane');
+        const formPane = document.getElementById('form-pane');
+        
+        if (resultsTab && formTab && resultsPane && formPane) {
+          // Remove active class from form tab and pane
+          formTab.classList.remove('active');
+          formTab.setAttribute('aria-selected', 'false');
+          formPane.classList.remove('show', 'active');
+          
+          // Add active class to results tab and pane
+          resultsTab.classList.add('active');
+          resultsTab.setAttribute('aria-selected', 'true');
+          resultsPane.classList.add('show', 'active');
+          
+          console.log('🎯 Switched to results tab');
+        } else {
+          console.warn('⚠️ Could not find tab elements for auto-switch');
+        }
+      }, 500); // Delay to ensure state update and DOM rendering
+      
     } catch (err) {
       console.error('❌ Validation error:', err);
       
