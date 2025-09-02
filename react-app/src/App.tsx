@@ -35,22 +35,34 @@ function App() {
       
       // Get content based on input source
       let content: string;
+      let originalFormat = 'auto';
       if (input.source === 'url' && input.url) {
         console.log('🌐 Fetching content from URL:', input.url);
         content = await RDFService.fetchFromUrl(input.url);
+        // Auto-detect format from URL extension or content
+        originalFormat = 'auto';
       } else {
         console.log('📝 Using direct text content');
         content = input.content;
+        originalFormat = input.format || 'auto';
       }
       
-      // Normalize content to Turtle format (don't pass isUrl flag incorrectly)
-      console.log('🔄 Normalizing content to Turtle format');
+      // Validate syntax of original content first
+      console.log('� Validating original content syntax');
+      const mqaService = MQAService.getInstance();
+      const syntaxValidation = await mqaService.validateRDF(content, originalFormat);
+      
+      if (!syntaxValidation.valid) {
+        throw new Error(`RDF Syntax Error${syntaxValidation.lineNumber ? ` at line ${syntaxValidation.lineNumber}` : ''}: ${syntaxValidation.error}`);
+      }
+      
+      // Normalize content to Turtle format for quality analysis
+      console.log('� Normalizing content to Turtle format');
       const normalizedContent = await RDFService.normalizeToTurtle(content, false);
       
-      // Calculate quality with MQA + SHACL
+      // Calculate quality with MQA + SHACL (using normalized content, skip syntax validation since we already did it)
       console.log('📊 Calculating quality metrics with SHACL validation');
-      const mqaService = MQAService.getInstance();
-      const { quality: qualityResult, shaclReport } = await mqaService.calculateQualityWithSHACL(normalizedContent, profileSelection);
+      const { quality: qualityResult, shaclReport } = await mqaService.calculateQualityWithSHACL(normalizedContent, profileSelection, 'turtle', true);
       
       // Get stats
       console.log('📈 Parsing RDF statistics');

@@ -128,7 +128,8 @@
     "syntax_valid": "RDF syntax is valid",
     "syntax_valid_desc": "Your RDF content has correct syntax and can be parsed.",
     "syntax_error": "RDF syntax error",
-    "at_line": "at line"  
+    "at_line": "at line",
+    "format_detected": "Format detected"  
   },
   "profiles": {
     "dcat_ap": "DCAT-AP",

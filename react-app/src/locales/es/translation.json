@@ -128,7 +128,8 @@
     "syntax_valid": "La sintaxis RDF es válida",
     "syntax_valid_desc": "Tu contenido RDF tiene sintaxis correcta y puede ser procesado.",
     "syntax_error": "Error de sintaxis RDF",
-    "at_line": "en la línea"
+    "at_line": "en la línea",
+    "format_detected": "Formato detectado"
   },
   "profiles": {
     "dcat_ap": "DCAT-AP",

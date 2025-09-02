@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ValidationInput, RDFFormat, ValidationProfile, ProfileSelection, RDFValidationResult } from '../types';
 import mqaConfigData from '../config/mqa-config.json';
 import MQAService from '../services/MQAService';
+import { detectRDFFormat, getFormatDisplayName } from '../utils/formatDetection';
 
 interface ValidationFormProps {
   onValidate: (input: ValidationInput, profileSelection: ProfileSelection) => Promise<void>;
@@ -20,10 +21,19 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
   const [profile, setProfile] = useState<ValidationProfile>('dcat_ap_es');
   const [version, setVersion] = useState<string>('');
 
-  // Clear syntax validation when text content changes
+  // Clear syntax validation when text content changes and auto-detect format
   useEffect(() => {
     setSyntaxValidation(null);
-  }, [textContent]);
+    
+    // Auto-detect format when content changes (only if currently set to auto)
+    if (textContent.trim() && format === 'auto') {
+      const detectedFormat = detectRDFFormat(textContent);
+      if (detectedFormat !== 'auto') {
+        setFormat(detectedFormat);
+        console.debug(`🔍 Auto-detected RDF format: ${detectedFormat}`);
+      }
+    }
+  }, [textContent, format]);
 
   // Helper functions to handle the new configuration format
   const getProfileConfig = (selectedProfile: ValidationProfile) => {
@@ -106,7 +116,7 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
     setSyntaxValidation(null);
 
     try {
-      const result = await MQAService.validateRDF(textContent);
+      const result = await MQAService.validateRDF(textContent, format);
       setSyntaxValidation(result);
       
       if (result.valid) {
@@ -289,7 +299,7 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
                     ) : (
                       <>
                         <i className="bi bi-check-circle me-2"></i>
-                        {t('form.check_syntax')}
+                        {t('form.check_syntax')} ({getFormatDisplayName(format)})
                       </>
                     )}
                   </button>
@@ -365,6 +375,14 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
           <option value="jsonld">JSON-LD</option>
           <option value="ntriples">N-Triples</option>
         </select>
+        
+        {/* Show detected format when in auto mode */}
+        {format === 'auto' && textContent.trim() && (
+          <div className="form-text">
+            <i className="bi bi-info-circle me-1"></i>
+            {t('form.format_detected')}: <strong>{getFormatDisplayName(detectRDFFormat(textContent))}</strong>
+          </div>
+        )}
       </div>
 
       {/* Submit Button */}

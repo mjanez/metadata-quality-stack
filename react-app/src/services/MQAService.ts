@@ -1,6 +1,8 @@
 import { Store as N3Store, Parser as N3Parser } from 'n3';
+import { RdfXmlParser } from 'rdfxml-streaming-parser';
 import { ValidationProfile, MQAConfig, QualityResult, QualityMetric, VocabularyItem, SHACLReport, ProfileSelection, RDFValidationResult } from '../types';
 import { RDFService } from './RDFService';
+import { detectRDFFormat } from '../utils/formatDetection';
 import mqaConfig from '../config/mqa-config.json';
 
 export class MQAService {
@@ -55,7 +57,84 @@ export class MQAService {
   /**
    * Validate RDF syntax before processing
    */
-  private async validateRDFSyntax(content: string): Promise<RDFValidationResult> {
+  private async validateRDFSyntax(content: string, format?: string): Promise<RDFValidationResult> {
+    // Auto-detect format if not specified or is 'auto'
+    const detectedFormat = (!format || format === 'auto') ? detectRDFFormat(content) : format;
+    
+    console.debug(`🔍 Validating RDF syntax for detected format: ${detectedFormat}`);
+    
+    switch (detectedFormat) {
+      case 'rdfxml':
+        return this.validateRDFXMLSyntax(content);
+      case 'jsonld':
+        return this.validateJSONLDSyntax(content);
+      case 'ntriples':
+        return this.validateNTriplesSyntax(content);
+      case 'turtle':
+      default:
+        return this.validateTurtleSyntax(content);
+    }
+  }
+
+  /**
+   * Validate RDF/XML syntax using proper RDF/XML parser
+   */
+  private async validateRDFXMLSyntax(content: string): Promise<RDFValidationResult> {
+    return new Promise((resolve) => {
+      try {
+        const parser = new RdfXmlParser();
+        let hasError = false;
+        let errorMessage = '';
+        let lineNumber = 0;
+        let quadCount = 0;
+
+        parser.on('data', () => {
+          quadCount++;
+        });
+
+        parser.on('error', (error: any) => {
+          if (!hasError) {
+            hasError = true;
+            errorMessage = error.message || 'RDF/XML parsing error';
+            
+            // Try to extract line number from error
+            const lineMatch = errorMessage.match(/line[:\s]+(\d+)/i) || 
+                             errorMessage.match(/position[:\s]+(\d+)/i);
+            if (lineMatch) {
+              lineNumber = parseInt(lineMatch[1], 10);
+            }
+            
+            console.error(`❌ RDF/XML Syntax Error at line ${lineNumber}: ${errorMessage}`);
+            resolve({ valid: false, error: errorMessage, lineNumber });
+          }
+        });
+
+        parser.on('end', () => {
+          if (!hasError) {
+            console.debug(`✅ RDF/XML syntax validation passed (${quadCount} triples parsed)`);
+            resolve({ valid: true });
+          }
+        });
+
+        // Parse the content
+        parser.write(content);
+        parser.end();
+
+      } catch (error: any) {
+        console.error(`❌ RDF/XML Parsing Exception:`, error);
+        resolve({ 
+          valid: false, 
+          error: error.message || 'Failed to parse RDF/XML content',
+          lineNumber: 0
+        });
+      }
+    });
+  }
+
+  /**
+   * Validate Turtle syntax using N3Parser
+   */
+  private async validateTurtleSyntax(content: string): Promise<RDFValidationResult> {
     return new Promise((resolve) => {
       const parser = new N3Parser({ format: 'text/turtle' });
       let hasError = false;
@@ -74,7 +153,7 @@ export class MQAService {
               lineNumber = parseInt(lineMatch[1], 10);
             }
             
-            console.error(`❌ RDF Syntax Error at line ${lineNumber}: ${errorMessage}`);
+            console.error(`❌ Turtle Syntax Error at line ${lineNumber}: ${errorMessage}`);
             resolve({ valid: false, error: errorMessage, lineNumber });
           } else if (!quad && !hasError) {
             // End of parsing - success
@@ -82,10 +161,10 @@ export class MQAService {
           }
         });
       } catch (error: any) {
-        console.error(`❌ RDF Parsing Exception:`, error);
+        console.error(`❌ Turtle Parsing Exception:`, error);
         resolve({ 
           valid: false, 
-          error: error.message || 'Failed to parse RDF content',
+          error: error.message || 'Failed to parse Turtle content',
           lineNumber: 0
         });
       }
@@ -93,12 +172,105 @@ export class MQAService {
   }
 
   /**
+   * Validate N-Triples syntax using N3Parser
+   */
+  private async validateNTriplesSyntax(content: string): Promise<RDFValidationResult> {
+    return new Promise((resolve) => {
+      const parser = new N3Parser({ format: 'application/n-triples' });
+      let hasError = false;
+      let errorMessage = '';
+      let lineNumber = 0;
+
+      try {
+        parser.parse(content, (error, quad, prefixes) => {
+          if (error && !hasError) {
+            hasError = true;
+            errorMessage = error.message || 'Unknown parsing error';
+            
+            // Extract line number from error message if available
+            const lineMatch = errorMessage.match(/line (\d+)/i);
+            if (lineMatch) {
+              lineNumber = parseInt(lineMatch[1], 10);
+            }
+            
+            console.error(`❌ N-Triples Syntax Error at line ${lineNumber}: ${errorMessage}`);
+            resolve({ valid: false, error: errorMessage, lineNumber });
+          } else if (!quad && !hasError) {
+            // End of parsing - success
+            resolve({ valid: true });
+          }
+        });
+      } catch (error: any) {
+        console.error(`❌ N-Triples Parsing Exception:`, error);
+        resolve({ 
+          valid: false, 
+          error: error.message || 'Failed to parse N-Triples content',
+          lineNumber: 0
+        });
+      }
+    });
+  }
+
+  /**
+   * Validate JSON-LD syntax specifically
+   */
+  private async validateJSONLDSyntax(content: string): Promise<RDFValidationResult> {
+    try {
+      // First check if it's valid JSON
+      const parsed = JSON.parse(content);
+      
+      // Basic JSON-LD structure validation
+      if (typeof parsed !== 'object' || parsed === null) {
+        return {
+          valid: false,
+          error: 'JSON-LD must be a JSON object or array',
+          lineNumber: 1
+        };
+      }
+
+      // For more thorough validation, we could use a JSON-LD library
+      // but for now, valid JSON that's an object is considered valid JSON-LD
+      console.debug(`✅ JSON-LD syntax validation passed`);
+      return { valid: true };
+      
+    } catch (error: any) {
+      // Parse JSON error message to extract line number
+      const lineMatch = error.message.match(/line (\d+)/i) || 
+                       error.message.match(/position (\d+)/i);
+      let lineNumber = 0;
+      
+      if (lineMatch) {
+        const position = parseInt(lineMatch[1], 10);
+        // Rough estimation of line number from position
+        lineNumber = content.substring(0, position).split('\n').length;
+      }
+
+      return {
+        valid: false,
+        error: `JSON syntax error: ${error.message}`,
+        lineNumber
+      };
+    }
+  }
+
+  /**
    * Parse RDF content into N3 Store
    */
-  private async parseRDF(content: string): Promise<N3Store> {
+  private async parseRDF(content: string, format?: string): Promise<N3Store> {
     return new Promise((resolve, reject) => {
       const store = new N3Store();
-      const parser = new N3Parser({ format: 'text/turtle' });
+      
+      // Map our RDFFormat to N3Parser format strings  
+      const formatMap: Record<string, string> = {
+        'turtle': 'text/turtle',
+        'rdfxml': 'application/rdf+xml',
+        'jsonld': 'application/ld+json',
+        'ntriples': 'application/n-triples',
+        'auto': 'text/turtle' // Default fallback
+      };
+
+      const parserFormat = format && formatMap[format] ? formatMap[format] : 'text/turtle';
+      const parser = new N3Parser({ format: parserFormat });
 
       parser.parse(content, (error, quad, prefixes) => {
         if (error) {
@@ -367,7 +539,9 @@ export class MQAService {
    */
   public async calculateQualityWithSHACL(
     content: string, 
-    profileSelection: ProfileSelection | ValidationProfile
+    profileSelection: ProfileSelection | ValidationProfile,
+    format?: string,
+    skipSyntaxValidation?: boolean
   ): Promise<{ quality: QualityResult; shaclReport: SHACLReport }> {
     try {
       // Extract profile string from ProfileSelection or use as-is if it's a string
@@ -377,20 +551,24 @@ export class MQAService {
         
       console.debug(`🔍 Starting MQA+SHACL evaluation for profile: ${profile}`);
 
-      // Validate RDF syntax first
-      console.debug(`📝 Validating RDF syntax...`);
-      const syntaxValidation = await this.validateRDFSyntax(content);
-      
-      if (!syntaxValidation.valid) {
-        const errorMsg = `RDF Syntax Error${syntaxValidation.lineNumber ? ` at line ${syntaxValidation.lineNumber}` : ''}: ${syntaxValidation.error}`;
-        console.error(`❌ ${errorMsg}`);
-        throw new Error(errorMsg);
+      // Validate RDF syntax first (unless already validated)
+      if (!skipSyntaxValidation) {
+        console.debug(`📝 Validating RDF syntax...`);
+        const syntaxValidation = await this.validateRDFSyntax(content, format);
+        
+        if (!syntaxValidation.valid) {
+          const errorMsg = `RDF Syntax Error${syntaxValidation.lineNumber ? ` at line ${syntaxValidation.lineNumber}` : ''}: ${syntaxValidation.error}`;
+          console.error(`❌ ${errorMsg}`);
+          throw new Error(errorMsg);
+        }
+        
+        console.debug(`✅ RDF syntax validation passed`);
+      } else {
+        console.debug(`⏭️ Skipping syntax validation (already validated)`);
       }
-      
-      console.debug(`✅ RDF syntax validation passed`);
 
       // Run standard MQA evaluation
-      const quality = await this.calculateQuality(content, profile);
+      const quality = await this.calculateQuality(content, profile, format, true); // Skip syntax validation in calculateQuality too
 
       // Run SHACL validation
       const shaclReport = await RDFService.validateWithSHACL(content, profile);
@@ -435,24 +613,33 @@ export class MQAService {
   /**
    * Calculate quality assessment for RDF content
    */
-  public async calculateQuality(content: string, profile: ValidationProfile): Promise<QualityResult> {
+  public async calculateQuality(
+    content: string, 
+    profile: ValidationProfile, 
+    format?: string, 
+    skipSyntaxValidation?: boolean
+  ): Promise<QualityResult> {
     try {
       console.debug(`🔍 Starting MQA evaluation for profile: ${profile}`);
       
-      // Validate RDF syntax first
-      console.debug(`📝 Validating RDF syntax...`);
-      const syntaxValidation = await this.validateRDFSyntax(content);
-      
-      if (!syntaxValidation.valid) {
-        const errorMsg = `RDF Syntax Error${syntaxValidation.lineNumber ? ` at line ${syntaxValidation.lineNumber}` : ''}: ${syntaxValidation.error}`;
-        console.error(`❌ ${errorMsg}`);
-        throw new Error(errorMsg);
+      // Validate RDF syntax first (unless already validated)
+      if (!skipSyntaxValidation) {
+        console.debug(`📝 Validating RDF syntax...`);
+        const syntaxValidation = await this.validateRDFSyntax(content, format);
+        
+        if (!syntaxValidation.valid) {
+          const errorMsg = `RDF Syntax Error${syntaxValidation.lineNumber ? ` at line ${syntaxValidation.lineNumber}` : ''}: ${syntaxValidation.error}`;
+          console.error(`❌ ${errorMsg}`);
+          throw new Error(errorMsg);
+        }
+        
+        console.debug(`✅ RDF syntax validation passed`);
+      } else {
+        console.debug(`⏭️ Skipping syntax validation (already validated)`);
       }
       
-      console.debug(`✅ RDF syntax validation passed`);
-      
       // Parse RDF content
-      const store = await this.parseRDF(content);
+      const store = await this.parseRDF(content, format);
       console.debug(`📊 Parsed RDF store with ${store.size} triples`);
 
       // Get profile configuration
@@ -513,9 +700,9 @@ export class MQAService {
   /**
    * Validate RDF syntax (public method)
    */
-  public async validateRDF(content: string): Promise<RDFValidationResult> {
-    console.debug(`🔍 Validating RDF syntax...`);
-    return await this.validateRDFSyntax(content);
+  public async validateRDF(content: string, format?: string): Promise<RDFValidationResult> {
+    console.debug(`🔍 Validating RDF syntax for format: ${format || 'auto'}...`);
+    return await this.validateRDFSyntax(content, format);
   }
 
   /**
