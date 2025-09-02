@@ -1,5 +1,5 @@
 import { Store as N3Store, Parser as N3Parser } from 'n3';
-import { ValidationProfile, MQAConfig, QualityResult, QualityMetric, VocabularyItem, SHACLReport, ProfileSelection } from '../types';
+import { ValidationProfile, MQAConfig, QualityResult, QualityMetric, VocabularyItem, SHACLReport, ProfileSelection, RDFValidationResult } from '../types';
 import { RDFService } from './RDFService';
 import mqaConfig from '../config/mqa-config.json';
 
@@ -50,6 +50,46 @@ export class MQAService {
       console.warn(`⚠️ Failed to load vocabulary ${name}:`, error);
       return [];
     }
+  }
+
+  /**
+   * Validate RDF syntax before processing
+   */
+  private async validateRDFSyntax(content: string): Promise<RDFValidationResult> {
+    return new Promise((resolve) => {
+      const parser = new N3Parser({ format: 'text/turtle' });
+      let hasError = false;
+      let errorMessage = '';
+      let lineNumber = 0;
+
+      try {
+        parser.parse(content, (error, quad, prefixes) => {
+          if (error && !hasError) {
+            hasError = true;
+            errorMessage = error.message || 'Unknown parsing error';
+            
+            // Extract line number from error message if available
+            const lineMatch = errorMessage.match(/line (\d+)/i);
+            if (lineMatch) {
+              lineNumber = parseInt(lineMatch[1], 10);
+            }
+            
+            console.error(`❌ RDF Syntax Error at line ${lineNumber}: ${errorMessage}`);
+            resolve({ valid: false, error: errorMessage, lineNumber });
+          } else if (!quad && !hasError) {
+            // End of parsing - success
+            resolve({ valid: true });
+          }
+        });
+      } catch (error: any) {
+        console.error(`❌ RDF Parsing Exception:`, error);
+        resolve({ 
+          valid: false, 
+          error: error.message || 'Failed to parse RDF content',
+          lineNumber: 0
+        });
+      }
+    });
   }
 
   /**
@@ -337,6 +377,18 @@ export class MQAService {
         
       console.debug(`🔍 Starting MQA+SHACL evaluation for profile: ${profile}`);
 
+      // Validate RDF syntax first
+      console.debug(`📝 Validating RDF syntax...`);
+      const syntaxValidation = await this.validateRDFSyntax(content);
+      
+      if (!syntaxValidation.valid) {
+        const errorMsg = `RDF Syntax Error${syntaxValidation.lineNumber ? ` at line ${syntaxValidation.lineNumber}` : ''}: ${syntaxValidation.error}`;
+        console.error(`❌ ${errorMsg}`);
+        throw new Error(errorMsg);
+      }
+      
+      console.debug(`✅ RDF syntax validation passed`);
+
       // Run standard MQA evaluation
       const quality = await this.calculateQuality(content, profile);
 
@@ -386,6 +438,18 @@ export class MQAService {
   public async calculateQuality(content: string, profile: ValidationProfile): Promise<QualityResult> {
     try {
       console.debug(`🔍 Starting MQA evaluation for profile: ${profile}`);
+      
+      // Validate RDF syntax first
+      console.debug(`📝 Validating RDF syntax...`);
+      const syntaxValidation = await this.validateRDFSyntax(content);
+      
+      if (!syntaxValidation.valid) {
+        const errorMsg = `RDF Syntax Error${syntaxValidation.lineNumber ? ` at line ${syntaxValidation.lineNumber}` : ''}: ${syntaxValidation.error}`;
+        console.error(`❌ ${errorMsg}`);
+        throw new Error(errorMsg);
+      }
+      
+      console.debug(`✅ RDF syntax validation passed`);
       
       // Parse RDF content
       const store = await this.parseRDF(content);
@@ -444,6 +508,14 @@ export class MQAService {
       console.error('❌ MQA evaluation failed:', error);
       throw error;
     }
+  }
+
+  /**
+   * Validate RDF syntax (public method)
+   */
+  public async validateRDF(content: string): Promise<RDFValidationResult> {
+    console.debug(`🔍 Validating RDF syntax...`);
+    return await this.validateRDFSyntax(content);
   }
 
   /**

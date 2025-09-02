@@ -121,7 +121,14 @@
     "validation_sample": "Probar con datos de ejemplo",
     "validation_url": "Introduce una URL que apunte a contenido RDF",
     "validation_format": "Formato RDF",
-    "validation_autodetect": "Detección automática"
+    "validation_rdf_content": "Contenido RDF",
+    "validation_autodetect": "Detección automática",
+    "check_syntax": "Verificar sintaxis",
+    "checking_syntax": "Verificando sintaxis...",
+    "syntax_valid": "La sintaxis RDF es válida",
+    "syntax_valid_desc": "Tu contenido RDF tiene sintaxis correcta y puede ser procesado.",
+    "syntax_error": "Error de sintaxis RDF",
+    "at_line": "en la línea"
   },
   "profiles": {
     "dcat_ap": "DCAT-AP",

@@ -93,7 +93,22 @@ function App() {
       }, 300); // Increased delay to ensure DOM is fully updated
     } catch (err) {
       console.error('❌ Validation error:', err);
-      setError(err instanceof Error ? err.message : 'Validation failed');
+      
+      // Provide more helpful error messages for RDF syntax errors
+      let errorMessage = 'Validation failed';
+      if (err instanceof Error) {
+        if (err.message.includes('RDF Syntax Error')) {
+          // RDF syntax error - show user-friendly message
+          errorMessage = `${err.message}\n\nPlease check your RDF/Turtle syntax and ensure all triples are properly formatted.`;
+        } else if (err.message.includes('Expected entity but got literal')) {
+          // Common N3 parsing error
+          errorMessage = `RDF Syntax Error: ${err.message}\n\nThis usually means there's a missing '<' or '>' around a URI, or a literal is used where a resource is expected.`;
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsValidating(false);
     }

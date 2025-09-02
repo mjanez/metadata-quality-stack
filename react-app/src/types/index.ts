@@ -135,6 +135,13 @@ export interface VocabularyItem {
   category?: string;
 }
 
+// RDF Validation types
+export interface RDFValidationResult {
+  valid: boolean;
+  error?: string;
+  lineNumber?: number;
+}
+
 // Configuration types
 export interface AppConfig {
   baseIRI: string;
