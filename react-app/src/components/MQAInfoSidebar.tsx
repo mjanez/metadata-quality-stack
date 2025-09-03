@@ -18,7 +18,7 @@ const MQAInfoSidebar: React.FC<MQAInfoSidebarProps> = ({
   onToggle
 }) => {
   const { t } = useTranslation();
-  const mqaConfig = mqaConfigData as MQAConfig;
+  const mqaConfig = (mqaConfigData as any);
 
   const getProfileInfo = (profile: ValidationProfile) => {
     const configProfile = mqaConfig.profiles[profile];

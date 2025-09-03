@@ -449,7 +449,7 @@ export class MQAService {
     category: string
   ): Promise<QualityMetric> {
     const { id, weight, property } = metricConfig;
-    const label = this.config.metricLabels[id] || { en: id, es: id };
+    const label = this.getMetricLabel(id);
     
     let score = 0;
     let found = false;
@@ -750,6 +750,62 @@ export class MQAService {
 
     // If already a full URI or no prefix found, return as is
     return property;
+  }
+
+  /**
+   * Get metric label from translations or fallback to default
+   */
+  private getMetricLabel(metricId: string): { en: string; es: string } {
+    // Try to get from global i18n if available
+    try {
+      // Try dynamic import approach first
+      if (typeof window !== 'undefined' && (window as any).i18next) {
+        const i18n = (window as any).i18next;
+        const enLabel = i18n.t(`metricLabels.${metricId}`, { lng: 'en' });
+        const esLabel = i18n.t(`metricLabels.${metricId}`, { lng: 'es' });
+        
+        // Check if translation was found (i18n returns the key if not found)
+        if (enLabel && !enLabel.startsWith('metricLabels.')) {
+          return { en: enLabel, es: esLabel };
+        }
+      }
+    } catch (error) {
+      console.debug('Failed to get translation for metric:', metricId, error);
+    }
+    
+    // Fallback to default labels
+    const defaultLabels: { [key: string]: { en: string; es: string } } = {
+      'dcat_keyword': { en: 'Keywords', es: 'Palabras clave' },
+      'dcat_theme': { en: 'Themes/Categories', es: 'Temas/Categorías' },
+      'dct_spatial': { en: 'Spatial Coverage', es: 'Cobertura espacial' },
+      'dct_temporal': { en: 'Temporal Coverage', es: 'Cobertura temporal' },
+      'dcat_accessURL_status': { en: 'Access URL Availability', es: 'Disponibilidad de URL de acceso' },
+      'dcat_downloadURL': { en: 'Download URL', es: 'URL de descarga' },
+      'dcat_downloadURL_status': { en: 'Download URL Availability', es: 'Disponibilidad de URL de descarga' },
+      'dct_format': { en: 'Format', es: 'Formato' },
+      'dcat_mediaType': { en: 'Media Type', es: 'Tipo de medio' },
+      'dct_format_vocabulary': { en: 'Format Vocabulary', es: 'Vocabulario de formato' },
+      'dct_mediaType_vocabulary': { en: 'Media Type Vocabulary', es: 'Vocabulario de tipo de medio' },
+      'dct_format_nonproprietary': { en: 'Non-proprietary Format', es: 'Formato no propietario' },
+      'dct_format_machinereadable': { en: 'Machine-readable Format', es: 'Formato legible por máquina' },
+      'dcat_ap_compliance': { en: 'DCAT-AP Compliance', es: 'Conformidad con DCAT-AP' },
+      'dcat_ap_es_compliance': { en: 'DCAT-AP-ES Compliance', es: 'Conformidad con DCAT-AP-ES' },
+      'nti_risp_compliance': { en: 'NTI-RISP Compliance', es: 'Conformidad con NTI-RISP' },
+      'dct_license': { en: 'License', es: 'Licencia' },
+      'dct_license_vocabulary': { en: 'License Vocabulary', es: 'Vocabulario de licencia' },
+      'dct_accessRights': { en: 'Access Rights', es: 'Derechos de acceso' },
+      'dct_accessRights_vocabulary': { en: 'Access Rights Vocabulary', es: 'Vocabulario de derechos de acceso' },
+      'dcat_contactPoint': { en: 'Contact Point', es: 'Punto de contacto' },
+      'dct_publisher': { en: 'Publisher', es: 'Editor' },
+      'dct_rights': { en: 'Rights', es: 'Derechos' },
+      'dcat_byteSize': { en: 'Byte Size', es: 'Tamaño en bytes' },
+      'dct_issued': { en: 'Issued Date', es: 'Fecha de emisión' },
+      'dct_modified': { en: 'Modified Date', es: 'Fecha de modificación' },
+      'dct_format_vocabulary_nti_risp': { en: 'Format Vocabulary (NTI-RISP)', es: 'Vocabulario de formato (NTI-RISP)' },
+      'dct_mediaType_vocabulary_nti_risp': { en: 'Media Type Vocabulary (NTI-RISP)', es: 'Vocabulario de tipo de medio (NTI-RISP)' }
+    };
+    
+    return defaultLabels[metricId] || { en: metricId, es: metricId };
   }
 
   /**

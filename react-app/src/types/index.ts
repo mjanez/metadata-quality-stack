@@ -50,10 +50,22 @@ export interface MQAConfig {
       [dimension: string]: MQAMetricConfig[];
     };
   };
-  metricLabels: {
-    [metricId: string]: {
-      en: string;
-      es: string;
+  sparqlConfig?: {
+    defaultEndpoint: string;
+    queries: {
+      [profile: string]: {
+        id: string;
+        name: string;
+        description: string;
+        query: string;
+        parameters: Array<{
+          name: string;
+          label: string;
+          placeholder: string;
+          required: boolean;
+          defaultValue?: string;
+        }>;
+      }[];
     };
   };
   app_info?: {
@@ -139,8 +151,11 @@ export interface ValidationWarning extends ValidationError {
 export interface ValidationInput {
   content: string;
   format: RDFFormat;
-  source: 'url' | 'text';
+  source: 'url' | 'text' | 'sparql';
   url?: string;
+  sparqlEndpoint?: string;
+  sparqlQuery?: string;
+  sparqlParameters?: { [key: string]: string };
 }
 
 // Vocabulary types

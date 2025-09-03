@@ -13,6 +13,7 @@ import MQAInfoSidebar from './components/MQAInfoSidebar';
 import RDFService from './services/RDFService';
 import { MQAService } from './services/MQAService';
 import { SHACLValidationService } from './services/SHACLValidationService';
+import { SPARQLService } from './services/SPARQLService';
 import { ValidationResult, ExtendedValidationResult, ValidationProfile, ValidationInput, ProfileSelection, ValidationTab, TabState } from './types';
 
 function App() {
@@ -124,6 +125,8 @@ function App() {
       result: null,
       name: input.source === 'url' && input.url ? 
         new URL(input.url).hostname : 
+        input.source === 'sparql' && input.sparqlEndpoint ?
+        new URL(input.sparqlEndpoint).hostname :
         `${t('profiles.' + profileSelection.profile)} - ${new Date().toLocaleTimeString()}`
     });
 
@@ -135,12 +138,26 @@ function App() {
       // Get content based on input source
       let content: string;
       let originalFormat = 'auto';
+      
       if (input.source === 'url' && input.url) {
         console.log('🌐 Fetching content from URL:', input.url);
         content = await RDFService.fetchFromUrl(input.url);
         // Auto-detect format from fetched content
         originalFormat = await import('./utils/formatDetection').then(module => module.detectRDFFormat(content));
         console.log(`🔍 Auto-detected format from URL content: ${originalFormat}`);
+      } else if (input.source === 'sparql' && input.sparqlEndpoint && input.sparqlQuery) {
+        console.log('🔍 Executing SPARQL query on endpoint:', input.sparqlEndpoint);
+        const sparqlService = SPARQLService.getInstance();
+        const sparqlResult = await sparqlService.executeSPARQLQuery(input.sparqlEndpoint, input.sparqlQuery);
+        
+        if (!sparqlResult.success || !sparqlResult.data) {
+          throw new Error(`SPARQL query failed: ${sparqlResult.error || 'No data returned'}`);
+        }
+        
+        content = sparqlResult.data;
+        // SPARQL results are typically in Turtle format
+        originalFormat = 'turtle';
+        console.log(`✅ SPARQL query executed successfully, got ${content.length} characters`);
       } else {
         console.log('📝 Using direct text content');
         content = input.content;

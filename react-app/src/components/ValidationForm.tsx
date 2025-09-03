@@ -4,6 +4,8 @@ import { ValidationInput, RDFFormat, ValidationProfile, ProfileSelection, RDFVal
 import mqaConfigData from '../config/mqa-config.json';
 import MQAService from '../services/MQAService';
 import { detectRDFFormat, getFormatDisplayName } from '../utils/formatDetection';
+import { SPARQLService, SPARQLQueryParams } from '../services/SPARQLService';
+import PredefinedQueriesComponent from './PredefinedQueriesComponent';
 
 interface ValidationFormProps {
   onValidate: (input: ValidationInput, profileSelection: ProfileSelection) => Promise<void>;
@@ -12,7 +14,7 @@ interface ValidationFormProps {
 
 const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }) => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'url' | 'text'>('text');
+  const [activeTab, setActiveTab] = useState<'url' | 'text' | 'sparql'>('text');
   const [url, setUrl] = useState('');
   const [textContent, setTextContent] = useState('');
   const [format, setFormat] = useState<RDFFormat>('auto');
@@ -20,6 +22,15 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
   const [syntaxValidation, setSyntaxValidation] = useState<RDFValidationResult | null>(null);
   const [profile, setProfile] = useState<ValidationProfile>('dcat_ap_es');
   const [version, setVersion] = useState<string>('');
+  
+  // SPARQL-related state
+  const [sparqlEndpoint, setSparqlEndpoint] = useState(() => {
+    const sparqlConfig = (mqaConfigData as any).sparqlConfig;
+    return sparqlConfig?.defaultEndpoint || 'hhttps://datos.gob.es/virtuoso/sparql';
+  });
+  const [sparqlQuery, setSparqlQuery] = useState('');
+  const [sparqlParameters, setSparqlParameters] = useState<SPARQLQueryParams>({});
+  const [sparqlService] = useState(() => SPARQLService.getInstance());
 
   // Clear syntax validation when text content changes and auto-detect format
   useEffect(() => {
@@ -84,12 +95,26 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
       alert(t('form.text_required'));
       return;
     }
+    
+    if (activeTab === 'sparql') {
+      if (!sparqlEndpoint.trim()) {
+        alert(t('sparql.endpointRequired'));
+        return;
+      }
+      if (!sparqlQuery.trim()) {
+        alert(t('sparql.queryRequired'));
+        return;
+      }
+    }
 
     const input: ValidationInput = {
-      content: activeTab === 'url' ? '' : textContent, // No poner URL en content
-      format: format === 'auto' ? detectRDFFormat(textContent) : format,
+      content: activeTab === 'url' ? '' : (activeTab === 'text' ? textContent : ''),
+      format: activeTab === 'sparql' ? 'turtle' : (format === 'auto' ? detectRDFFormat(textContent) : format),
       source: activeTab,
-      url: activeTab === 'url' ? url : undefined
+      url: activeTab === 'url' ? url : undefined,
+      sparqlEndpoint: activeTab === 'sparql' ? sparqlEndpoint : undefined,
+      sparqlQuery: activeTab === 'sparql' ? sparqlQuery : undefined,
+      sparqlParameters: activeTab === 'sparql' ? sparqlParameters : undefined
     };
 
     const profileSelection: ProfileSelection = {
@@ -98,6 +123,13 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
     };
 
     await onValidate(input, profileSelection);
+  };
+
+  // Handle predefined query selection
+  const handlePredefinedQuerySelect = (query: string, endpoint: string, parameters: SPARQLQueryParams) => {
+    setSparqlQuery(query);
+    setSparqlEndpoint(endpoint);
+    setSparqlParameters(parameters);
   };
 
   // Handle syntax validation only
@@ -109,6 +141,11 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
 
     if (activeTab === 'url') {
       alert('Syntax validation is only available for text content.');
+      return;
+    }
+    
+    if (activeTab === 'sparql') {
+      alert('Syntax validation is not available for SPARQL queries.');
       return;
     }
 
@@ -253,6 +290,15 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
               🌐 {t('form.url_tab')}
             </button>
           </li>
+          <li className="nav-item" role="presentation">
+            <button
+              className={`nav-link ${activeTab === 'sparql' ? 'active' : ''}`}
+              type="button"
+              onClick={() => setActiveTab('sparql')}
+            >
+              🪄 {t('form.sparql_tab')}
+            </button>
+          </li>
         </ul>
       </div>
 
@@ -355,36 +401,96 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
             </div>
           </div>
         )}
-      </div>
 
+        {activeTab === 'sparql' && (
+          <div className="tab-pane active">
+            {/* Predefined Queries */}
+            <div className="mb-4">
+              <PredefinedQueriesComponent
+                profile={profile}
+                onQuerySelect={handlePredefinedQuerySelect}
+              />
+            </div>
 
+            {/* Manual SPARQL Input */}
+            <div className="border-top pt-4">
+              <h6 className="mb-3">
+                <i className="bi bi-code-square me-2"></i>
+                {t('sparql.customQuery')}
+              </h6>
 
-      {/* Format Selection */}
-      <div className="mb-3">
-        <label htmlFor="formatSelector" className="form-label">
-          {t('form.validation_format')}
-        </label>
-        <select
-          id="formatSelector"
-          className="form-select"
-          value={format}
-          onChange={(e) => setFormat(e.target.value as RDFFormat)}
-        >
-          <option value="auto">🔍 {t('form.validation_autodetect')}</option>
-          <option value="turtle">Turtle</option>
-          <option value="rdfxml">RDF/XML</option>
-          <option value="jsonld">JSON-LD</option>
-          <option value="ntriples">N-Triples</option>
-        </select>
-        
-        {/* Show detected format when in auto mode */}
-        {format === 'auto' && textContent.trim() && (
-          <div className="form-text">
-            <i className="bi bi-info-circle me-1"></i>
-            {t('form.format_detected')}: <strong>{getFormatDisplayName(detectRDFFormat(textContent))}</strong>
+              {/* SPARQL Endpoint */}
+              <div className="mb-3">
+                <label htmlFor="sparqlEndpoint" className="form-label">
+                  {t('sparql.endpoint')}
+                  <span className="text-danger ms-1">*</span>
+                </label>
+                <input
+                  id="sparqlEndpoint"
+                  type="url"
+                  className="form-control"
+                  value={sparqlEndpoint}
+                  onChange={(e) => setSparqlEndpoint(e.target.value)}
+                  placeholder="hhttps://datos.gob.es/virtuoso/sparql"
+                />
+                <div className="form-text">
+                  {t('sparql.endpointHelp')}
+                </div>
+              </div>
+
+              {/* SPARQL Query */}
+              <div className="mb-3">
+                <label htmlFor="sparqlQuery" className="form-label">
+                  {t('sparql.query')}
+                  <span className="text-danger ms-1">*</span>
+                </label>
+                <textarea
+                  id="sparqlQuery"
+                  className="form-control font-monospace"
+                  rows={12}
+                  value={sparqlQuery}
+                  onChange={(e) => setSparqlQuery(e.target.value)}
+                  placeholder={t('sparql.queryPlaceholder')}
+                />
+                <div className="form-text">
+                  {t('sparql.queryHelp')}
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
+
+
+
+      {/* Format Selection - Only show for text and URL tabs */}
+      {activeTab !== 'sparql' && (
+        <div className="mb-3">
+          <label htmlFor="formatSelector" className="form-label">
+            {t('form.validation_format')}
+          </label>
+          <select
+            id="formatSelector"
+            className="form-select"
+            value={format}
+            onChange={(e) => setFormat(e.target.value as RDFFormat)}
+          >
+            <option value="auto">🔍 {t('form.validation_autodetect')}</option>
+            <option value="turtle">Turtle</option>
+            <option value="rdfxml">RDF/XML</option>
+            <option value="jsonld">JSON-LD</option>
+            <option value="ntriples">N-Triples</option>
+          </select>
+          
+          {/* Show detected format when in auto mode */}
+          {format === 'auto' && textContent.trim() && (
+            <div className="form-text">
+              <i className="bi bi-info-circle me-1"></i>
+              {t('form.format_detected')}: <strong>{getFormatDisplayName(detectRDFFormat(textContent))}</strong>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Submit Button */}
       <div className="d-grid">

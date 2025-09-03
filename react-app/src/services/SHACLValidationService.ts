@@ -199,7 +199,7 @@ export class SHACLValidationService {
    * Get SHACL files for a given profile
    */
   private static getSHACLFilesForProfile(profile: ValidationProfile): string[] {
-    const mqaConfig = mqaConfigData as MQAConfig;
+    const mqaConfig = (mqaConfigData as any);
     const profileConfig = mqaConfig.profiles[profile];
     
     if (!profileConfig) {
@@ -726,7 +726,7 @@ export class SHACLValidationService {
     profileVersion?: string
   ): Promise<string> {
     const timestamp = new Date().toISOString();
-    const mqaConfig = mqaConfigData as MQAConfig;
+    const mqaConfig = (mqaConfigData as any);
     const profileId = report.profile;
     
     // Get app info from configuration

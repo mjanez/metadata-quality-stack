@@ -1,3 +1,4 @@
+/*TODO: Not implemented, using internal shacl validator */
 import { 
   ValidationProfile, 
   SHACLViolation,
@@ -127,7 +128,7 @@ export class ITBSHACLService {
    * Get SHACL files for a given profile from config
    */
   private static getSHACLFilesForProfile(profile: ValidationProfile): string[] {
-    const mqaConfig = mqaConfigData as MQAConfig;
+    const mqaConfig = (mqaConfigData as any);
     const profileConfig = mqaConfig.profiles[profile];
     
     if (!profileConfig) {
@@ -153,7 +154,7 @@ export class ITBSHACLService {
     }
 
     // Return URLs as-is if they're already GitHub raw URLs, otherwise convert local paths
-    const processedUrls = shaclFiles.map(filePath => {
+    const processedUrls = shaclFiles.map((filePath: string) => {
       if (filePath.startsWith('https://raw.githubusercontent.com/')) {
         // Already a GitHub raw URL, use as-is
         return filePath;

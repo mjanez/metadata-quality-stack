@@ -32,7 +32,7 @@ const SHACLReportViewer: React.FC<SHACLReportViewerProps> = ({
   const [prefixService] = useState(() => PrefixService.getInstance());
   const [prefixesLoaded, setPrefixesLoaded] = useState(false);
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
-  const [mqaConfig] = useState<MQAConfig>(mqaConfigData as MQAConfig);
+  const [mqaConfig] = useState<MQAConfig>((mqaConfigData as any));
 
   // Load prefixes on component mount
   useEffect(() => {
