@@ -44,10 +44,10 @@ Esta herramienta ayuda a los publicadores y consumidores de datos a evaluar y me
    - **[NTI-RISP](https://github.com/datosgobes/NTI-RISP)**: Estándar español de interoperabilidad
 
 ### Versión estática
-![React](/docs/img/react_app_1.png)
-![React](/docs/img/react_app_2.png)
-![React](/docs/img/react_app_3.png)
-![React](/docs/img/react_app_4.png)
+![Home](/docs/img/react_app_1.png)
+![Home](/docs/img/react_app_2.png)
+![Home](/docs/img/react_app_3.png)
+![Home](/docs/img/react_app_4.png)
 
 ### Versión Docker
 ![Docker Compose](/docs/img/app_1.png)
