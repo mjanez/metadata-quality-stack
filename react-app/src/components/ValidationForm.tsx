@@ -176,15 +176,15 @@ const ValidationForm: React.FC<ValidationFormProps> = ({ onValidate, isLoading }
   const sampleRdfXml = `<?xml version="1.0" encoding="UTF-8"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:dcat="http://www.w3.org/ns/dcat#"
-         xmlns:dcterms="http://purl.org/dc/terms/"
+         xmlns:dct="http://purl.org/dc/terms/"
          xmlns:foaf="http://xmlns.com/foaf/0.1/">
   
   <dcat:Dataset rdf:about="http://example.org/dataset/sample">
-    <dcterms:title>Sample Dataset</dcterms:title>
-    <dcterms:description>A sample dataset for testing MQA validation</dcterms:description>
+    <dct:title>Sample Dataset</dct:title>
+    <dct:description>A sample dataset for testing MQA validation</dct:description>
     <dcat:keyword>sample</dcat:keyword>
     <dcat:keyword>test</dcat:keyword>
-    <dcterms:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+    <dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
     <dcat:contactPoint>
       <vcard:Organization xmlns:vcard="http://www.w3.org/2006/vcard/ns#">
         <vcard:fn>Sample Organization</vcard:fn>

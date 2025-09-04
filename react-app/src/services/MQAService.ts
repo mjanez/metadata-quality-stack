@@ -4,6 +4,7 @@ import { ValidationProfile, MQAConfig, QualityResult, QualityMetric, VocabularyI
 import { RDFService } from './RDFService';
 import { detectRDFFormat } from '../utils/formatDetection';
 import mqaConfig from '../config/mqa-config.json';
+import i18n from '../i18n';
 
 export class MQAService {
   private static instance: MQAService;
@@ -432,6 +433,248 @@ export class MQAService {
   }
 
   /**
+   * Get vocabulary metric information for vocabulary-based metrics
+   */
+  private getVocabularyMetricInfo(metricId: string): { baseProperty: string; vocabularyName: string } | null {
+    const vocabularyMetrics: { [key: string]: { baseProperty: string; vocabularyName: string } } = {
+      'dct_format_vocabulary': { baseProperty: 'dct:format', vocabularyName: 'file_types' },
+      'dct_mediaType_vocabulary': { baseProperty: 'dcat:mediaType', vocabularyName: 'media_types' },
+      'dct_format_vocabulary_nti_risp': { baseProperty: 'dct:format', vocabularyName: 'file_types' },
+      'dct_mediaType_vocabulary_nti_risp': { baseProperty: 'dcat:mediaType', vocabularyName: 'media_types' },
+      'dct_format_nonproprietary': { baseProperty: 'dct:format', vocabularyName: 'non_proprietary' },
+      'dct_format_machinereadable': { baseProperty: 'dct:format', vocabularyName: 'machine_readable' },
+      'dct_license_vocabulary': { baseProperty: 'dct:license', vocabularyName: 'licenses' },
+      'dct_accessRights_vocabulary': { baseProperty: 'dct:accessRights', vocabularyName: 'access_rights' }
+    };
+    
+    return vocabularyMetrics[metricId] || null;
+  }
+
+  /**
+   * Determine entity type for a specific metric
+   */
+  private getMetricEntityType(metricId: string): 'Dataset' | 'Distribution' | 'Catalog' | 'Multi' {
+    // Metrics that apply to multiple entity types simultaneously
+    const multiEntityMetrics = [
+      'dct_issued', 'dct_modified', 'dct_title', 'dct_description'
+    ];
+    
+    // Metrics that apply to Datasets only
+    const datasetMetrics = [
+      'dcat_keyword', 'dcat_theme', 'dct_spatial', 'dct_temporal',
+      'dct_creator', 'dct_language', 'dct_conformsTo', 'dcat_contactPoint', 
+      'dct_accessRights', 'dcat_ap_compliance', 'dcat_ap_es_compliance', 
+      'nti_risp_compliance', 'dct_publisher', 'dct_accessRights_vocabulary'
+    ];
+    
+    // Metrics that apply to Distributions only
+    const distributionMetrics = [
+      'dcat_accessURL', 'dcat_downloadURL', 'dct_format', 'dcat_mediaType',
+      'dcat_byteSize', 'dct_format_vocabulary', 'dct_format_machinereadable',
+      'dct_format_vocabulary_nti_risp', 'dct_mediaType_vocabulary_nti_risp',
+      'dct_mediaType_vocabulary', 'dct_format_nonproprietary',
+      'dcat_accessURL_status', 'dcat_downloadURL_status', 'dct_license',
+      'dct_license_vocabulary'
+    ];
+    
+    // Metrics that apply to Catalogs only
+    const catalogMetrics = [
+      // Catalog-specific metrics would go here
+    ];
+    
+    // Priority classification
+    if (multiEntityMetrics.includes(metricId)) return 'Multi';
+    if (distributionMetrics.includes(metricId)) return 'Distribution';
+    if (datasetMetrics.includes(metricId)) return 'Dataset';
+    return 'Catalog'; // Default fallback
+  }
+
+  /**
+   * Get URI for entity type
+   */
+  private getEntityTypeURI(entityType: 'Dataset' | 'Distribution' | 'Catalog'): string {
+    const typeMap = {
+      'Dataset': 'http://www.w3.org/ns/dcat#Dataset',
+      'Distribution': 'http://www.w3.org/ns/dcat#Distribution',
+      'Catalog': 'http://www.w3.org/ns/dcat#Catalog'
+    };
+    
+    return typeMap[entityType];
+  }
+
+  /**
+   * Count total entities of a specific type in the RDF store
+   */
+  private countEntitiesByType(store: N3Store, entityType: 'Dataset' | 'Distribution' | 'Catalog'): number {
+    const typeURI = this.getEntityTypeURI(entityType);
+    const typeQuads = store.getQuads().filter(quad => 
+      quad.predicate.value === MQAService.RDF_URIS.RDF_TYPE && 
+      quad.object.value === typeURI
+    );
+    
+    const count = typeQuads.length;
+    console.debug(`📊 Found ${count} entities of type ${entityType}`);
+    
+    return count;
+  }
+
+  /**
+   * Count entities that comply with a specific metric property
+   */
+  private countCompliantEntities(
+    store: N3Store, 
+    property: string, 
+    entityType: 'Dataset' | 'Distribution' | 'Catalog',
+    profile: ValidationProfile
+  ): number {
+    const typeURI = this.getEntityTypeURI(entityType);
+    const fullProperty = this.expandProperty(property);
+    
+    // Get all entities of the specified type
+    const entityQuads = store.getQuads().filter(quad => 
+      quad.predicate.value === MQAService.RDF_URIS.RDF_TYPE && 
+      quad.object.value === typeURI
+    );
+    
+    let compliantCount = 0;
+    
+    entityQuads.forEach(entityQuad => {
+      const entityURI = entityQuad.subject;
+      
+      // Check if this entity has the required property
+      const propertyQuads = store.getQuads().filter(quad => 
+        quad.subject.equals(entityURI) && 
+        quad.predicate.value === fullProperty
+      );
+      
+      if (propertyQuads.length > 0) {
+        // For some metrics, we need to validate the property values
+        const hasValidValue = this.validatePropertyValues(propertyQuads, property, store, profile);
+        if (hasValidValue) {
+          compliantCount++;
+        }
+      }
+    });
+    
+    console.debug(`✅ ${compliantCount}/${entityQuads.length} ${entityType} entities comply with ${property}`);
+    
+    return compliantCount;
+  }
+
+  /**
+   * Count entities that comply with vocabulary-based metrics
+   * For vocabulary metrics, we need to evaluate ALL entities and check if their values are in vocabulary
+   */
+  private async countVocabularyCompliantEntities(
+    store: N3Store,
+    baseProperty: string, // e.g., 'dct:format'
+    vocabularyName: string, // e.g., 'non_proprietary' 
+    entityType: 'Dataset' | 'Distribution' | 'Catalog',
+    profile: ValidationProfile
+  ): Promise<number> {
+    const typeURI = this.getEntityTypeURI(entityType);
+    const fullProperty = this.expandProperty(baseProperty);
+    
+    // Get all entities of the specified type
+    const entityQuads = store.getQuads().filter(quad => 
+      quad.predicate.value === MQAService.RDF_URIS.RDF_TYPE && 
+      quad.object.value === typeURI
+    );
+    
+    let compliantCount = 0;
+    
+    for (const entityQuad of entityQuads) {
+      const entityURI = entityQuad.subject;
+      
+      // Check if this entity has the base property
+      const propertyQuads = store.getQuads().filter(quad => 
+        quad.subject.equals(entityURI) && 
+        quad.predicate.value === fullProperty
+      );
+      
+      if (propertyQuads.length > 0) {
+        // Extract values from property
+        const values: string[] = [];
+        propertyQuads.forEach(quad => {
+          const extractedValues = this.extractValuesFromQuad(quad, store, baseProperty, profile);
+          values.push(...extractedValues);
+        });
+        
+        // Filter valid values
+        const validValues = values.filter(value => value && value.trim().length > 0);
+        
+        if (validValues.length > 0) {
+          // Check if any value is in the vocabulary
+          const isInVocabulary = await this.checkVocabularyMatch(validValues, vocabularyName);
+          if (isInVocabulary) {
+            compliantCount++;
+          }
+        }
+      }
+      // Note: Entities WITHOUT the base property are counted as non-compliant (0 points)
+      // This reflects that they don't meet the vocabulary requirement
+    }
+    
+    console.debug(`🏷️ ${compliantCount}/${entityQuads.length} ${entityType} entities have valid ${vocabularyName} vocabulary values for ${baseProperty}`);
+    
+    return compliantCount;
+  }
+
+  /**
+   * Validate if property values meet metric requirements
+   */
+  private validatePropertyValues(
+    propertyQuads: any[], 
+    property: string, 
+    store: N3Store, 
+    profile: ValidationProfile
+  ): boolean {
+    // For most metrics, presence is enough
+    // But for specific cases, we might need value validation
+    
+    // Extract values for validation
+    const values: string[] = [];
+    propertyQuads.forEach(quad => {
+      const extractedValues = this.extractValuesFromQuad(quad, store, property, profile);
+      values.push(...extractedValues);
+    });
+    
+    // Filter out empty values
+    const validValues = values.filter(value => value && value.trim().length > 0);
+    
+    return validValues.length > 0;
+  }
+
+  /**
+   * Evaluate multi-entity metrics (those that apply to both Datasets and Distributions)
+   */
+  private evaluateMultiEntityMetric(
+    store: N3Store,
+    property: string,
+    profile: ValidationProfile
+  ): { totalEntities: number; compliantEntities: number; datasetStats: { total: number; compliant: number }; distributionStats: { total: number; compliant: number } } {
+    // Count datasets
+    const datasetTotal = this.countEntitiesByType(store, 'Dataset');
+    const datasetCompliant = this.countCompliantEntities(store, property, 'Dataset', profile);
+    
+    // Count distributions
+    const distributionTotal = this.countEntitiesByType(store, 'Distribution');
+    const distributionCompliant = this.countCompliantEntities(store, property, 'Distribution', profile);
+    
+    const totalEntities = datasetTotal + distributionTotal;
+    const compliantEntities = datasetCompliant + distributionCompliant;
+    
+    console.debug(`🔄 Multi-entity metric evaluation: ${compliantEntities}/${totalEntities} total (Datasets: ${datasetCompliant}/${datasetTotal}, Distributions: ${distributionCompliant}/${distributionTotal})`);
+    
+    return {
+      totalEntities,
+      compliantEntities,
+      datasetStats: { total: datasetTotal, compliant: datasetCompliant },
+      distributionStats: { total: distributionTotal, compliant: distributionCompliant }
+    };
+  }
+
+  /**
    * Check if value is in vocabulary (deprecated, use checkVocabularyMatch instead)
    */
   private async isInVocabulary(value: string, vocabularyName: string): Promise<boolean> {
@@ -440,7 +683,7 @@ export class MQAService {
   }
 
   /**
-   * Evaluate a single metric
+   * Evaluate a single metric with proportional scoring
    */
   private async evaluateMetric(
     store: N3Store, 
@@ -451,38 +694,156 @@ export class MQAService {
     const { id, weight, property } = metricConfig;
     const label = this.getMetricLabel(id);
     
+    // Determine entity type for this metric
+    const entityType = this.getMetricEntityType(id);
+    
     let score = 0;
     let found = false;
     let values: string[] = [];
+    let compliantEntities = 0;
+    let compliancePercentage = 0;
+    let totalEntities = 0;
+    let datasetStats: { total: number; compliant: number } | undefined;
+    let distributionStats: { total: number; compliant: number } | undefined;
 
     try {
-      // Convert short property names to full URIs if needed
-      const fullProperty = this.expandProperty(property);
-      const propertyCheck = this.hasProperty(store, fullProperty, profile);
-      found = propertyCheck.found;
-      values = propertyCheck.values;
-
-      if (found) {
-        // Enhanced scoring based on metric type
-        score = await this.calculateMetricScore(id, values, weight, profile);
+      if (entityType === 'Multi') {
+        // Handle multi-entity metrics (Datasets + Distributions)
+        const multiStats = this.evaluateMultiEntityMetric(store, property, profile);
+        totalEntities = multiStats.totalEntities;
+        compliantEntities = multiStats.compliantEntities;
+        datasetStats = multiStats.datasetStats;
+        distributionStats = multiStats.distributionStats;
+        
+        if (totalEntities === 0) {
+          console.debug(`⚠️ No Dataset or Distribution entities found for multi-entity metric ${id}`);
+          
+          return {
+            id,
+            name: label.en || id,
+            score: 0,
+            maxScore: weight,
+            weight,
+            description: label.es || label.en || id,
+            category: category as any,
+            property,
+            found: false,
+            value: `No Dataset or Distribution entities found`,
+            entityType,
+            totalEntities: 0,
+            compliantEntities: 0,
+            compliancePercentage: 0,
+            datasetEntities: datasetStats,
+            distributionEntities: distributionStats
+          };
+        }
+      } else {
+        // Handle single-entity metrics
+        totalEntities = this.countEntitiesByType(store, entityType as 'Dataset' | 'Distribution' | 'Catalog');
+        
+        if (totalEntities === 0) {
+          console.debug(`⚠️ No ${entityType} entities found for metric ${id}`);
+          
+          return {
+            id,
+            name: label.en || id,
+            score: 0,
+            maxScore: weight,
+            weight,
+            description: label.es || label.en || id,
+            category: category as any,
+            property,
+            found: false,
+            value: `No ${entityType} entities found`,
+            entityType,
+            totalEntities: 0,
+            compliantEntities: 0,
+            compliancePercentage: 0
+          };
+        }
+        
+        // Check if this is a vocabulary-based metric
+        const vocabularyMetricInfo = this.getVocabularyMetricInfo(id);
+        
+        if (vocabularyMetricInfo) {
+          // Use special vocabulary evaluation
+          compliantEntities = await this.countVocabularyCompliantEntities(
+            store, 
+            vocabularyMetricInfo.baseProperty, 
+            vocabularyMetricInfo.vocabularyName, 
+            entityType as 'Dataset' | 'Distribution' | 'Catalog', 
+            profile
+          );
+        } else {
+          // Count compliant entities for regular single-entity metric
+          compliantEntities = this.countCompliantEntities(store, property, entityType as 'Dataset' | 'Distribution' | 'Catalog', profile);
+        }
       }
+      
+      found = compliantEntities > 0;
+      
+      // Calculate proportional score
+      const proportionalRatio = compliantEntities / totalEntities;
+      score = proportionalRatio * weight;
+      compliancePercentage = proportionalRatio * 100;
+
+      // Get sample values for display (optional, for backwards compatibility)
+      if (found) {
+        const fullProperty = this.expandProperty(property);
+        const propertyCheck = this.hasProperty(store, fullProperty, profile);
+        values = propertyCheck.values.slice(0, 3); // Limit to 3 examples
+      }
+
+      console.debug(`📊 Metric ${id}: ${compliantEntities}/${totalEntities} ${entityType} entities comply (${compliancePercentage.toFixed(1)}%)`);
+
     } catch (error) {
       console.warn(`Warning evaluating metric ${id}:`, error);
       score = 0;
+      compliantEntities = 0;
+      compliancePercentage = 0;
     }
 
-    return {
+    // Prepare descriptive value showing compliance ratio
+    let valueDescription: string;
+    
+    if (entityType === 'Multi') {
+      const datasetPercent = datasetStats!.total > 0 ? ((datasetStats!.compliant / datasetStats!.total) * 100).toFixed(1) : '0';
+      const distributionPercent = distributionStats!.total > 0 ? ((distributionStats!.compliant / distributionStats!.total) * 100).toFixed(1) : '0';
+      
+      valueDescription = totalEntities > 0 
+        ? `${compliantEntities}/${totalEntities} entities comply (${compliancePercentage.toFixed(1)}%) - Datasets: ${datasetStats!.compliant}/${datasetStats!.total} (${datasetPercent}%), Distributions: ${distributionStats!.compliant}/${distributionStats!.total} (${distributionPercent}%)`
+        : `No Dataset or Distribution entities found`;
+    } else {
+      valueDescription = totalEntities > 0 
+        ? `${compliantEntities}/${totalEntities} ${entityType}s comply (${compliancePercentage.toFixed(1)}%)`
+        : `No ${entityType} entities found`;
+    }
+
+    const result: any = {
       id,
       name: label.en || id,
-      score,
+      score: Math.round(score * 100) / 100, // Round to 2 decimal places
       maxScore: weight,
       weight,
       description: label.es || label.en || id,
       category: category as any,
       property,
       found,
-      value: values.length > 0 ? values.join(', ') : undefined
+      value: valueDescription,
+      // Proportional evaluation fields
+      entityType,
+      totalEntities,
+      compliantEntities,
+      compliancePercentage: Math.round(compliancePercentage * 100) / 100
     };
+    
+    // Add multi-entity specific fields if applicable
+    if (entityType === 'Multi') {
+      result.datasetEntities = datasetStats;
+      result.distributionEntities = distributionStats;
+    }
+    
+    return result;
   }
 
   /**
@@ -666,10 +1027,18 @@ export class MQAService {
           const normalizedLabel = this.normalizeValue(item.label || '');
           const normalizedUri = this.normalizeValue(item.uri || '');
           
-          // Match common patterns like CSV, JSON, PDF, etc.
-          fileTypeMatch = normalizedLabel.includes(normalizedValue) || 
-                        normalizedValue.includes(normalizedLabel) ||
-                        normalizedUri.includes(normalizedValue);
+          // More restrictive matching: exact label match or exact extraction from URI
+          fileTypeMatch = normalizedLabel === normalizedValue ||
+                        // Extract file type from URI path (e.g., /file-type/CSV -> CSV)
+                        normalizedUri.endsWith(`/file-type/${normalizedValue}`) ||
+                        normalizedUri.endsWith(`/${normalizedValue}`) ||
+                        // Allow exact URI matches
+                        normalizedUri === normalizedValue;
+          
+          // Debug the comparison
+          if (fileTypeMatch) {
+            console.debug(`🎯 Exact file type match: '${value}' matches '${item.label}' (URI: ${item.uri})`);
+          }
         }
         
         if (uriMatch || valueMatch || labelMatch || mimeTypeMatch || fileTypeMatch) {
@@ -732,14 +1101,16 @@ export class MQAService {
    */
   private expandProperty(property: string): string {
     const prefixes: { [key: string]: string } = {
-      'dcat:': 'http://www.w3.org/ns/dcat#',
-      'dcterms:': 'http://purl.org/dc/terms/',
+      'rdf:': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+      'rdfs:': 'http://www.w3.org/2000/01/rdf-schema#',
       'dct:': 'http://purl.org/dc/terms/',
+      'dcat:': 'http://www.w3.org/ns/dcat#',
+      'dcatap:': 'http://data.europa.eu/r5r/',
+      'dcatapes:': 'https://datosgobes.github.io/DCAT-AP-ES/',
       'foaf:': 'http://xmlns.com/foaf/0.1/',
       'vcard:': 'http://www.w3.org/2006/vcard/ns#',
       'adms:': 'http://www.w3.org/ns/adms#',
-      'rdf:': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-      'rdfs:': 'http://www.w3.org/2000/01/rdf-schema#'
+      'xsd:': 'http://www.w3.org/2001/XMLSchema#',
     };
 
     for (const [prefix, uri] of Object.entries(prefixes)) {
@@ -753,59 +1124,25 @@ export class MQAService {
   }
 
   /**
-   * Get metric label from translations or fallback to default
+   * Get metric label from translations
    */
   private getMetricLabel(metricId: string): { en: string; es: string } {
-    // Try to get from global i18n if available
     try {
-      // Try dynamic import approach first
-      if (typeof window !== 'undefined' && (window as any).i18next) {
-        const i18n = (window as any).i18next;
-        const enLabel = i18n.t(`metricLabels.${metricId}`, { lng: 'en' });
-        const esLabel = i18n.t(`metricLabels.${metricId}`, { lng: 'es' });
-        
-        // Check if translation was found (i18n returns the key if not found)
-        if (enLabel && !enLabel.startsWith('metricLabels.')) {
-          return { en: enLabel, es: esLabel };
-        }
+      // Use the imported i18n instance directly
+      const enLabel = i18n.t(`metricLabels.${metricId}`, { lng: 'en' });
+      const esLabel = i18n.t(`metricLabels.${metricId}`, { lng: 'es' });
+      
+      // Check if translation was found (i18n returns the key if not found)
+      if (enLabel && !enLabel.startsWith('metricLabels.')) {
+        return { en: enLabel, es: esLabel };
       }
     } catch (error) {
       console.debug('Failed to get translation for metric:', metricId, error);
     }
     
-    // Fallback to default labels
-    const defaultLabels: { [key: string]: { en: string; es: string } } = {
-      'dcat_keyword': { en: 'Keywords', es: 'Palabras clave' },
-      'dcat_theme': { en: 'Themes/Categories', es: 'Temas/Categorías' },
-      'dct_spatial': { en: 'Spatial Coverage', es: 'Cobertura espacial' },
-      'dct_temporal': { en: 'Temporal Coverage', es: 'Cobertura temporal' },
-      'dcat_accessURL_status': { en: 'Access URL Availability', es: 'Disponibilidad de URL de acceso' },
-      'dcat_downloadURL': { en: 'Download URL', es: 'URL de descarga' },
-      'dcat_downloadURL_status': { en: 'Download URL Availability', es: 'Disponibilidad de URL de descarga' },
-      'dct_format': { en: 'Format', es: 'Formato' },
-      'dcat_mediaType': { en: 'Media Type', es: 'Tipo de medio' },
-      'dct_format_vocabulary': { en: 'Format Vocabulary', es: 'Vocabulario de formato' },
-      'dct_mediaType_vocabulary': { en: 'Media Type Vocabulary', es: 'Vocabulario de tipo de medio' },
-      'dct_format_nonproprietary': { en: 'Non-proprietary Format', es: 'Formato no propietario' },
-      'dct_format_machinereadable': { en: 'Machine-readable Format', es: 'Formato legible por máquina' },
-      'dcat_ap_compliance': { en: 'DCAT-AP Compliance', es: 'Conformidad con DCAT-AP' },
-      'dcat_ap_es_compliance': { en: 'DCAT-AP-ES Compliance', es: 'Conformidad con DCAT-AP-ES' },
-      'nti_risp_compliance': { en: 'NTI-RISP Compliance', es: 'Conformidad con NTI-RISP' },
-      'dct_license': { en: 'License', es: 'Licencia' },
-      'dct_license_vocabulary': { en: 'License Vocabulary', es: 'Vocabulario de licencia' },
-      'dct_accessRights': { en: 'Access Rights', es: 'Derechos de acceso' },
-      'dct_accessRights_vocabulary': { en: 'Access Rights Vocabulary', es: 'Vocabulario de derechos de acceso' },
-      'dcat_contactPoint': { en: 'Contact Point', es: 'Punto de contacto' },
-      'dct_publisher': { en: 'Publisher', es: 'Editor' },
-      'dct_rights': { en: 'Rights', es: 'Derechos' },
-      'dcat_byteSize': { en: 'Byte Size', es: 'Tamaño en bytes' },
-      'dct_issued': { en: 'Issued Date', es: 'Fecha de emisión' },
-      'dct_modified': { en: 'Modified Date', es: 'Fecha de modificación' },
-      'dct_format_vocabulary_nti_risp': { en: 'Format Vocabulary (NTI-RISP)', es: 'Vocabulario de formato (NTI-RISP)' },
-      'dct_mediaType_vocabulary_nti_risp': { en: 'Media Type Vocabulary (NTI-RISP)', es: 'Vocabulario de tipo de medio (NTI-RISP)' }
-    };
-    
-    return defaultLabels[metricId] || { en: metricId, es: metricId };
+    // Fallback to metric ID if no translation found
+    console.warn(`Missing translation for metric: ${metricId}`);
+    return { en: metricId, es: metricId };
   }
 
   /**

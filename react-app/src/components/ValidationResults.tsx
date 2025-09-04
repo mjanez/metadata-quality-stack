@@ -108,7 +108,7 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
       "@context": {
         "dqv": "http://www.w3.org/ns/dqv#",
         "dcat": "http://www.w3.org/ns/dcat#",
-        "dcterms": "http://purl.org/dc/terms/",
+        "dct": "http://purl.org/dc/terms/",
         "prov": "http://www.w3.org/ns/prov#",
         "foaf": "http://xmlns.com/foaf/0.1/",
         "xsd": "http://www.w3.org/2001/XMLSchema#",
@@ -119,8 +119,8 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
       },
       "@id": measurementId,
       "@type": "dqv:QualityMeasurement",
-      "dcterms:created": `${new Date().toISOString()}`,
-      "dcterms:title": `Quality Assessment`,
+      "dct:created": `${new Date().toISOString()}`,
+      "dct:title": `Quality Assessment`,
       "dqv:computedOn": {
         "@id": sourceUrl,
         "@type": "dcat:Dataset"

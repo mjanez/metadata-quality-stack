@@ -108,8 +108,8 @@
       "findability": [
         { "id": "dcat_keyword", "weight": 30, "property": "dcat:keyword" },
         { "id": "dcat_theme", "weight": 30, "property": "dcat:theme" },
-        { "id": "dct_spatial", "weight": 20, "property": "dcterms:spatial" },
-        { "id": "dct_temporal", "weight": 20, "property": "dcterms:temporal" }
+        { "id": "dct_spatial", "weight": 20, "property": "dct:spatial" },
+        { "id": "dct_temporal", "weight": 20, "property": "dct:temporal" }
       ],
       "accessibility": [
         { "id": "dcat_accessURL_status", "weight": 50, "property": "dcat:accessURL" },
@@ -117,35 +117,35 @@
         { "id": "dcat_downloadURL_status", "weight": 30, "property": "dcat:downloadURL" }
       ],
       "interoperability": [
-        { "id": "dct_format", "weight": 20, "property": "dcterms:format" },
+        { "id": "dct_format", "weight": 20, "property": "dct:format" },
         { "id": "dcat_mediaType", "weight": 10, "property": "dcat:mediaType" },
-        { "id": "dct_format_vocabulary", "weight": 5, "property": "dcterms:format" },
+        { "id": "dct_format_vocabulary", "weight": 5, "property": "dct:format" },
         { "id": "dct_mediaType_vocabulary", "weight": 5, "property": "dcat:mediaType" },
-        { "id": "dct_format_nonproprietary", "weight": 20, "property": "dcterms:format" },
-        { "id": "dct_format_machinereadable", "weight": 20, "property": "dcterms:format" },
+        { "id": "dct_format_nonproprietary", "weight": 20, "property": "dct:format" },
+        { "id": "dct_format_machinereadable", "weight": 20, "property": "dct:format" },
         { "id": "dcat_ap_compliance", "weight": 30, "property": "rdf:type" }
       ],
       "reusability": [
-        { "id": "dct_license", "weight": 20, "property": "dcterms:license" },
-        { "id": "dct_license_vocabulary", "weight": 10, "property": "dcterms:license" },
-        { "id": "dct_accessRights", "weight": 10, "property": "dcterms:accessRights" },
-        { "id": "dct_accessRights_vocabulary", "weight": 5, "property": "dcterms:accessRights" },
+        { "id": "dct_license", "weight": 20, "property": "dct:license" },
+        { "id": "dct_license_vocabulary", "weight": 10, "property": "dct:license" },
+        { "id": "dct_accessRights", "weight": 10, "property": "dct:accessRights" },
+        { "id": "dct_accessRights_vocabulary", "weight": 5, "property": "dct:accessRights" },
         { "id": "dcat_contactPoint", "weight": 20, "property": "dcat:contactPoint" },
-        { "id": "dct_publisher", "weight": 10, "property": "dcterms:publisher" }
+        { "id": "dct_publisher", "weight": 10, "property": "dct:publisher" }
       ],
       "contextuality": [
         { "id": "dcat_byteSize", "weight": 5, "property": "dcat:byteSize" },
-        { "id": "dct_issued", "weight": 5, "property": "dcterms:issued" },
-        { "id": "dct_modified", "weight": 5, "property": "dcterms:modified" },
-        { "id": "dct_rights", "weight": 5, "property": "dcterms:rights" }
+        { "id": "dct_issued", "weight": 5, "property": "dct:issued" },
+        { "id": "dct_modified", "weight": 5, "property": "dct:modified" },
+        { "id": "dct_rights", "weight": 5, "property": "dct:rights" }
       ]
     },
     "dcat_ap_es": {
       "findability": [
         { "id": "dcat_keyword", "weight": 30, "property": "dcat:keyword" },
         { "id": "dcat_theme", "weight": 30, "property": "dcat:theme" },
-        { "id": "dct_spatial", "weight": 20, "property": "dcterms:spatial" },
-        { "id": "dct_temporal", "weight": 20, "property": "dcterms:temporal" }
+        { "id": "dct_spatial", "weight": 20, "property": "dct:spatial" },
+        { "id": "dct_temporal", "weight": 20, "property": "dct:temporal" }
       ],
       "accessibility": [
         { "id": "dcat_accessURL_status", "weight": 50, "property": "dcat:accessURL" },
@@ -153,56 +153,56 @@
         { "id": "dcat_downloadURL_status", "weight": 30, "property": "dcat:downloadURL" }
       ],
       "interoperability": [
-        { "id": "dct_format", "weight": 20, "property": "dcterms:format" },
+        { "id": "dct_format", "weight": 20, "property": "dct:format" },
         { "id": "dcat_mediaType", "weight": 10, "property": "dcat:mediaType" },
-        { "id": "dct_format_vocabulary", "weight": 5, "property": "dcterms:format" },
+        { "id": "dct_format_vocabulary", "weight": 5, "property": "dct:format" },
         { "id": "dct_mediaType_vocabulary", "weight": 5, "property": "dcat:mediaType" },
-        { "id": "dct_format_nonproprietary", "weight": 20, "property": "dcterms:format" },
-        { "id": "dct_format_machinereadable", "weight": 20, "property": "dcterms:format" },
+        { "id": "dct_format_nonproprietary", "weight": 20, "property": "dct:format" },
+        { "id": "dct_format_machinereadable", "weight": 20, "property": "dct:format" },
         { "id": "dcat_ap_es_compliance", "weight": 30, "property": "rdf:type" }
       ],
       "reusability": [
-        { "id": "dct_license", "weight": 20, "property": "dcterms:license" },
-        { "id": "dct_license_vocabulary", "weight": 10, "property": "dcterms:license" },
-        { "id": "dct_accessRights", "weight": 10, "property": "dcterms:accessRights" },
-        { "id": "dct_accessRights_vocabulary", "weight": 5, "property": "dcterms:accessRights" },
+        { "id": "dct_license", "weight": 20, "property": "dct:license" },
+        { "id": "dct_license_vocabulary", "weight": 10, "property": "dct:license" },
+        { "id": "dct_accessRights", "weight": 10, "property": "dct:accessRights" },
+        { "id": "dct_accessRights_vocabulary", "weight": 5, "property": "dct:accessRights" },
         { "id": "dcat_contactPoint", "weight": 20, "property": "dcat:contactPoint" },
-        { "id": "dct_publisher", "weight": 10, "property": "dcterms:publisher" }
+        { "id": "dct_publisher", "weight": 10, "property": "dct:publisher" }
       ],
       "contextuality": [
         { "id": "dcat_byteSize", "weight": 5, "property": "dcat:byteSize" },
-        { "id": "dct_issued", "weight": 5, "property": "dcterms:issued" },
-        { "id": "dct_modified", "weight": 5, "property": "dcterms:modified" },
-        { "id": "dct_rights", "weight": 5, "property": "dcterms:rights" }
+        { "id": "dct_issued", "weight": 5, "property": "dct:issued" },
+        { "id": "dct_modified", "weight": 5, "property": "dct:modified" },
+        { "id": "dct_rights", "weight": 5, "property": "dct:rights" }
       ]
     },
     "nti_risp": {
       "findability": [
         { "id": "dcat_keyword", "weight": 30, "property": "dcat:keyword" },
         { "id": "dcat_theme", "weight": 30, "property": "dcat:theme" },
-        { "id": "dct_spatial", "weight": 20, "property": "dcterms:spatial" },
-        { "id": "dct_temporal", "weight": 20, "property": "dcterms:temporal" }
+        { "id": "dct_spatial", "weight": 20, "property": "dct:spatial" },
+        { "id": "dct_temporal", "weight": 20, "property": "dct:temporal" }
       ],
       "accessibility": [
         { "id": "dcat_accessURL_status", "weight": 50, "property": "dcat:accessURL" }
       ],
       "interoperability": [
-        { "id": "dct_format", "weight": 20, "property": "dcterms:format" },
-        { "id": "dct_format_vocabulary_nti_risp", "weight": 5, "property": "dcterms:format" },
-        { "id": "dct_mediaType_vocabulary_nti_risp", "weight": 5, "property": "dcterms:format" },
-        { "id": "dct_format_nonproprietary", "weight": 20, "property": "dcterms:format" },
-        { "id": "dct_format_machinereadable", "weight": 20, "property": "dcterms:format" },
+        { "id": "dct_format", "weight": 20, "property": "dct:format" },
+        { "id": "dct_format_vocabulary_nti_risp", "weight": 5, "property": "dct:format" },
+        { "id": "dct_mediaType_vocabulary_nti_risp", "weight": 5, "property": "dct:format" },
+        { "id": "dct_format_nonproprietary", "weight": 20, "property": "dct:format" },
+        { "id": "dct_format_machinereadable", "weight": 20, "property": "dct:format" },
         { "id": "nti_risp_compliance", "weight": 30, "property": "rdf:type" }
       ],
       "reusability": [
-        { "id": "dct_license", "weight": 20, "property": "dcterms:license" },
-        { "id": "dct_license_vocabulary", "weight": 10, "property": "dcterms:license" },
-        { "id": "dct_publisher", "weight": 10, "property": "dcterms:publisher" }
+        { "id": "dct_license", "weight": 20, "property": "dct:license" },
+        { "id": "dct_license_vocabulary", "weight": 10, "property": "dct:license" },
+        { "id": "dct_publisher", "weight": 10, "property": "dct:publisher" }
       ],
       "contextuality": [
         { "id": "dcat_byteSize", "weight": 5, "property": "dcat:byteSize" },
-        { "id": "dct_issued", "weight": 5, "property": "dcterms:issued" },
-        { "id": "dct_modified", "weight": 5, "property": "dcterms:modified" }
+        { "id": "dct_issued", "weight": 5, "property": "dct:issued" },
+        { "id": "dct_modified", "weight": 5, "property": "dct:modified" }
       ]
     }
   },
@@ -282,6 +282,11 @@
         }
       ]
     }
+  },
+  "evaluationSettings": {
+    "useProportionalEvaluation": true,
+    "minimumEntityThreshold": 1,
+    "description": "Proportional evaluation calculates metric scores based on the percentage of entities that comply with each metric, rather than binary all-or-nothing scoring"
   },
   "app_info": {
     "name": "Metadata Quality APP",

@@ -65,12 +65,15 @@ export class RDFService {
               prefixes: {
                 rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
                 rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
+                dct: 'http://purl.org/dc/terms/',
                 dcat: 'http://www.w3.org/ns/dcat#',
-                dcterms: 'http://purl.org/dc/terms/',
+                dcatap: 'http://data.europa.eu/r5r/',
+                dcatapes: 'https://datosgobes.github.io/DCAT-AP-ES/',
                 foaf: 'http://xmlns.com/foaf/0.1/',
                 vcard: 'http://www.w3.org/2006/vcard/ns#',
-                adms: 'http://www.w3.org/ns/adms#'
-              }
+                adms: 'http://www.w3.org/ns/adms#',
+                xsd: 'http://www.w3.org/2001/XMLSchema#',
+                }
             });
 
             const quads = store.getQuads();
@@ -146,11 +149,14 @@ export class RDFService {
                 prefixes: {
                   rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
                   rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
+                  dct: 'http://purl.org/dc/terms/',
                   dcat: 'http://www.w3.org/ns/dcat#',
-                  dcterms: 'http://purl.org/dc/terms/',
+                  dcatap: 'http://data.europa.eu/r5r/',
+                  dcatapes: 'https://datosgobes.github.io/DCAT-AP-ES/',
                   foaf: 'http://xmlns.com/foaf/0.1/',
                   vcard: 'http://www.w3.org/2006/vcard/ns#',
-                  adms: 'http://www.w3.org/ns/adms#'
+                  adms: 'http://www.w3.org/ns/adms#',
+                  xsd: 'http://www.w3.org/2001/XMLSchema#',
                 }
               });
 

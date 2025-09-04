@@ -50,6 +50,11 @@ export interface MQAConfig {
       [dimension: string]: MQAMetricConfig[];
     };
   };
+  evaluationSettings?: {
+    useProportionalEvaluation: boolean;
+    minimumEntityThreshold: number;
+    description?: string;
+  };
   sparqlConfig?: {
     defaultEndpoint: string;
     queries: {
@@ -102,6 +107,14 @@ export interface QualityMetric {
   property?: string;
   found?: boolean;
   value?: string;
+  // Proportional evaluation fields
+  entityType?: 'Dataset' | 'Distribution' | 'Catalog' | 'Multi';
+  totalEntities?: number;
+  compliantEntities?: number;
+  compliancePercentage?: number;
+  // Multi-entity specific fields
+  datasetEntities?: { total: number; compliant: number };
+  distributionEntities?: { total: number; compliant: number };
 }
 
 export interface QualityResult {

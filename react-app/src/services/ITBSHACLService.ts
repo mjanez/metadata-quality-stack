@@ -388,7 +388,7 @@ export class ITBSHACLService {
     
     if (path) {
       const pathLower = path.toLowerCase();
-      if (pathLower.includes('dcat') || pathLower.includes('dcterms')) {
+      if (pathLower.includes('dcat') || pathLower.includes('dct')) {
         return 'https://datosgobes.github.io/DCAT-AP-ES/';
       }
     }
