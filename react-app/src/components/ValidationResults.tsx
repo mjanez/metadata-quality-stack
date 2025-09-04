@@ -56,8 +56,8 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
   const downloadCSV = () => {
     const csvHeader = 'dimension,metric,score,maxScore,percentage,weight\n';
     const csvData = quality.metrics.map(metric => {
-      const percentage = (metric.score / metric.maxScore * 100).toFixed(2);
-      return `${metric.category},${metric.id},${metric.score},${metric.maxScore},${percentage},${metric.weight}`;
+      const percentage = (metric.score / metric.maxScore * 100).toFixed(1);
+      return `${metric.category},${metric.id},${metric.score.toFixed(1)},${metric.maxScore},${percentage},${metric.weight}`;
     }).join('\n');
     
     const blob = new Blob([csvHeader + csvData], { type: 'text/csv;charset=utf-8;' });
@@ -72,20 +72,20 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
     const jsonData = {
       source: result.timestamp ? `validation-${result.timestamp}` : 'unknown',
       created: new Date().toISOString().split('T')[0],
-      totalScore: quality.totalScore,
+      totalScore: parseFloat(quality.totalScore.toFixed(1)),
       rating: quality.percentage >= 85 ? 'Excellent' : 
               quality.percentage >= 55 ? 'Good' : 
               quality.percentage >= 30 ? 'Sufficient' : 'Poor',
       dimensions: Object.entries(quality.byCategory).reduce((acc, [key, value]) => {
-        acc[key] = value.score;
+        acc[key] = parseFloat(value.score.toFixed(1));
         return acc;
       }, {} as Record<string, number>),
       metrics: quality.metrics.map(metric => ({
         id: metric.id,
         dimension: metric.category,
-        score: metric.score,
+        score: parseFloat(metric.score.toFixed(1)),
         maxScore: metric.maxScore,
-        percentage: metric.score / metric.maxScore,
+        percentage: parseFloat((metric.score / metric.maxScore).toFixed(3)),
         weight: metric.weight,
         found: metric.found || false
       }))
@@ -108,7 +108,7 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
       "@context": {
         "dqv": "http://www.w3.org/ns/dqv#",
         "dcat": "http://www.w3.org/ns/dcat#",
-        "dcterms": "http://purl.org/dc/terms/",
+        "dct": "http://purl.org/dc/terms/",
         "prov": "http://www.w3.org/ns/prov#",
         "foaf": "http://xmlns.com/foaf/0.1/",
         "xsd": "http://www.w3.org/2001/XMLSchema#",
@@ -119,13 +119,13 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
       },
       "@id": measurementId,
       "@type": "dqv:QualityMeasurement",
-      "dcterms:created": `${new Date().toISOString()}`,
-      "dcterms:title": `Quality Assessment`,
+      "dct:created": `${new Date().toISOString()}`,
+      "dct:title": `Quality Assessment`,
       "dqv:computedOn": {
         "@id": sourceUrl,
         "@type": "dcat:Dataset"
       },
-      "dqv:value": quality.totalScore,
+      "dqv:value": parseFloat(quality.totalScore.toFixed(1)),
       "dqv:isMeasurementOf": {
         "@id": "urn:mqa:metric:totalScore",
         "@type": "dqv:Metric",
@@ -155,7 +155,7 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
       (dqvData["dqv:hasQualityMeasurement"] as any[]).push({
         "@id": `${measurementId}-${dimension}`,
         "@type": "dqv:QualityMeasurement",
-        "dqv:value": categoryData.score,
+        "dqv:value": parseFloat(categoryData.score.toFixed(1)),
         "dqv:isMeasurementOf": {
           "@id": dimensionMapping[dimension] || `urn:mqa:dimension:${dimension}`,
           "@type": "dqv:Dimension",
@@ -223,7 +223,7 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
                 </span>
               </div>
               <div className={`display-4 fw-bold ${getScoreColor(quality.percentage)}`}>
-                {quality.totalScore}
+                {quality.totalScore.toFixed(1)}
               </div>
               <div className="progress mt-2" style={{ height: '6px' }}>
                 <div
@@ -239,7 +239,7 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
                 ></div>
               </div>
               <small className="text-muted mt-1 d-block">
-                {quality.totalScore} / {quality.maxScore} ({quality.percentage.toFixed(1)}%)
+                {quality.totalScore.toFixed(1)} / {quality.maxScore} ({quality.percentage.toFixed(1)}%)
               </small>
             </div>
           </div>
@@ -350,7 +350,7 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
                           ></div>
                         </div>
                         <small className="text-muted">
-                          {scores.score} / {scores.maxScore} ({scores.percentage.toFixed(1)}%)
+                          {scores.score.toFixed(1)} / {scores.maxScore} ({scores.percentage.toFixed(1)}%)
                         </small>
                       </div>
                     </div>
@@ -506,7 +506,7 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
                                       metric.score === metric.maxScore ? 'bg-success' :
                                       metric.score > 0 ? 'bg-warning' : 'bg-danger'
                                     }`}>
-                                      {metric.score} / {metric.maxScore}
+                                      {metric.score.toFixed(1)} / {metric.maxScore}
                                     </span>
                                   </td>
                                   <td>
@@ -571,7 +571,7 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ result, onReset }
                       onClick={onReset}
                     >
                       <i className="bi bi-arrow-left me-2"></i>
-                      Validate Another Dataset
+                      {t('validation_results.validate_another_dataset')}
                     </button>
                   </div>
                 </div>

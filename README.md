@@ -44,8 +44,10 @@ This tool helps data publishers and consumers evaluate and improve the quality o
 
 
 ### Static version
-![Home](/docs/img/app_1.png)
-![Home](/docs/img/app_2.png)
+![React](/docs/img/react_app_1.png)
+![React](/docs/img/react_app_2.png)
+![React](/docs/img/react_app_3.png)
+![React](/docs/img/react_app_4.png)
 
 ### Docker version
 ![Home](/docs/img/app_1.png)

@@ -32,7 +32,7 @@ const SHACLReportViewer: React.FC<SHACLReportViewerProps> = ({
   const [prefixService] = useState(() => PrefixService.getInstance());
   const [prefixesLoaded, setPrefixesLoaded] = useState(false);
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
-  const [mqaConfig] = useState<MQAConfig>(mqaConfigData as MQAConfig);
+  const [mqaConfig] = useState<MQAConfig>((mqaConfigData as any));
 
   // Load prefixes on component mount
   useEffect(() => {
@@ -671,21 +671,6 @@ const SHACLReportViewer: React.FC<SHACLReportViewerProps> = ({
                     </div>
                   </div>
                 </div>
-
-                {/* Perfect compliance message */}
-                {report.conforms && (
-                  <div className="row mt-4">
-                    <div className="col">
-                      <div className="alert alert-success text-center" role="alert">
-                        <i className="bi bi-check-circle-fill display-1"></i>
-                        <h4 className="mt-3">{t('shacl.perfect_compliance')}</h4>
-                        <p className="mb-0">
-                          {t('shacl.no_violations_found')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 

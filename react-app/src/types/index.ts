@@ -4,6 +4,22 @@ export type RDFFormat = 'turtle' | 'rdfxml' | 'jsonld' | 'ntriples' | 'auto';
 // Validation profile types  
 export type ValidationProfile = 'dcat_ap' | 'dcat_ap_es' | 'nti_risp';
 
+// Tab system types
+export interface ValidationTab {
+  id: string;
+  name: string;
+  result: ExtendedValidationResult | null;
+  isValidating: boolean;
+  error: string | null;
+  createdAt: Date;
+}
+
+export interface TabState {
+  tabs: ValidationTab[];
+  activeTabId: string | null;
+  nextTabId: number;
+}
+
 // Profile Version type
 export interface ProfileVersion {
   name: string;
@@ -34,10 +50,27 @@ export interface MQAConfig {
       [dimension: string]: MQAMetricConfig[];
     };
   };
-  metricLabels: {
-    [metricId: string]: {
-      en: string;
-      es: string;
+  evaluationSettings?: {
+    useProportionalEvaluation: boolean;
+    minimumEntityThreshold: number;
+    description?: string;
+  };
+  sparqlConfig?: {
+    defaultEndpoint: string;
+    queries: {
+      [profile: string]: {
+        id: string;
+        name: string;
+        description: string;
+        query: string;
+        parameters: Array<{
+          name: string;
+          label: string;
+          placeholder: string;
+          required: boolean;
+          defaultValue?: string;
+        }>;
+      }[];
     };
   };
   app_info?: {
@@ -74,6 +107,14 @@ export interface QualityMetric {
   property?: string;
   found?: boolean;
   value?: string;
+  // Proportional evaluation fields
+  entityType?: 'Dataset' | 'Distribution' | 'Catalog' | 'Multi';
+  totalEntities?: number;
+  compliantEntities?: number;
+  compliancePercentage?: number;
+  // Multi-entity specific fields
+  datasetEntities?: { total: number; compliant: number };
+  distributionEntities?: { total: number; compliant: number };
 }
 
 export interface QualityResult {
@@ -123,15 +164,26 @@ export interface ValidationWarning extends ValidationError {
 export interface ValidationInput {
   content: string;
   format: RDFFormat;
-  source: 'url' | 'text';
+  source: 'url' | 'text' | 'sparql';
   url?: string;
+  sparqlEndpoint?: string;
+  sparqlQuery?: string;
+  sparqlParameters?: { [key: string]: string };
 }
 
 // Vocabulary types
 export interface VocabularyItem {
-  value: string;
-  label?: string;
+  uri: string;      // Primary URI identifier (from JSONL files)
+  value?: string;   // Legacy support
+  label?: string;   // Human-readable label
   category?: string;
+}
+
+// RDF Validation types
+export interface RDFValidationResult {
+  valid: boolean;
+  error?: string;
+  lineNumber?: number;
 }
 
 // Configuration types
