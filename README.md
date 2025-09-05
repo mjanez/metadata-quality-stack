@@ -292,6 +292,37 @@ CHECKER_DEFINITIONS.update({
 NTI_RISP_SPECIFIC_METRICS.append(
     {"id": "dct_format_nonproprietary_nti", "dimension": "interoperability", "weight": 25}
 )
+```
+
+## SHACL Validation
+
+The API now uses **remote SHACL files** directly from official repositories, ensuring you always have the latest validation rules:
+
+### Automatic Remote Loading
+- **DCAT-AP**: Files loaded from [SEMICeu/DCAT-AP](https://github.com/SEMICeu/DCAT-AP) GitHub repository
+- **DCAT-AP-ES**: Files loaded from [datosgobes/DCAT-AP-ES](https://github.com/datosgobes/DCAT-AP-ES) GitHub repository  
+- **NTI-RISP**: Files loaded from [datosgobes/NTI-RISP](https://github.com/datosgobes/NTI-RISP) GitHub repository
+
+### Benefits
+- ✅ **Always up-to-date**: Latest SHACL shapes automatically available
+- ✅ **No local maintenance**: No need to manually update SHACL files
+- ✅ **Reduced repository size**: No local SHACL files stored
+- ✅ **Official sources**: Direct from standards organizations
+
+### Configuration
+The SHACL URLs are configured in `src/api/config.py`:
+```python
+# DCAT-AP SHACL files by level - using remote URLs
+DCAT_AP_SHACL_FILES = {
+    SHACLLevel.LEVEL_1: [
+        "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_shapes.ttl",
+        # ... more URLs
+    ]
+}
+```
+
+> [!NOTE]
+> The API includes fallback mechanisms in case remote URLs are temporarily unavailable.
 
 ## Update SSL Certificate
 To update the local SSL certificate, follow these steps:

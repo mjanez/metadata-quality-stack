@@ -14,7 +14,6 @@ import urllib.parse
 import logging
 from pydantic import BaseModel
 
-from .shacl_updater import update_shacl_files
 from .models import QualityReport
 from .repositories.tinydb_repo import TinyDBRepository
 from .validators import register_standard_checkers, validate_metadata_quality, validate_metadata_from_content
@@ -261,32 +260,8 @@ async def get_reports_by_rating(rating: str):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.post("/admin/update-shacl", response_model=Dict[str, Any])
-@limiter.limit("5/minute")
-async def update_shacl(request: Request, force: bool = Query(False, description="Forzar actualización")):
-    """
-    Actualiza los archivos SHACL desde las fuentes remotas.
-    
-    Args:
-        force: Si se debe forzar la actualización, ignorando los tiempos de caducidad
-        
-    Returns:
-        Resultado de la actualización
-    """
-    try:
-        updated, total = update_shacl_files(force=force)
-        return {
-            "success": True,
-            "message": f"SHACL files updated: {updated}/{total}",
-            "updated": updated,
-            "total": total
-        }
-    except Exception as e:
-        logger.error(f"Error updating SHACL files: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to update SHACL files: {str(e)}"
-        )
+# SHACL files are now loaded directly from remote URLs
+# No need for manual updates
 
 @app.on_event("startup")
 async def startup_event():
@@ -298,10 +273,5 @@ async def startup_event():
     except Exception as e:
         logger.error(f"Failed to register standard checkers: {e}")
     
-    # Iniciar actualización de archivos SHACL en segundo plano
-    try:
-        import threading
-        threading.Thread(target=update_shacl_files, daemon=True).start()
-        logger.info("Started SHACL updater background thread")
-    except Exception as e:
-        logger.warning(f"Failed to start SHACL updater thread: {e}")
+    # SHACL files are now loaded directly from remote URLs
+    logger.info("API ready - SHACL files will be loaded from remote URLs")
