@@ -1,5 +1,5 @@
 # Metadata Quality Stack
-[![ES](https://img.shields.io/badge/lang-ES-yellow.svg)](README.es.md) [![EN](https://img.shields.io/badge/lang-EN-blue.svg)](README.md) [![Static Demo](https://img.shields.io/badge/demo-GitHub%20Pages-green.svg)](https://mjanez.github.io/metadata-quality-react/)
+[![ES](https://img.shields.io/badge/lang-ES-yellow.svg)](README.es.md) [![EN](https://img.shields.io/badge/lang-EN-blue.svg)](README.md) [![Static Demo](https://img.shields.io/badge/demo-GitHub%20Pages-green.svg)](https://metadata-quality.mjanez.dev/)
 
 Un conjunto de herramientas completo para analizar la calidad de los metadatos de datos abiertos. Basado en la metodología de Evaluación de Calidad de Metadatos del Portal Europeo de Datos ([MQA](https://data.europa.eu/mqa/methodology?locale=en)) y en la validación mediante [SHACL](https://www.w3.org/TR/shacl/) para los perfiles [DCAT-AP](https://semiceu.github.io/DCAT-AP/), [DCAT-AP-ES](https://datosgobes.github.io/DCAT-AP-ES/) y [NTI-RISP (2013)](https://datosgobes.github.io/NTI-RISP/).
 
@@ -8,7 +8,7 @@ Un conjunto de herramientas completo para analizar la calidad de los metadatos d
 ### **Prueba la versión React. ¡Es para la web!**
 Prueba la versión simplificada para navegador (**sin instalación**), más información en [react-app/README.md](react-app/README.md).
 > [!TIP]
-> **Demo en vivo**: [`mjanez.github.io/metadata-quality-react/`](https://mjanez.github.io/metadata-quality-react/)
+> **Demo en vivo**: [`metadata-quality.mjanez.dev/`](https://metadata-quality.mjanez.dev/)
 ><br> Esta edición se ejecuta completamente del lado del cliente e incluye el núcleo de MQA y el validador SHACL para comprobaciones instantáneas de calidad de metadatos en tu navegador.
 
 ### **Despliegue completo con Docker** (Recomendado para validaciones más complejas)
@@ -26,7 +26,7 @@ Esta herramienta ayuda a los publicadores y consumidores de datos a evaluar y me
 ## Características
 
 ### **Dos Opciones de Despliegue**
-1. **[Versión Estática](https://mjanez.github.io/metadata-quality-react/)** - Compatible con GitHub Pages, sin backend
+1. **[Versión Estática](https://metadata-quality.mjanez.dev/)** - Compatible con GitHub Pages, sin backend
 2. **[Versión Docker](#installation)** - Con todas las funcionalidades, base de datos y API
 
 ### **Capacidades Principales**
@@ -62,7 +62,7 @@ Esta herramienta ayuda a los publicadores y consumidores de datos a evaluar y me
 ### **Opciones de Despliegue**
 
 #### **1. Versión Estática** (Solo cliente)
-- **Ubicación**: directorio [https://mjanez.github.io/metadata-quality-react/](https://mjanez.github.io/metadata-quality-react/)
+- **Ubicación**: directorio [https://metadata-quality.mjanez.dev/](https://metadata-quality.mjanez.dev/)
 - **Tecnología**: HTML, CSS, TypeScript con [`N3.js`](https://github.com/rdfjs/N3.js), [`shacl-engine`](https://github.com/rdf-ext/shacl-engine), [`rdfxml-streaming-parser.js`](https://github.com/rdfjs/rdfxml-streaming-parser.js) y [React](https://es.react.dev/)  
 - **Despliegue**: GitHub Pages, cualquier hosting estático
 - **Características**: MQA y validación SHACL completas, visualización, sin backend requerido
@@ -83,7 +83,7 @@ El proyecto consta de los siguientes componentes principales:
 
 ### **Versión Estática** (Inicio rápido)
 
-Usando https://mjanez.github.io/metadata-quality-react/ 
+Usando https://metadata-quality.mjanez.dev/ 
 
 **Características**: Validación completa de metadatos, comprobación de conformidad SHACL con shapes oficiales, sin backend requerido.
 
