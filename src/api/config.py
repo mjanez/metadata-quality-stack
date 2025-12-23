@@ -14,7 +14,6 @@ ALLOW_INSECURE_URLS = os.environ.get('ALLOW_INSECURE_URLS', 'True').lower() in [
 # Base path for local resources
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCS_DIR = os.path.join(os.path.dirname(BASE_DIR), "docs")
-SHACL_DIR = os.path.join(DOCS_DIR, "shacl")
 VOCAB_DIR = os.path.join(DOCS_DIR, "vocabularies")
 
 # Maximum scores per dimension according to MQA methodology
@@ -55,128 +54,72 @@ class SHACLLevel:
     LEVEL_2 = 2  # Base + vocabularies
     LEVEL_3 = 3  # Base + vocabularies + recommended properties
 
-# SHACL shapes for validation - local files
+# SHACL shapes for validation - remote URLs
 DCAT_AP_VERSION = "2.1.1"  # Default version to use (DCAT-AP-ES is based on DCAT-AP 2.1.1)
 DCAT_AP_ES_VERSION = "1.0.0"  # Default version to use
 NTI_RISP_VERSION = "1.0.0"  # Default version to use
 
-# DCAT-AP SHACL files by level - actualizado para incluir todos los archivos
+# DCAT-AP SHACL files by level - using remote URLs
 DCAT_AP_SHACL_FILES = {
     SHACLLevel.LEVEL_1: [
-        os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_shapes.ttl"),
-        os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_imports.ttl"),
-        os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_range.ttl"),
-        os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_deprecateduris.ttl")
+        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_shapes.ttl",
+        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_imports.ttl",
+        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_range.ttl",
+        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_deprecateduris.ttl"
     ],
     SHACLLevel.LEVEL_2: [
-        os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_shapes.ttl"),
-        os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_imports.ttl"),
-        os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_range.ttl"),
-        os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_deprecateduris.ttl"),
-        os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_mdr-vocabularies.shape.ttl"),
-        os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_mdr_imports.ttl")
+        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_shapes.ttl",
+        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_imports.ttl",
+        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_range.ttl",
+        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_deprecateduris.ttl",
+        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_mdr-vocabularies.shape.ttl",
+        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_mdr_imports.ttl"
     ],
     SHACLLevel.LEVEL_3: [
-        os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_shapes.ttl"),
-        os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_imports.ttl"),
-        os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_range.ttl"),
-        os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_deprecateduris.ttl"),
-        os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_mdr-vocabularies.shape.ttl"),
-        os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_mdr_imports.ttl"),
-        os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_shapes_recommended.ttl")
+        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_shapes.ttl",
+        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_imports.ttl",
+        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_range.ttl",
+        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_deprecateduris.ttl",
+        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_mdr-vocabularies.shape.ttl",
+        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_mdr_imports.ttl",
+        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_shapes_recommended.ttl"
     ]
 }
 
-# DCAT-AP-ES SHACL files (all are validated together)
+# DCAT-AP-ES SHACL files (all are validated together) - using remote URLs
 DCAT_AP_ES_SHACL_FILES = [
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "shacl_catalog_shape.ttl"),
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "shacl_common_shapes.ttl"),
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "shacl_dataservice_shape.ttl"),
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "shacl_dataset_shape.ttl"),
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "shacl_distribution_shape.ttl"),
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "shacl_mdr-vocabularies.shape.ttl")
+    f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/{DCAT_AP_ES_VERSION}/shacl_imports.ttl",
+    f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/{DCAT_AP_ES_VERSION}/shacl_mdr_imports.ttl",
+    f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/{DCAT_AP_ES_VERSION}/shacl_mdr-vocabularies.shape.ttl",
+    f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/{DCAT_AP_ES_VERSION}/shacl_common_shapes.ttl",
+    f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/{DCAT_AP_ES_VERSION}/shacl_catalog_shape.ttl",
+    f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/{DCAT_AP_ES_VERSION}/shacl_dataservice_shape.ttl",
+    f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/{DCAT_AP_ES_VERSION}/shacl_dataset_shape.ttl",
+    f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/{DCAT_AP_ES_VERSION}/shacl_distribution_shape.ttl"
 ]
 
-# High Value Dataset SHACL files
+# High Value Dataset SHACL files - using remote URLs
 DCAT_AP_ES_HVD_SHACL_FILES = [
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "hvd", "shacl_common_hvd_shapes.ttl"),
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "hvd", "shacl_dataservice_hvd_shape.ttl"),
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "hvd", "shacl_dataset_hvd_shape.ttl"),
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "hvd", "shacl_distribution_hvd_shape.ttl")
+    f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/{DCAT_AP_ES_VERSION}/hvd/shacl_common_hvd_shapes.ttl",
+    f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/{DCAT_AP_ES_VERSION}/hvd/shacl_dataservice_hvd_shape.ttl",
+    f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/{DCAT_AP_ES_VERSION}/hvd/shacl_dataset_hvd_shape.ttl",
+    f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/{DCAT_AP_ES_VERSION}/hvd/shacl_distribution_hvd_shape.ttl"
 ]
 
+# NTI-RISP SHACL files - using remote URLs  
 NTI_RISP_SHACL_FILES = [
-    os.path.join(SHACL_DIR, "nti-risp", NTI_RISP_VERSION, "shacl_catalog_shape.ttl"),
-    os.path.join(SHACL_DIR, "nti-risp", NTI_RISP_VERSION, "shacl_common_shapes.ttl"),
-    os.path.join(SHACL_DIR, "nti-risp", NTI_RISP_VERSION, "shacl_dataservice_shape.ttl"),
-    os.path.join(SHACL_DIR, "nti-risp", NTI_RISP_VERSION, "shacl_dataset_shape.ttl"),
-    os.path.join(SHACL_DIR, "nti-risp", NTI_RISP_VERSION, "shacl_distribution_shape.ttl"),
-    os.path.join(SHACL_DIR, "nti-risp", NTI_RISP_VERSION, "shacl_mdr-vocabularies.shape.ttl")
+    f"https://raw.githubusercontent.com/datosgobes/NTI-RISP/refs/heads/main/shacl/{NTI_RISP_VERSION}/shacl_catalog_shape.ttl",
+    f"https://raw.githubusercontent.com/datosgobes/NTI-RISP/refs/heads/main/shacl/{NTI_RISP_VERSION}/shacl_common_shapes.ttl",
+    f"https://raw.githubusercontent.com/datosgobes/NTI-RISP/refs/heads/main/shacl/{NTI_RISP_VERSION}/shacl_dataservice_shape.ttl",
+    f"https://raw.githubusercontent.com/datosgobes/NTI-RISP/refs/heads/main/shacl/{NTI_RISP_VERSION}/shacl_dataset_shape.ttl",
+    f"https://raw.githubusercontent.com/datosgobes/NTI-RISP/refs/heads/main/shacl/{NTI_RISP_VERSION}/shacl_distribution_shape.ttl",
+    f"https://raw.githubusercontent.com/datosgobes/NTI-RISP/refs/heads/main/shacl/{NTI_RISP_VERSION}/shacl_mdr-vocabularies.shape.ttl"
 ]
 
-# URLs para cada archivo SHACL
-SHACL_REMOTE_URLS = {
-    # DCAT-AP
-    os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_shapes.ttl"):
-        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_shapes.ttl",
-    os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_imports.ttl"):
-        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_imports.ttl",
-    os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_range.ttl"):
-        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_range.ttl",
-    os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_deprecateduris.ttl"):
-        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_deprecateduris.ttl",
-    os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_mdr-vocabularies.shape.ttl"):
-        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_mdr-vocabularies.shape.ttl",
-    os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_mdr_imports.ttl"):
-        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_mdr_imports.ttl",
-    os.path.join(SHACL_DIR, "dcat-ap", DCAT_AP_VERSION, f"dcat-ap_{DCAT_AP_VERSION}_shacl_shapes_recommended.ttl"):
-        f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_shapes_recommended.ttl",
-        
-    # DCAT-AP-ES
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "shacl_catalog_shape.ttl"):
-        f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/main/shacl/{DCAT_AP_ES_VERSION}/shacl_catalog_shape.ttl",
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "shacl_common_shapes.ttl"):
-        f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/main/shacl/{DCAT_AP_ES_VERSION}/shacl_common_shapes.ttl",
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "shacl_dataservice_shape.ttl"):
-        f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/main/shacl/{DCAT_AP_ES_VERSION}/shacl_dataservice_shape.ttl",
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "shacl_dataset_shape.ttl"):
-        f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/main/shacl/{DCAT_AP_ES_VERSION}/shacl_dataset_shape.ttl",
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "shacl_distribution_shape.ttl"):
-        f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/main/shacl/{DCAT_AP_ES_VERSION}/shacl_distribution_shape.ttl",
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "shacl_mdr-vocabularies.shape.ttl"):
-        f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/main/shacl/{DCAT_AP_ES_VERSION}/shacl_mdr-vocabularies.shape.ttl",
-    
-    # DCAT-AP-ES HVD
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "hvd", "shacl_common_hvd_shapes.ttl"):
-        f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/main/shacl/{DCAT_AP_ES_VERSION}/hvd/shacl_common_hvd_shapes.ttl",
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "hvd", "shacl_dataservice_hvd_shape.ttl"):
-        f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/main/shacl/{DCAT_AP_ES_VERSION}/hvd/shacl_dataservice_hvd_shape.ttl",
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "hvd", "shacl_dataset_hvd_shape.ttl"):
-        f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/main/shacl/{DCAT_AP_ES_VERSION}/hvd/shacl_dataset_hvd_shape.ttl",
-    os.path.join(SHACL_DIR, "dcat-ap-es", DCAT_AP_ES_VERSION, "hvd", "shacl_distribution_hvd_shape.ttl"):
-        f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/main/shacl/{DCAT_AP_ES_VERSION}/hvd/shacl_distribution_hvd_shape.ttl",
-    
-    # NTI-RISP
-    os.path.join(SHACL_DIR, "nti-risp", NTI_RISP_VERSION, "shacl_catalog_shape.ttl"):
-        f"https://raw.githubusercontent.com/datosgobes/NTI-RISP/main/shacl/{NTI_RISP_VERSION}/shacl_catalog_shape.ttl",
-    os.path.join(SHACL_DIR, "nti-risp", NTI_RISP_VERSION, "shacl_common_shapes.ttl"):
-        f"https://raw.githubusercontent.com/datosgobes/NTI-RISP/main/shacl/{NTI_RISP_VERSION}/shacl_common_shapes.ttl",
-    os.path.join(SHACL_DIR, "nti-risp", NTI_RISP_VERSION, "shacl_dataservice_shape.ttl"):
-        f"https://raw.githubusercontent.com/datosgobes/NTI-RISP/main/shacl/{NTI_RISP_VERSION}/shacl_dataservice_shape.ttl",
-    os.path.join(SHACL_DIR, "nti-risp", NTI_RISP_VERSION, "shacl_dataset_shape.ttl"):
-        f"https://raw.githubusercontent.com/datosgobes/NTI-RISP/main/shacl/{NTI_RISP_VERSION}/shacl_dataset_shape.ttl",
-    os.path.join(SHACL_DIR, "nti-risp", NTI_RISP_VERSION, "shacl_distribution_shape.ttl"):
-        f"https://raw.githubusercontent.com/datosgobes/NTI-RISP/main/shacl/{NTI_RISP_VERSION}/shacl_distribution_shape.ttl",
-    os.path.join(SHACL_DIR, "nti-risp", NTI_RISP_VERSION, "shacl_mdr-vocabularies.shape.ttl"):
-        f"https://raw.githubusercontent.com/datosgobes/NTI-RISP/main/shacl/{NTI_RISP_VERSION}/shacl_mdr-vocabularies.shape.ttl",
-}
-
-# Configuración para la actualización de los archivos SHACL
-SHACL_UPDATE_CONFIG = {
-    "update_interval_days": 7,  # Verificar actualizaciones cada 7 días
-    "force_update": False,      # No forzar actualización en cada inicio
-    "timeout": 10,              # Timeout para las solicitudes HTTP en segundos
-}
+# Fallback URLs for SHACL shapes (used if primary URLs fail)
+DCAT_AP_SHAPES_URL = f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_shapes.ttl"
+DCAT_AP_ES_SHAPES_URL = f"https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/refs/heads/main/shacl/{DCAT_AP_ES_VERSION}/shacl_common_shapes.ttl"
+NTI_RISP_SHAPES_URL = f"https://raw.githubusercontent.com/datosgobes/NTI-RISP/refs/heads/main/shacl/{NTI_RISP_VERSION}/shacl_common_shapes.ttl"
 
 # MQA vocabularies
 MQA_VOCABS = {
@@ -193,12 +136,6 @@ MQA_VOCABS = {
     # access rights: https://gitlab.com/dataeuropa/vocabularies/-/blob/master/piveau-access-rights.rdf
     "access_rights": os.path.join(VOCAB_DIR, "access_rights.csv"),
 }
-
-
-# Fallback URLs for SHACL shapes if local files are not available
-DCAT_AP_SHAPES_URL = f"https://raw.githubusercontent.com/SEMICeu/DCAT-AP/master/releases/{DCAT_AP_VERSION}/dcat-ap_{DCAT_AP_VERSION}_shacl_shapes.ttl"
-DCAT_AP_ES_SHAPES_URL = "https://raw.githubusercontent.com/datosgobes/DCAT-AP-ES/main/shacl/1.0.0/shacl_common_shapes.ttl"
-NTI_RISP_SHAPES_URL = "https://raw.githubusercontent.com/datosgobes/NTI-RISP/main/shacl/1.0.0/shacl_common_shapes.ttl"
 
 # Default metrics based on MQA methodology
 DEFAULT_METRICS = [

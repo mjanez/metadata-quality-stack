@@ -1,5 +1,5 @@
 # Metadata Quality Stack
-[![ES](https://img.shields.io/badge/lang-ES-yellow.svg)](README.es.md) [![EN](https://img.shields.io/badge/lang-EN-blue.svg)](README.md) [![Static Demo](https://img.shields.io/badge/demo-GitHub%20Pages-green.svg)](https://mjanez.github.io/metadata-quality-react/)
+[![ES](https://img.shields.io/badge/lang-ES-yellow.svg)](README.es.md) [![EN](https://img.shields.io/badge/lang-EN-blue.svg)](README.md) [![Static Demo](https://img.shields.io/badge/demo-GitHub%20Pages-green.svg)](https://metadata-quality.mjanez.dev/)
 
 A comprehensive toolkit for analyzing the quality of open data metadata. Based on the European Data Portal's Metadata Quality Assessment ([MQA](https://data.europa.eu/mqa/methodology?locale=en)) methodology and [SHACL validation](https://www.w3.org/TR/shacl/) for [DCAT-AP](https://semiceu.github.io/DCAT-AP/), [DCAT-AP-ES](https://datosgobes.github.io/DCAT-AP-ES/) and [NTI-RISP (2013)](https://datosgobes.github.io/NTI-RISP/). profiles.
 
@@ -9,7 +9,7 @@ A comprehensive toolkit for analyzing the quality of open data metadata. Based o
 Try the simplified browser version (**no installation needed**), more info at [`mjanez/metadata-quality-react/README.md`](https://github.com/mjanez/metadata-quality-react?tab=readme-ov-file#metadata-quality-assessment-tool---react-app)
 
 > [!TIP]
-> **Live Demo**: [`mjanez.github.io/metadata-quality-react/`](https://mjanez.github.io/metadata-quality-react/)
+> **Live Demo**: [`metadata-quality.mjanez.dev/`](https://metadata-quality.mjanez.dev/)
 ><br> This edition runs entirely client-side and includes the core MQA and SHACL validator for instant metadata quality checks in your browser.
 
 ### **Full docker deployment** (Recommended for more complex validations)
@@ -27,7 +27,7 @@ This tool helps data publishers and consumers evaluate and improve the quality o
 ## Features
 
 ### **Two Deployment Options**
-1. **[Static Version](https://mjanez.github.io/metadata-quality-react/)** - GitHub Pages compatible, no backend required
+1. **[Static Version](https://metadata-quality.mjanez.dev/)** - GitHub Pages compatible, no backend required
 2. **[Docker Version](#installation)** - Full-featured with database and API
 
 ### **Core Capabilities**
@@ -63,7 +63,7 @@ This tool helps data publishers and consumers evaluate and improve the quality o
 ### **Deployment Options**
 
 #### **1. Static Version** (Client-Side Only)
-- **Location**: [https://mjanez.github.io/metadata-quality-react/](https://mjanez.github.io/metadata-quality-react/) directory
+- **Location**: [https://metadata-quality.mjanez.dev/](https://metadata-quality.mjanez.dev/) directory
 - **Technology**: HTML, CSS, TypeScript with [`N3.js`](https://github.com/rdfjs/N3.js), [`shacl-engine`](https://github.com/rdf-ext/shacl-engine), [`rdfxml-streaming-parser.js`](https://github.com/rdfjs/rdfxml-streaming-parser.js) and [React](https://es.react.dev/)  
 - **Deployment**: GitHub Pages, any static hosting
 - **Features**: Full MQA and SHACL validation, visualization, no backend required
@@ -84,7 +84,7 @@ The project consists of these main components:
 
 ### **Static Version** (Quick Start)
 
-Using https://mjanez.github.io/metadata-quality-react/ 
+Using https://metadata-quality.mjanez.dev/ 
 
 **Features**: Full metadata validation, SHACL compliance checking with official shapes, no backend required.
 
@@ -292,6 +292,37 @@ CHECKER_DEFINITIONS.update({
 NTI_RISP_SPECIFIC_METRICS.append(
     {"id": "dct_format_nonproprietary_nti", "dimension": "interoperability", "weight": 25}
 )
+```
+
+## SHACL Validation
+
+The API now uses **remote SHACL files** directly from official repositories, ensuring you always have the latest validation rules:
+
+### Automatic Remote Loading
+- **DCAT-AP**: Files loaded from [SEMICeu/DCAT-AP](https://github.com/SEMICeu/DCAT-AP) GitHub repository
+- **DCAT-AP-ES**: Files loaded from [datosgobes/DCAT-AP-ES](https://github.com/datosgobes/DCAT-AP-ES) GitHub repository  
+- **NTI-RISP**: Files loaded from [datosgobes/NTI-RISP](https://github.com/datosgobes/NTI-RISP) GitHub repository
+
+### Benefits
+- ✅ **Always up-to-date**: Latest SHACL shapes automatically available
+- ✅ **No local maintenance**: No need to manually update SHACL files
+- ✅ **Reduced repository size**: No local SHACL files stored
+- ✅ **Official sources**: Direct from standards organizations
+
+### Configuration
+The SHACL URLs are configured in `src/api/config.py`:
+```python
+# DCAT-AP SHACL files by level - using remote URLs
+DCAT_AP_SHACL_FILES = {
+    SHACLLevel.LEVEL_1: [
+        "https://raw.githubusercontent.com/SEMICeu/DCAT-AP/refs/heads/master/releases/2.1.1/dcat-ap_2.1.1_shacl_shapes.ttl",
+        # ... more URLs
+    ]
+}
+```
+
+> [!NOTE]
+> The API includes fallback mechanisms in case remote URLs are temporarily unavailable.
 
 ## Update SSL Certificate
 To update the local SSL certificate, follow these steps:

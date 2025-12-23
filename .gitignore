@@ -1,6 +1,18 @@
 docs/info.md
 .env
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
 # Dependencies
 node_modules/
 */node_modules/

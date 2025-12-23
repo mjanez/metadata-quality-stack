@@ -19,7 +19,6 @@ from pyshacl import validate
 from io import BytesIO, StringIO
 
 from .helpers import check_url_status
-from .shacl_updater import update_shacl_files
 from .converters import get_metric_label
 from .models import Rating, DimensionType
 from .config import (
@@ -28,6 +27,9 @@ from .config import (
     DCAT_AP_SHAPES_URL, DCAT_AP_ES_SHAPES_URL, NTI_RISP_SHAPES_URL, DEFAULT_METRICS, SSL_VERIFY, ALLOW_INSECURE_URLS, MQA_VOCABS, METRICS_BY_PROFILE
 )
 
+# Import the SHACL cache
+from .shacl_cache import SHACLCache
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -35,7 +37,50 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Create global cache instance
+shacl_cache = SHACLCache()
+
 VOCAB_CACHE = {}
+
+def safe_rdf_parse(graph: Graph, source, format_hint: str = None, public_id: str = None):
+    """
+    Safely parse RDF data with robust error handling for malformed literals.
+    
+    Args:
+        graph: RDFlib Graph to parse into
+        source: URL string or data to parse
+        format_hint: Format hint for parsing
+        public_id: Public ID for parsing
+    
+    Returns:
+        True if parsing succeeded, False otherwise
+    """
+    import warnings
+    
+    # Temporarily suppress warnings about malformed literals
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning, module="rdflib.term")
+        warnings.filterwarnings("ignore", message=".*Invalid isoformat string.*")
+        
+        try:
+            if isinstance(source, str) and (source.startswith('http://') or source.startswith('https://')):
+                # Parse from URL
+                graph.parse(location=source, format=format_hint, publicID=public_id)
+            else:
+                # Parse from data
+                graph.parse(data=source, format=format_hint, publicID=public_id)
+            return True
+        except ValueError as ve:
+            if "Invalid isoformat string" in str(ve):
+                logger.warning(f"Malformed date literals detected in RDF data. Continuing with available valid data.")
+                # RDFlib should continue parsing and load valid triples
+                return True
+            else:
+                logger.error(f"RDF parsing error: {str(ve)}")
+                return False
+        except Exception as e:
+            logger.error(f"Unexpected error during RDF parsing: {str(e)}")
+            return False
 
 # Calcular la puntuación máxima posible para cada perfil
 def calculate_max_score(metrics):
@@ -431,18 +476,16 @@ class VocabularyComplianceChecker(MetricChecker):
 class SHACLComplianceChecker(MetricChecker):
     """Check compliance with SHACL shapes."""
     
-    def __init__(self, shacl_files: List[str], fallback_url: str = None, auto_update: bool = True):
+    def __init__(self, shacl_urls: List[str], fallback_url: str = None):
         """
-        Initialize the checker with SHACL shapes files.
+        Initialize the checker with SHACL shapes URLs.
         
         Args:
-            shacl_files: List of paths to SHACL shapes files
-            fallback_url: URL to use if local files are not available
-            auto_update: Whether to automatically update SHACL files
+            shacl_urls: List of URLs to SHACL shapes files
+            fallback_url: URL to use if main URLs are not available
         """
-        self.shacl_files = shacl_files
+        self.shacl_urls = shacl_urls
         self.fallback_url = fallback_url
-        self.auto_update = auto_update
     
     def check(self, g: Graph, resources: List[URIRef], context: Dict[str, Any] = None) -> Tuple[int, int]:
         """
@@ -456,39 +499,39 @@ class SHACLComplianceChecker(MetricChecker):
         Returns:
             Tuple of (1 or 0 for compliance, 1 for the total)
         """
-        # Update SHACL files if auto-update is enabled
-        if self.auto_update:
-            try:
-                update_shacl_files()
-            except Exception as e:
-                logger.warning(f"Failed to update SHACL files: {e}")
-        
         try:
-            # Load all SHACL shapes into a single graph
+            # Load all SHACL shapes into a single graph using cache
             shapes_graph = Graph()
+            shapes_loaded = False
             
-            # Try to load local files first
-            local_files_loaded = False
-            
-            for shacl_file in self.shacl_files:
-                if os.path.exists(shacl_file):
-                    try:
-                        shapes_graph.parse(shacl_file, format="turtle")
-                        logger.info(f"Successfully loaded SHACL shapes from {shacl_file}")
-                        local_files_loaded = True
-                    except Exception as e:
-                        logger.warning(f"Error loading SHACL shapes from {shacl_file}: {str(e)}")
-            
-            # If local files could not be loaded, try the fallback URL
-            if not local_files_loaded and self.fallback_url:
+            # Try to load from primary URLs using cache
+            for shacl_url in self.shacl_urls:
                 try:
-                    shapes_graph.parse(self.fallback_url, format="turtle")
-                    logger.info(f"Successfully loaded SHACL shapes from fallback URL {self.fallback_url}")
-                    local_files_loaded = True
+                    # Use cache to get SHACL content
+                    shacl_content = shacl_cache.get_shacl(shacl_url)
+                    if shacl_content:
+                        shapes_graph.parse(data=shacl_content, format="turtle")
+                        logger.info(f"Successfully loaded SHACL shapes from cached {shacl_url}")
+                        shapes_loaded = True
+                    else:
+                        logger.warning(f"No content available from cache for {shacl_url}")
+                except Exception as e:
+                    logger.warning(f"Error loading SHACL shapes from {shacl_url}: {str(e)}")
+            
+            # If primary URLs could not be loaded, try the fallback URL
+            if not shapes_loaded and self.fallback_url:
+                try:
+                    shacl_content = shacl_cache.get_shacl(self.fallback_url)
+                    if shacl_content:
+                        shapes_graph.parse(data=shacl_content, format="turtle")
+                        logger.info(f"Successfully loaded SHACL shapes from cached fallback URL {self.fallback_url}")
+                        shapes_loaded = True
+                    else:
+                        logger.warning(f"No content available from cache for fallback URL {self.fallback_url}")
                 except Exception as e:
                     logger.error(f"Error loading SHACL shapes from fallback URL {self.fallback_url}: {str(e)}")
             
-            if not local_files_loaded:
+            if not shapes_loaded:
                 logger.error("Could not load any SHACL shapes")
                 return (0, 1)  # No conformidad si no se pueden cargar las formas SHACL
             
@@ -515,17 +558,17 @@ class SHACLComplianceChecker(MetricChecker):
 class MultiLevelSHACLComplianceChecker(MetricChecker):
     """Check compliance with multiple levels of SHACL validation."""
     
-    def __init__(self, shacl_files_by_level: Dict[int, List[str]], 
+    def __init__(self, shacl_urls_by_level: Dict[int, List[str]], 
                  fallback_url: str = None, level: int = SHACLLevel.LEVEL_1):
         """
-        Initialize the checker with SHACL shapes files by level.
+        Initialize the checker with SHACL shapes URLs by level.
         
         Args:
-            shacl_files_by_level: Dictionary mapping levels to lists of SHACL files
-            fallback_url: URL to use if local files are not available
+            shacl_urls_by_level: Dictionary mapping levels to lists of SHACL URL files
+            fallback_url: URL to use if main URLs are not available
             level: The validation level to use (1-3)
         """
-        self.shacl_files_by_level = shacl_files_by_level
+        self.shacl_urls_by_level = shacl_urls_by_level
         self.fallback_url = fallback_url
         self.level = level
     
@@ -544,12 +587,12 @@ class MultiLevelSHACLComplianceChecker(MetricChecker):
         # Get the validation level from context if provided
         level = context.get("shacl_level", self.level) if context else self.level
         
-        # Get the SHACL files for this level
-        shacl_files = self.shacl_files_by_level.get(level, [])
+        # Get the SHACL URLs for this level
+        shacl_urls = self.shacl_urls_by_level.get(level, [])
         
-        # Create a standard SHACL checker with these files
+        # Create a standard SHACL checker with these URLs
         checker = SHACLComplianceChecker(
-            shacl_files=shacl_files,
+            shacl_urls=shacl_urls,
             fallback_url=self.fallback_url
         )
         
@@ -852,12 +895,11 @@ def load_graph(url: str) -> Graph:
                     urllib.request.HTTPSHandler(context=ssl_ctx)
                 )
                 urllib.request.install_opener(opener)
-                
-                # Parse the URL without SSL verification
-                g.parse(location=url, format=format_guess, publicID=url)
-            else:
-                # Parse with standard SSL verification
-                g.parse(location=url, format=format_guess, publicID=url)
+            
+            # Use safe parsing function
+            success = safe_rdf_parse(g, url, format_guess, url)
+            if not success:
+                raise Exception("Safe parsing failed")
                 
         except Exception as parse_error:
             logger.warning(f"Direct parsing failed: {str(parse_error)}, trying manual request")
@@ -865,10 +907,13 @@ def load_graph(url: str) -> Graph:
             response = requests.get(url, verify=verify_ssl, timeout=10)
             response.raise_for_status()
             
-            # Try to parse the content directly
-            g.parse(data=response.content, format=format_guess, publicID=url)
+            # Try to parse the content directly using safe parsing
+            success = safe_rdf_parse(g, response.content, format_guess, url)
+            if not success:
+                raise Exception(f"Failed to parse RDF content from {url}")
         
         logger.info(f"Successfully loaded graph with {len(g)} triples from {url}")
+        
         return g
         
     except Exception as e:
